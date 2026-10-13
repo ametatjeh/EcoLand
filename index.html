@@ -6,15 +6,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="Virtual Tour 360° Kawasan Penanaman Pohon ±2 Hektare Aceh — Jelajahi panorama interaktif berbasis Marzipano dan pelajari program restorasi ekosistem."
+      content="Eco Land — Virtual Tour 360° Kawasan Penanaman Pohon ±2 Hektare Aceh. Jelajahi panorama interaktif berbasis Marzipano dan pelajari program restorasi ekosistem."
     />
     <meta name="theme-color" content="#0c1410" />
-    <title>Virtual Tour Kawasan Penanaman Pohon ±2 Hektare | IKHW Aceh</title>
+    <title>Eco Land — Virtual Tour Kawasan Penanaman Pohon ±2 Hektare | IKHW Aceh</title>
     <link rel="canonical" href="https://ikhw.org/" />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://ikhw.org/" />
-    <meta property="og:title" content="Virtual Tour Kawasan Penanaman Pohon ±2 Hektare | IKHW Aceh" />
-    <meta property="og:description" content="Virtual Tour 360° Kawasan Penanaman Pohon ±2 Hektare Aceh — Jelajahi panorama interaktif berbasis Marzipano dan pelajari program restorasi ekosistem." />
+    <meta property="og:title" content="Eco Land — Virtual Tour Kawasan Penanaman Pohon ±2 Hektare | IKHW Aceh" />
+    <meta property="og:description" content="Eco Land — Virtual Tour 360° Kawasan Penanaman Pohon ±2 Hektare Aceh. Jelajahi panorama interaktif berbasis Marzipano dan pelajari program restorasi ekosistem." />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:domain" content="ikhw.org" />
     <meta name="twitter:url" content="https://ikhw.org/" />
@@ -38,8 +38,8 @@
             </svg>
           </div>
           <div class="brand-info">
-            <span class="brand-title" id="nav-brand-title">Kawasan Penanaman Pohon</span>
-            <span class="brand-subtitle" id="nav-brand-sub">IKHW Aceh</span>
+            <span class="brand-title" id="nav-brand-title">Eco Land</span>
+            <span class="brand-subtitle" id="nav-brand-sub">Virtual Tour 360° &bull; IKHW Aceh</span>
           </div>
         </div>
 
@@ -88,7 +88,7 @@
                 🌱 Inisiatif Pemulihan Lahan & Silvikultur
               </div>
               <h1 class="hero-title" id="hero-title">
-                Virtual Tour 360°<br />Kawasan Penanaman Pohon
+                Eco Land<br /><span style="display: block; font-size: 24px; font-weight: 600; opacity: 0.92; margin-top: 6px;">Virtual Tour 360° Kawasan Penanaman Pohon</span>
               </h1>
               <p class="hero-subtitle" id="hero-desc">
                 Jelajahi lanskap pemulihan ekosistem melalui panorama 360° interaktif berbasis Marzipano, amati pertumbuhan bibit pohon kayu keras dan pohon buah hutan pakan satwa dari berbagai sudut pandang lapangan.
@@ -406,6 +406,7 @@
                 <div class="info-sidebar-card">
                   <h4>Identitas & Pengelola</h4>
                   <ul>
+                    <li><strong>Nama Aplikasi:</strong> Eco Land</li>
                     <li><strong>Inisiator:</strong> IKHW Aceh</li>
                     <li><strong>Domain Publikasi:</strong> ikhw.org</li>
                     <li><strong>Luas Kawasan:</strong> ±2 Hektare (Deskriptif)</li>
@@ -473,12 +474,12 @@
                     </svg>
                   </div>
                   <div>
-                    <h3 class="footer-brand-title">Kawasan Penanaman Pohon</h3>
-                    <span class="footer-brand-sub">IKHW Aceh &bull; Restorasi Silvikultur</span>
+                    <h3 class="footer-brand-title">Eco Land</h3>
+                    <span class="footer-brand-sub">Kawasan Penanaman Pohon &bull; IKHW Aceh</span>
                   </div>
                 </div>
                 <p class="footer-brand-desc">
-                  Sistem pemantauan konservasi vegetasi alami dan penanaman pohon seluas &plusmn;2 Hektare berbasis Virtual Tour 360&deg; Marzipano dan pendataan geospasial terbuka.
+                  Platform pemantauan konservasi vegetasi alami dan penanaman pohon seluas &plusmn;2 Hektare berbasis Virtual Tour 360&deg; Marzipano dan pendataan geospasial terbuka.
                 </p>
                 <div class="footer-status-pill">
                   <span class="status-pulse-dot"></span>
@@ -547,7 +548,7 @@
             <!-- Bottom Copyright Bar -->
             <div class="footer-bottom-bar">
               <div class="footer-copyright">
-                &copy; 2026 <strong>Kawasan Penanaman Pohon &plusmn;2 Hektare</strong> &bull; IKHW Aceh. Seluruh hak cipta dilindungi undang-undang.
+                &copy; 2026 <strong>Eco Land &plusmn;2 Hektare</strong> &bull; IKHW Aceh. Seluruh hak cipta dilindungi undang-undang.
               </div>
               <div class="footer-bottom-meta">
                 <span class="meta-item">Ekosistem Restorasi Hutan Tropis</span>
@@ -575,8 +576,8 @@
                     🌱
                   </div>
                   <div class="sidebar-brand-text truncate">
-                    <h2 class="text-sm font-bold tracking-tight text-white leading-tight">Admin IKHW</h2>
-                    <p class="text-[11px] text-emerald-400 font-medium">Kawasan ±2 Ha Aceh</p>
+                    <h2 class="text-sm font-bold tracking-tight text-white leading-tight">Eco Land Admin</h2>
+                    <p class="text-[11px] text-emerald-400 font-medium">IKHW Aceh &bull; Kawasan &plusmn;2 Ha</p>
                   </div>
                 </div>
                 <!-- Desktop minimize/expand button in sidebar header -->
@@ -1038,7 +1039,7 @@
             <div>
               <h3 class="modal-header-title">Login Administrator</h3>
               <p class="modal-header-sub">
-                Akses Manajemen Virtual Tour Marzipano
+                Akses Manajemen Eco Land
               </p>
             </div>
           </div>

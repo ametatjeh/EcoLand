@@ -169,10 +169,10 @@ function populateProjectIdentity() {
   const heroDesc = document.getElementById('hero-desc');
   const statLuas = document.getElementById('stat-luas');
 
-  if (brandTitle) brandTitle.textContent = projectConfig.namaProyek;
-  if (brandSub) brandSub.textContent = `${projectConfig.organisasi} • Marzipano 360°`;
+  if (brandTitle) brandTitle.textContent = projectConfig.namaAplikasi || 'Eco Land';
+  if (brandSub) brandSub.textContent = `Virtual Tour 360° • ${projectConfig.organisasi}`;
   if (heroTitle) {
-    heroTitle.innerHTML = `Virtual Tour 360°<br />${projectConfig.namaProyek}`;
+    heroTitle.innerHTML = `Eco Land<br /><span style="display: block; font-size: 24px; font-weight: 600; opacity: 0.92; margin-top: 6px;">Virtual Tour 360° ${projectConfig.namaProyek}</span>`;
   }
   if (heroDesc) heroDesc.textContent = projectConfig.deskripsi;
   if (statLuas) statLuas.textContent = projectConfig.luasDeskriptif;

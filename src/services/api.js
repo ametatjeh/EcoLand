@@ -171,7 +171,7 @@ export const ApiService = {
       exportType: 'marzipano_hotspots_backup',
       version: '1.1.0',
       exportedAt: new Date().toISOString(),
-      project: 'Virtual Tour Kawasan Penanaman Pohon ±2 Hektare Aceh',
+      project: 'Eco Land — Kawasan Penanaman Pohon ±2 Hektare Aceh',
       totalHotspots: hotspots.length,
       data: {
         version: '1.1.0',

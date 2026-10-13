@@ -80,7 +80,7 @@ export async function initSettingsModule({ scenes = [], onSettingsUpdated } = {}
             </div>
             <div class="form-group">
               <label for="set-app-title" style="color: #fff; font-size: 13px;">Judul Sistem / Header:</label>
-              <input type="text" id="set-app-title" class="form-input" value="${escapeHtml(serverSettings.app_title || 'Sistem Informasi Kawasan Penanaman Pohon & Virtual Tour Marzipano')}" />
+              <input type="text" id="set-app-title" class="form-input" value="${escapeHtml(serverSettings.app_title || 'Eco Land — Kawasan Penanaman Pohon & Virtual Tour 360°')}" />
             </div>
           </div>
 

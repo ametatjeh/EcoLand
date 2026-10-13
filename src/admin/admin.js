@@ -1,5 +1,5 @@
 /**
- * Admin Panel Orchestrator (Manajemen Virtual Tour Marzipano)
+ * Admin Panel Orchestrator (Manajemen Eco Land)
  * Mengelola seluruh Modul Admin:
  * A. Dashboard (Ringkasan, Statistik Penanaman, Aktivitas Terbaru)
  * B. Manajemen Kawasan (Daftar, Tambah, Detail 8 Tab, Galeri)

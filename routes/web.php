@@ -42,7 +42,7 @@ Route::get('/', function () {
 
     return response()->json([
         'status' => 'online',
-        'application' => 'Virtual Tour Marzipano API Backend',
+        'application' => 'Eco Land API Backend',
         'version' => '1.0.0',
         'framework' => 'Laravel ' . app()->version(),
     ]);

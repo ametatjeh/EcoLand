@@ -1,7 +1,7 @@
 {
     "name": "virtualtour/admin-backend",
     "type": "project",
-    "description": "Virtual Tour Marzipano Administration Backend - Laravel 13",
+    "description": "Eco Land Administration Backend - Laravel 13",
     "keywords": ["laravel", "marzipano", "virtual-tour", "360"],
     "license": "MIT",
     "require": {

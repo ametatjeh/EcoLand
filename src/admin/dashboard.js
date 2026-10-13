@@ -140,7 +140,7 @@ export async function renderDashboard({
     stage3Missing = !hasSurveys ? 'Survei sensus tanaman belum dicatat.' : 'Belum ada tindakan penyulaman bibit mati.';
   }
 
-  // Tahap 4: Dokumentasi Digital (Virtual Tour Marzipano)
+  // Tahap 4: Dokumentasi Digital (Virtual Tour 360° Eco Land)
   const hasScenes = totalScenes > 0;
   const hasPublishedHotspots = publishedHotspots.length > 0;
   let stage4Status = 'Belum Dimulai';
@@ -192,7 +192,7 @@ export async function renderDashboard({
     <!-- Top Action Banner -->
     <div class="admin-dashboard-hero" style="margin-bottom: 24px;">
       <div class="admin-hero-content">
-        <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 6px;">Ringkasan Sistem Informasi Virtual Tour & Restorasi Kawasan</h2>
+        <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 6px;">Ringkasan Sistem Informasi Eco Land & Restorasi Kawasan</h2>
         <p style="color: var(--clr-text-muted); font-size: 13px; line-height: 1.5;">
           Pantau status kelengkapan 6 panorama Marzipano, integritas hotspot interaktif, dan statistik penanaman bibit pohon kawasan ±2 hektare secara aktual.
         </p>
@@ -490,7 +490,7 @@ export async function renderDashboard({
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
         </svg>
-        Pemeriksaan Integritas & Kesehatan Virtual Tour Marzipano
+        Pemeriksaan Integritas & Kesehatan Virtual Tour 360° Eco Land
       </h3>
 
       <div class="diagnostics-list">

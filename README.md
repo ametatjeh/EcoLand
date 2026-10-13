@@ -1,7 +1,7 @@
-# Virtual Tour 360°
+# Eco Land — Virtual Tour 360°
 
-Aplikasi virtual tour panorama 360° multi-lokasi berbasis **Marzipano** dan **Vite**.  
-Website statis yang dapat dijalankan di localhost maupun di-deploy ke hosting DirectAdmin.
+Aplikasi pemantauan restorasi kawasan dan virtual tour panorama 360° multi-lokasi berbasis **Marzipano**, **Tailwind CSS**, **Vite**, dan **Laravel 13**.  
+Website yang dapat dijalankan di localhost maupun di-deploy ke server hosting/VPS.
 
 ---
 
