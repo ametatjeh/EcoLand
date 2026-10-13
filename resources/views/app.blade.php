@@ -3,10 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
-    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
       content="Virtual Tour 360° Kawasan Penanaman Pohon ±2 Hektare Aceh — Jelajahi panorama interaktif berbasis Marzipano dan pelajari program restorasi ekosistem."
@@ -140,8 +137,8 @@
             </div>
 
             <!-- Kawasan Penanaman Aktif Terdaftar -->
-            <div class="section-header" style="margin-top: 36px;">
-              <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+            <div class="section-header section-header-spacing">
+              <div class="header-flex-between">
                 <div>
                   <span class="gsv-badge">Kawasan & Plot Penanaman</span>
                   <h2 class="section-title">Kawasan Penanaman Terdaftar</h2>
@@ -157,13 +154,13 @@
             </div>
 
             <!-- Peta Lokasi Titik Referensi Acuan (WGS84) di Beranda -->
-            <div class="ref-map-container-box" style="margin-top: 36px;">
+            <div class="ref-map-container-box section-header-spacing">
               <div class="ref-map-header">
                 <span>📍 Peta Lokasi Titik Referensi Acuan (WGS84)</span>
-                <span style="font-size: 11px; color: var(--clr-primary-light);">5.4818556° N, 95.5840917° E</span>
+                <span class="ref-coord-badge">5.4818556° N, 95.5840917° E</span>
               </div>
-              <div id="home-ref-map" style="width: 100%; height: 320px; border-radius: 8px;"></div>
-              <div style="font-size: 11px; color: var(--clr-text-dim); margin-top: 8px;">
+              <div id="home-ref-map" class="map-canvas-container"></div>
+              <div class="ref-map-info-text">
                 ℹ️ Peta menampilkan penanda lokasi titik acuan lapangan dan titik survei panorama 360°.
               </div>
             </div>
@@ -304,10 +301,10 @@
                 <div class="ref-map-container-box">
                   <div class="ref-map-header">
                     <span>📍 Peta Lokasi Titik Referensi Acuan (WGS84)</span>
-                    <span style="font-size: 11px; color: var(--clr-primary-light);">5.4818556° N, 95.5840917° E</span>
+                    <span class="ref-coord-badge">5.4818556° N, 95.5840917° E</span>
                   </div>
-                  <div id="gis-map" style="width: 100%; height: 320px; border-radius: 8px;"></div>
-                  <div style="font-size: 11px; color: var(--clr-text-dim); margin-top: 8px;">
+                  <div id="gis-map" class="map-canvas-container"></div>
+                  <div class="ref-map-info-text">
                     ℹ️ Peta menampilkan penanda lokasi titik acuan lapangan dan titik survei panorama 360°.
                   </div>
                 </div>
@@ -316,7 +313,7 @@
                 <p>
                   Plot penanaman dibagi menjadi dua blok silvikultur utama guna memaksimalkan kelangsungan hidup bibit pohon:
                 </p>
-                <ul style="margin: 0 0 16px 20px; color: var(--clr-text-muted); font-size: 13px; line-height: 1.6;">
+                <ul class="zonasi-list">
                   <li><strong>Blok A (Zona Endemik & Pelindung Erosi):</strong> Penanaman pohon kayu keras asli Aceh pada sisi lereng guna mengunci struktur tanah dan mencegah longsor.</li>
                   <li><strong>Blok B (Zona Pohon Buah Hutan & Pakan Satwa):</strong> Penanaman spesies pohon buah lokal guna memikat burung penyebar biji alami dan satwa kanopi.</li>
                   <li><strong>Zona Embung & Hidrologi:</strong> Pemanfaatan cekungan alami resapan air untuk menjamin pasokan penyiraman sepanjang musim kemarau.</li>
@@ -428,10 +425,10 @@
 
                 <div class="info-sidebar-card">
                   <h4>Kontak & Informasi</h4>
-                  <p style="font-size: 13px; color: var(--clr-text-muted); line-height: 1.5; margin-bottom: 8px;">
+                  <p class="contact-desc">
                     Untuk kerja sama konservasi dan informasi relawan penanaman pohon:
                   </p>
-                  <p style="font-size: 12px; color: var(--clr-primary-light);">
+                  <p class="contact-links">
                     ✉️ info@ikhw.org<br/>
                     🌐 ikhw.org
                   </p>
@@ -951,7 +948,7 @@
 
                           <div class="panel-section-box">
                             <div class="panel-box-header">
-                              <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                              <div class="panel-header-flex">
                                 <h3>Daftar Hotspot</h3>
                                 <span id="editor-filter-count" class="badge-count">16 Hotspot</span>
                               </div>
@@ -960,7 +957,7 @@
                             <div class="editor-filters-bar">
                               <input type="text" id="editor-search-input" class="form-input form-input-sm" placeholder="🔍 Cari judul atau target..." />
                               <div class="filter-row">
-                                <select id="editor-filter-scene" class="form-select form-select-sm">
+                                <select id="editor-filter-scene" class="form-select form-select-sm" title="Filter berdasarkan Scene" aria-label="Filter berdasarkan Scene">
                                   <option value="all">Semua Scene</option>
                                   <option value="0-1-pano_20261004_100402_6">Titik 1</option>
                                   <option value="1-2-pano_20261004_100722_7">Titik 2</option>
@@ -969,12 +966,12 @@
                                   <option value="4-32-pano_20261004_095509_0">Titik 5</option>
                                   <option value="5-5-pano_20261004_103130_17-2">Titik 6</option>
                                 </select>
-                                <select id="editor-filter-type" class="form-select form-select-sm">
+                                <select id="editor-filter-type" class="form-select form-select-sm" title="Filter berdasarkan Tipe Hotspot" aria-label="Filter berdasarkan Tipe Hotspot">
                                   <option value="all">Semua Tipe</option>
                                   <option value="link">🧭 Navigasi</option>
                                   <option value="info">ℹ️ Informasi</option>
                                 </select>
-                                <select id="editor-filter-status" class="form-select form-select-sm">
+                                <select id="editor-filter-status" class="form-select form-select-sm" title="Filter berdasarkan Status Hotspot" aria-label="Filter berdasarkan Status Hotspot">
                                   <option value="all">Semua Status</option>
                                   <option value="draft">Draft</option>
                                   <option value="published">Published</option>
@@ -1034,13 +1031,13 @@
 
     <!-- Admin Login Modal -->
     <div id="admin-login-modal" class="modal-overlay hidden">
-      <div class="modal-card" style="max-width: 420px;">
+      <div class="modal-card modal-card-admin-login">
         <div class="modal-header">
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <div style="font-size: 24px;">🔐</div>
+          <div class="modal-header-brand">
+            <div class="modal-header-icon">🔐</div>
             <div>
-              <h3 style="margin: 0; font-size: 17px;">Login Administrator</h3>
-              <p style="margin: 2px 0 0; font-size: 12px; color: var(--clr-text-muted);">
+              <h3 class="modal-header-title">Login Administrator</h3>
+              <p class="modal-header-sub">
                 Akses Manajemen Virtual Tour Marzipano
               </p>
             </div>
@@ -1054,7 +1051,7 @@
         </div>
 
         <form id="admin-login-form">
-          <div class="modal-body" style="display: flex; flex-direction: column; gap: 14px;">
+          <div class="modal-body modal-body-login">
             <div id="admin-login-error" class="login-error-alert hidden"></div>
 
             <div class="form-group">
@@ -1072,8 +1069,8 @@
             </div>
           </div>
 
-          <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 10px;">
-            <button type="submit" class="btn-primary-action" style="padding: 9px 20px;">
+          <div class="modal-footer modal-footer-login">
+            <button type="submit" class="btn-primary-action btn-login-submit">
               Masuk Administrator
             </button>
           </div>
@@ -1083,13 +1080,13 @@
 
     <!-- Modal Detail Kawasan Publik -->
     <div id="public-zone-modal" class="modal-overlay hidden">
-      <div class="modal-card" style="max-width: 720px; max-height: 90vh; overflow-y: auto;">
+      <div class="modal-card modal-card-public-zone">
         <div class="modal-header">
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <span style="font-size: 26px;">🌿</span>
+          <div class="modal-header-brand">
+            <span class="modal-header-icon-lg">🌿</span>
             <div>
-              <h3 id="public-zone-modal-title" style="margin: 0; font-size: 18px;">Detail Kawasan Penanaman</h3>
-              <p id="public-zone-modal-badge" style="margin: 2px 0 0; font-size: 12px; color: var(--clr-primary-light);"></p>
+              <h3 id="public-zone-modal-title" class="modal-header-title-lg">Detail Kawasan Penanaman</h3>
+              <p id="public-zone-modal-badge" class="modal-header-badge"></p>
             </div>
           </div>
           <button class="icon-btn btn-close-modal" aria-label="Tutup">✕</button>
@@ -1097,7 +1094,7 @@
         <div class="modal-body" id="public-zone-modal-body">
           <!-- Populated dynamically -->
         </div>
-        <div class="modal-footer" style="display: flex; justify-content: flex-end;">
+        <div class="modal-footer modal-footer-right">
           <button type="button" class="btn-secondary-action btn-sm btn-close-modal">Tutup</button>
         </div>
       </div>
@@ -1107,10 +1104,10 @@
     <div id="ecozone-toast-container" class="ecozone-toast-container" role="status" aria-live="polite"></div>
 
     @if(session('success'))
-      <div id="laravel-flash-success" data-message="{{ session('success') }}" style="display:none;"></div>
+      <div id="laravel-flash-success" class="hidden" data-message="{{ session('success') }}"></div>
     @endif
     @if(session('error'))
-      <div id="laravel-flash-error" data-message="{{ session('error') }}" style="display:none;"></div>
+      <div id="laravel-flash-error" class="hidden" data-message="{{ session('error') }}"></div>
     @endif
 
     <!-- Main Module Script -->
