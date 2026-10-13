@@ -35,6 +35,14 @@ Route::get('/tree-species', [TreeSpeciesController::class, 'publicIndex']);
 Route::get('/tree-species/{id}', [TreeSpeciesController::class, 'publicShow']);
 Route::get('/settings/public', [AppSettingController::class, 'index']);
 
+// Ekspor Laporan CSV & Unduhan Template (Dapat diakses langsung via link browser maupun terautentikasi)
+Route::get('/admin/trees/reports/summary/csv', [TreeReportController::class, 'exportPlantingSummaryCsv']);
+Route::get('/admin/trees/reports/species/csv', [TreeReportController::class, 'exportSpeciesCsv']);
+Route::get('/admin/trees/reports/surveys/csv', [TreeReportController::class, 'exportSurveysCsv']);
+Route::get('/admin/trees/import/template/{type}', [TreeImportExportController::class, 'downloadTemplate']);
+Route::get('/admin/backup/export', [BackupController::class, 'export']);
+Route::get('/backup/export', [BackupController::class, 'export']);
+
 // Auth routes
 Route::post('/auth/login', [AuthController::class, 'login']);
 
@@ -46,7 +54,6 @@ Route::middleware('auth:sanctum')->group(function () {
     // Hotspot endpoints (matches frontend editor)
     Route::post('/hotspots', [HotspotController::class, 'saveOrBatch']);
     Route::post('/scenes/rename', [SceneController::class, 'rename']);
-    Route::get('/backup/export', [BackupController::class, 'export']);
     Route::post('/backup/import', [BackupController::class, 'import']);
 
     // Admin Hotspot, Scene, Zones, Trees, Settings Management
@@ -84,7 +91,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/zones/{id}/photos/reorder', [PlantingZoneController::class, 'reorderPhotos']);
 
         // 4. Cadangan & Pemulihan
-        Route::get('/backup/export', [BackupController::class, 'export']);
         Route::post('/backup/import', [BackupController::class, 'import']);
 
         // 5. Pengaturan & Identitas Organisasi
@@ -135,13 +141,7 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::put('/maintenance/{id}', [TreeMaintenanceController::class, 'update']);
             Route::delete('/maintenance/{id}', [TreeMaintenanceController::class, 'destroy']);
 
-            // Laporan Penanaman (Export CSV)
-            Route::get('/reports/summary/csv', [TreeReportController::class, 'exportPlantingSummaryCsv']);
-            Route::get('/reports/species/csv', [TreeReportController::class, 'exportSpeciesCsv']);
-            Route::get('/reports/surveys/csv', [TreeReportController::class, 'exportSurveysCsv']);
-
             // Impor dan Ekspor Data
-            Route::get('/import/template/{type}', [TreeImportExportController::class, 'downloadTemplate']);
             Route::post('/import/preview', [TreeImportExportController::class, 'previewImport']);
             Route::post('/import/execute', [TreeImportExportController::class, 'executeImport']);
         });
