@@ -432,9 +432,15 @@ body:has(#view-admin.active) #public-global-footer,
 .hero-subtitle {
   font-size: 15px;
   color: var(--clr-text-muted);
-  max-width: 720px;
+  width: 100%;
+  max-width: 100%;
   line-height: 1.6;
   margin-bottom: 32px;
+}
+
+.hero-section .hero-subtitle {
+  width: 100%;
+  max-width: 100%;
 }
 
 .hero-actions {

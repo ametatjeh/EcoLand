@@ -112,7 +112,7 @@
             <h1 class="hero-title" id="hero-title">
               Eco Land<br /><span class="hero-title-sub">Kawasan Penanaman Pohon</span>
             </h1>
-            <p class="hero-subtitle" id="hero-desc">
+            <p class="hero-subtitle" id="hero-desc" style="width: 100%; max-width: 100%;">
               Inisiatif restorasi bentang lahan dan pemulihan keanekaragaman hayati seluas kurang lebih 2 hektare. Program ini berfokus pada pengayaan tutupan vegetasi menggunakan spesies pohon kayu keras endemik Aceh dan pohon buah hutan pakan satwa.
             </p>
             <div class="hero-actions">
