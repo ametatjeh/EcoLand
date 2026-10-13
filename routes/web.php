@@ -31,8 +31,17 @@ Route::get('/', function () {
         }
     }
 
+    $publishedZones = \App\Models\PlantingZone::published()->get();
+    $totalAreaHa = (float) $publishedZones->sum(fn ($z) => $z->getAreaInHa());
+    $totalAreaM2 = (float) round($totalAreaHa * 10000, 2);
+    $initialAreaSummary = [
+        'total_area_ha' => round($totalAreaHa, 4),
+        'total_area_m2' => $totalAreaM2,
+        'total_zones' => $publishedZones->count(),
+    ];
+
     if (view()->exists('app')) {
-        return view('app');
+        return view('app', compact('initialAreaSummary'));
     }
 
     $indexPath = public_path('../index.html');

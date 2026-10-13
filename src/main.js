@@ -29,7 +29,7 @@ import { ApiService } from './services/api.js';
 import { initAdminPanel, openAdminView, handleAdminHashRoute } from './admin/admin.js';
 import { checkAdminAuth } from './admin/auth.js';
 import { initPublicTreeCatalog } from './katalog.js';
-import { initPublicZones } from './public_zones.js';
+import { initPublicZones, refreshPublicTotalArea } from './public_zones.js';
 import { initPublicGallery } from './gallery/publicGallery.js';
 import { initPublicTreeQr } from './treeQr.js';
 
@@ -173,8 +173,6 @@ async function populateProjectIdentity() {
   const heroTitle = document.getElementById('hero-title');
   const heroDesc = document.getElementById('hero-desc');
   const infoGeneralDesc = document.getElementById('info-general-desc');
-  const statLuas = document.getElementById('stat-luas');
-
   if (brandTitle) brandTitle.textContent = projectConfig.namaAplikasi || 'Eco Land';
   if (brandSub) brandSub.textContent = 'IKHW Aceh — Inisiatif Konservasi & Hutan Wakaf';
   if (heroTitle) {
@@ -182,7 +180,9 @@ async function populateProjectIdentity() {
   }
   if (heroDesc) heroDesc.textContent = projectConfig.deskripsi;
   if (infoGeneralDesc) infoGeneralDesc.textContent = projectConfig.deskripsi;
-  if (statLuas) statLuas.textContent = projectConfig.luasDeskriptif;
+
+  // Total luas kawasan dimuat secara dinamis dari database melalui refreshPublicTotalArea()
+  refreshPublicTotalArea();
 
   try {
     const res = await fetch('/api/settings/public');
@@ -362,6 +362,7 @@ function switchTab(tabId) {
 
   // Specific triggers
   if (tabId === 'beranda') {
+    refreshPublicTotalArea();
     initLocationMap('home-ref-map', (sceneId) => {
       window.location.hash = 'tour';
       switchScene(sceneId);
@@ -545,3 +546,8 @@ export async function switchScene(sceneId) {
     renderEmptyState(sceneData);
   }
 }
+
+// Re-fetch dynamic total area when admin modifies zones
+window.addEventListener('zones-updated', () => {
+  refreshPublicTotalArea();
+});

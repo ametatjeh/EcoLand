@@ -28,28 +28,28 @@ export async function initPublicGallery(containerId = 'public-gallery-container'
         <h1 class="hero-title" style="font-size: 32px; margin-bottom: 10px;">
           Galeri Foto Kawasan Restorasi
         </h1>
-        <p class="hero-subtitle text-slate-300 text-sm max-w-2xl mx-auto leading-relaxed" style="margin-bottom: 0;">
+        <p class="hero-subtitle text-slate-300 text-sm w-full max-w-full mx-auto leading-relaxed text-center" style="text-align: center; margin-bottom: 0; padding-left: 24px; padding-right: 24px; max-width: 100%;">
           Dokumentasi visual perkembangan kawasan pemulihan lahan &plusmn;2 hektare, pelaksanaan penanaman, pertumbuhan tutupan tajuk, dan monitoring berkala.
         </p>
       </div>
 
       <!-- Filters & Search Toolbar -->
-      <div class="gallery-filter-toolbar bg-slate-900/70 backdrop-blur-xl border border-white/10 rounded-2xl p-4 sm:p-5 shadow-2xl flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between" style="margin-bottom: 36px;">
+      <div class="gallery-filter-toolbar w-full backdrop-blur-xl border border-white/10 rounded-xl flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between" style="padding: 12px 16px; margin-bottom: 28px; background: rgba(0, 0, 0, 0.28); border: 1px solid var(--clr-border);">
         <div class="flex flex-wrap items-center gap-3">
-          <div class="flex items-center gap-2">
-            <label for="gallery-filter-zone" class="text-xs text-slate-400 font-semibold uppercase tracking-wider flex items-center gap-1.5 shrink-0">
+          <div class="flex items-center gap-2.5">
+            <label for="gallery-filter-zone" style="font-size: 12px; color: var(--clr-text-muted); font-weight: 600; white-space: nowrap;">
               <span>🏞️</span> Kawasan:
             </label>
-            <select id="gallery-filter-zone" class="bg-slate-950/80 hover:bg-slate-950 border border-white/10 hover:border-emerald-500/50 text-slate-200 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition shadow-inner cursor-pointer min-w-[160px]">
+            <select id="gallery-filter-zone" class="form-select form-select-sm" style="width: auto; min-width: 170px; padding: 7px 28px 7px 10px; font-size: 12px; background-color: #142018; border: 1px solid var(--clr-border); border-radius: 6px; color: #ffffff;">
               <option value="all">Semua Kawasan</option>
             </select>
           </div>
 
-          <div class="flex items-center gap-2">
-            <label for="gallery-filter-category" class="text-xs text-slate-400 font-semibold uppercase tracking-wider flex items-center gap-1.5 shrink-0">
+          <div class="flex items-center gap-2.5">
+            <label for="gallery-filter-category" style="font-size: 12px; color: var(--clr-text-muted); font-weight: 600; white-space: nowrap;">
               <span>🏷️</span> Kategori:
             </label>
-            <select id="gallery-filter-category" class="bg-slate-950/80 hover:bg-slate-950 border border-white/10 hover:border-emerald-500/50 text-slate-200 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition shadow-inner cursor-pointer min-w-[160px]">
+            <select id="gallery-filter-category" class="form-select form-select-sm" style="width: auto; min-width: 170px; padding: 7px 28px 7px 10px; font-size: 12px; background-color: #142018; border: 1px solid var(--clr-border); border-radius: 6px; color: #ffffff;">
               <option value="all">Semua Kategori</option>
               <option value="Kondisi Kawasan">Kondisi Kawasan</option>
               <option value="Kegiatan Penanaman">Kegiatan Penanaman</option>
@@ -62,14 +62,16 @@ export async function initPublicGallery(containerId = 'public-gallery-container'
           </div>
         </div>
 
-        <div class="relative min-w-[260px] md:max-w-xs w-full">
-          <span class="absolute inset-y-0 left-3.5 flex items-center text-slate-400 text-sm pointer-events-none">🔍</span>
-          <input
-            type="text"
-            id="gallery-search-input"
-            placeholder="Cari foto, judul, keterangan..."
-            class="w-full bg-slate-950/80 hover:bg-slate-950 border border-white/10 hover:border-emerald-500/50 text-slate-200 text-xs rounded-xl pl-10 pr-3.5 py-2.5 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 placeholder-slate-500 transition shadow-inner"
-          />
+        <div class="flex items-center gap-3 w-full md:w-auto flex-1 md:justify-end">
+          <div style="flex: 1; max-width: 320px; min-width: 200px;">
+            <input
+              type="text"
+              id="gallery-search-input"
+              class="form-input form-input-sm"
+              placeholder="🔍 Cari foto, judul, keterangan..."
+              style="width: 100%; padding: 7px 12px; font-size: 12px; background-color: #142018; border: 1px solid var(--clr-border); border-radius: 6px; color: #ffffff;"
+            />
+          </div>
         </div>
       </div>
 

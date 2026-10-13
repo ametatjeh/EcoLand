@@ -118,8 +118,9 @@ class PlantingZone extends Model
      */
     public function getAreaInHa(): float
     {
-        if (strtolower($this->area_unit) === 'm2' || strtolower($this->area_unit) === 'meter persegi') {
-            return round($this->area_size / 10000, 4);
+        $unit = strtolower(trim((string) $this->area_unit));
+        if ($unit === 'm2' || $unit === 'm²' || $unit === 'meter persegi' || $unit === 'meter') {
+            return round((float) $this->area_size / 10000, 4);
         }
         return (float) $this->area_size;
     }

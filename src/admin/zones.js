@@ -269,6 +269,9 @@ function renderZonesTableHtml(zones) {
             <button class="btn-action-archive btn-text-btn btn-sm" data-id="${z.id}" title="${z.is_archived ? 'Aktifkan Kembali' : 'Arsipkan Kawasan'}" style="color: ${z.is_archived ? '#10b981' : '#f59e0b'};">
               ${z.is_archived ? '♻️ Pulihkan' : '📦 Arsip'}
             </button>
+            <button class="btn-action-delete btn-text-btn btn-sm" data-id="${z.id}" title="Hapus Kawasan" style="color: #ef4444;">
+              🗑️ Hapus
+            </button>
           </div>
         </td>
       </tr>
@@ -338,6 +341,7 @@ function bindZoneTableActions() {
       if (confirm('Ubah status arsip kawasan ini?')) {
         try {
           const res = await ApiService.archiveZone(id);
+          window.dispatchEvent(new CustomEvent('zones-updated'));
           EcoToast.show({
             type: 'success',
             title: res.action === 'archived' ? '✓ Berhasil diarsipkan' : '✓ Berhasil dipulihkan',
@@ -346,6 +350,26 @@ function bindZoneTableActions() {
           await loadZonesList();
         } catch (e) {
           EcoToast.error('✕ Gagal mengubah status arsip', e.message);
+        }
+      }
+    });
+  });
+
+  container.querySelectorAll('.btn-action-delete').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const id = btn.getAttribute('data-id');
+      if (confirm('Yakin ingin menghapus kawasan ini? Kawasan tanpa data terkait akan dihapus permanen, atau diarsipkan jika memiliki data.')) {
+        try {
+          const res = await ApiService.deleteZone(id);
+          window.dispatchEvent(new CustomEvent('zones-updated'));
+          EcoToast.show({
+            type: 'success',
+            title: res.action === 'deleted' ? '✓ Berhasil dihapus' : '✓ Berhasil diarsipkan',
+            message: res.message || 'Kawasan berhasil dihapus.',
+          });
+          await loadZonesList();
+        } catch (e) {
+          EcoToast.error('✕ Gagal menghapus kawasan', e.message);
         }
       }
     });
@@ -590,6 +614,7 @@ function renderZoneFormView(existingZone = null) {
 
       try {
         const res = await ApiService.saveZone(payload, zoneId || null);
+        window.dispatchEvent(new CustomEvent('zones-updated'));
         if (isEdit) {
           EcoToast.updated(res.message || 'Perubahan data kawasan berhasil disimpan.');
         } else {

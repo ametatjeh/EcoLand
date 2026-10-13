@@ -4223,3 +4223,18 @@ body:has(#view-admin.active) #public-global-footer,
     margin: 14px 0 !important;
   }
 }
+
+/* ======================================================================
+   Tree QR Cards - Strict 0 Border Radius (Sudut Siku-Siku Runcing 90°)
+   ====================================================================== */
+#tree-qr-grid .treeqr-card,
+#tree-qr-grid .treeqr-card *,
+.treeqr-card,
+.treeqr-card div,
+.treeqr-card span,
+.treeqr-card a,
+.treeqr-card button,
+.treeqr-card canvas {
+  border-radius: 0px !important;
+}
+

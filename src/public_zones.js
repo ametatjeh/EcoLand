@@ -8,6 +8,87 @@ import { ApiService } from './services/api.js';
 let cachedPublicZones = [];
 let onOpenTourSceneCallback = null;
 
+export function formatAreaHa(ha) {
+  const num = Number(ha) || 0;
+  if (num === 0) return '0 Hektare';
+  const formatted = num.toLocaleString('id-ID', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 4,
+  });
+  return `${formatted} Hektare`;
+}
+
+export function formatAreaM2(m2) {
+  const num = Number(m2) || 0;
+  if (num === 0) return '0 m²';
+  const formatted = Math.round(num).toLocaleString('id-ID');
+  return `${formatted} m²`;
+}
+
+export function updatePublicTotalArea(summaryOrZones) {
+  const labelEl = document.getElementById('stat-luas-label');
+  const valueEl = document.getElementById('stat-luas');
+  const descEl = document.getElementById('stat-luas-desc');
+
+  const zoneLabelEl = document.getElementById('stat-zones-label');
+  const zoneCountEl = document.getElementById('stat-zones-count');
+  const zoneDescEl = document.getElementById('stat-zones-desc');
+
+  if (labelEl) {
+    labelEl.textContent = 'Total Luas Kawasan';
+  }
+  if (zoneLabelEl) {
+    zoneLabelEl.textContent = 'Jumlah Kawasan/Lahan';
+  }
+
+  let totalHa = 0;
+  let totalM2 = 0;
+  let totalZones = 0;
+
+  if (summaryOrZones && typeof summaryOrZones === 'object') {
+    if ('total_area_ha' in summaryOrZones) {
+      totalHa = Number(summaryOrZones.total_area_ha) || 0;
+      totalM2 = Number(summaryOrZones.total_area_m2) || (totalHa * 10000);
+      totalZones = Number(summaryOrZones.total_zones) || 0;
+    } else if (Array.isArray(summaryOrZones)) {
+      totalZones = summaryOrZones.length;
+      totalHa = summaryOrZones.reduce((acc, z) => {
+        const ha = z.area_in_ha !== undefined
+          ? Number(z.area_in_ha)
+          : (z.area_unit === 'm2' ? Number(z.area_size) / 10000 : Number(z.area_size));
+        return acc + (isNaN(ha) ? 0 : ha);
+      }, 0);
+      totalM2 = totalHa * 10000;
+    }
+  }
+
+  if (valueEl) {
+    valueEl.textContent = formatAreaHa(totalHa);
+  }
+  if (descEl) {
+    descEl.textContent = formatAreaM2(totalM2);
+  }
+  if (zoneCountEl) {
+    zoneCountEl.textContent = `${totalZones} Kawasan`;
+  }
+  if (zoneDescEl) {
+    zoneDescEl.textContent = 'Total kawasan/lahan yang terdaftar dalam sistem.';
+  }
+}
+
+export async function refreshPublicTotalArea() {
+  try {
+    const res = await ApiService.getPublicZones();
+    if (res && res.summary) {
+      updatePublicTotalArea(res.summary);
+    } else if (res && res.zones) {
+      updatePublicTotalArea(res.zones);
+    }
+  } catch (err) {
+    console.debug('Error refreshing public total area:', err);
+  }
+}
+
 export async function initPublicZones(containerId, onOpenTourScene) {
   const container = document.getElementById(containerId);
   if (!container) return;
@@ -17,9 +98,15 @@ export async function initPublicZones(containerId, onOpenTourScene) {
   try {
     const res = await ApiService.getPublicZones();
     cachedPublicZones = (res && res.zones) ? res.zones : [];
+    if (res && res.summary) {
+      updatePublicTotalArea(res.summary);
+    } else {
+      updatePublicTotalArea(cachedPublicZones);
+    }
   } catch (err) {
     console.warn('Gagal memuat kawasan publik:', err);
     cachedPublicZones = [];
+    updatePublicTotalArea({ total_area_ha: 0, total_area_m2: 0 });
   }
 
   renderPublicZones(container);

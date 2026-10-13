@@ -53,9 +53,17 @@ class PlantingZoneController extends Controller
             ];
         });
 
+        $totalAreaHa = (float) $zones->sum(fn ($zone) => (float) $zone->getAreaInHa());
+        $totalAreaM2 = (float) round($totalAreaHa * 10000, 2);
+
         return response()->json([
             'success' => true,
             'total' => $data->count(),
+            'summary' => [
+                'total_zones' => $data->count(),
+                'total_area_ha' => round($totalAreaHa, 4),
+                'total_area_m2' => $totalAreaM2,
+            ],
             'zones' => $data,
         ]);
     }

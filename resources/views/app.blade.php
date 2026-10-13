@@ -65,19 +65,19 @@
             <span class="nav-icon">📱</span> <span>Tree QR</span>
           </button>
           <!-- Mobile-only login item inside nav-tabs -->
-          <button class="nav-tab-btn mobile-only-nav-item btn-nav-login" data-tab="admin" title="Login Petugas EcoKawasan">
+          <button class="nav-tab-btn mobile-only-nav-item btn-nav-login" data-tab="admin" title="Login Eco Land">
             <span class="nav-icon">🔐</span> <span>Login</span>
           </button>
         </nav>
 
         <!-- Right Action: Desktop Login Button + Mobile Hamburger Button -->
         <div class="header-right-actions flex items-center gap-3 shrink-0">
-          <button class="header-login-btn desktop-only-login" id="nav-btn-admin-desktop" data-tab="admin" title="Login Petugas EcoKawasan">
+          <button class="header-login-btn desktop-only-login" id="nav-btn-admin-desktop" data-tab="admin" title="Login Eco Land">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
               <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
             </svg>
-            <span>Login Petugas</span>
+            <span>Login</span>
           </button>
           <button id="btn-mobile-menu" class="btn-mobile-toggle" aria-label="Buka Menu Navigasi" aria-expanded="false" aria-controls="nav-tabs">
             <svg class="hamburger-icon-open" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
@@ -134,17 +134,26 @@
             </div>
           </div>
 
-          <!-- Stats Bar (Descriptive Only) -->
+          <!-- Stats Bar (Dinamis Total Luas Kawasan) -->
           <div class="stats-grid">
-            <div class="stat-card">
-              <span class="stat-label">Estimasi Luas Kawasan</span>
-              <span class="stat-value" id="stat-luas">±2 Hektare</span>
-              <span class="stat-desc">Sekitar 20.000 m² (Data Deskriptif)</span>
+            <div class="stat-card" id="stat-card-luas">
+              <span class="stat-label" id="stat-luas-label">Total Luas Kawasan</span>
+              @php
+                $initHa = $initialAreaSummary["total_area_ha"] ?? 0;
+                $initM2 = $initialAreaSummary["total_area_m2"] ?? 0;
+                $formattedHa = $initHa > 0 ? (rtrim(rtrim(number_format($initHa, 4, ",", "."), "0"), ",") . " Hektare") : "0 Hektare";
+                $formattedM2 = $initM2 > 0 ? (number_format(round($initM2), 0, ",", ".") . " m²") : "0 m²";
+              @endphp
+              <span class="stat-value" id="stat-luas">{{ $formattedHa }}</span>
+              <span class="stat-desc" id="stat-luas-desc">{{ $formattedM2 }}</span>
             </div>
-            <div class="stat-card">
-              <span class="stat-label">Titik Acuan Referensi</span>
-              <span class="stat-value">5.4818556° N</span>
-              <span class="stat-desc">95.5840917° E (WGS84 / EPSG:4326)</span>
+            <div class="stat-card" id="stat-card-zones">
+              <span class="stat-label" id="stat-zones-label">Jumlah Kawasan/Lahan</span>
+              @php
+                $initZonesCount = $initialAreaSummary["total_zones"] ?? 0;
+              @endphp
+              <span class="stat-value" id="stat-zones-count">{{ $initZonesCount }} Kawasan</span>
+              <span class="stat-desc" id="stat-zones-desc">Total kawasan/lahan yang terdaftar dalam sistem.</span>
             </div>
             <div class="stat-card">
               <span class="stat-label">Titik Panorama Lapangan</span>
