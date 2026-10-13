@@ -312,7 +312,8 @@
               </ul>
 
               <h3>3. Komposisi Jenis Bibit Pohon</h3>
-              <table class="species-table">
+              <div class="table-responsive">
+                <table class="species-table">
                 <thead>
                   <tr>
                     <th>Nama Lokal</th>
@@ -354,6 +355,10 @@
                   </tr>
                 </tbody>
               </table>
+              </div>
+              <div class="table-scroll-hint">
+                <span>👉</span> Geser tabel secara horizontal untuk melihat seluruh kolom
+              </div>
 
               <h3>4. Galeri Rencana & Dokumentasi Kegiatan</h3>
               <div class="gallery-grid">
