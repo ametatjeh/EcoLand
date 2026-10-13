@@ -20,7 +20,7 @@ $scenesCustomFile = __DIR__ . '/data/scenes_custom.json';
 // Helper to get auth token
 $headers = getallheaders();
 $authHeader = isset($headers['Authorization']) ? $headers['Authorization'] : (isset($headers['authorization']) ? $headers['authorization'] : '');
-$isAuthenticated = strpos($authHeader, 'admin_token_ikhw') !== false || strpos($authHeader, 'admin_token_fip2b') !== false;
+$isAuthenticated = strpos($authHeader, 'admin_token_ikhw') !== false;
 
 $action = isset($_GET['action']) ? $_GET['action'] : '';
 
@@ -31,7 +31,7 @@ switch ($action) {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $username = isset($input['username']) ? $input['username'] : '';
             $password = isset($input['password']) ? $input['password'] : '';
-            if (($username === 'admin' && $password === 'admin123') || ($username === 'fip2b_admin' && $password === 'fip2b2026') || ($username === 'ikhw_admin' && $password === 'ikhw2026')) {
+            if (($username === 'admin' && $password === 'admin123') || ($username === 'ikhw_admin' && $password === 'ikhw2026')) {
                 echo json_encode([
                     'success' => true,
                     'token' => 'admin_token_ikhw_session_' . time(),

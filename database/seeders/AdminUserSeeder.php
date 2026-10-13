@@ -23,15 +23,6 @@ class AdminUserSeeder extends Seeder
 
         // Akun Tim Lapangan IKHW Aceh
         User::updateOrCreate(
-            ['username' => 'fip2b_admin'],
-            [
-                'name' => 'Admin IKHW Aceh',
-                'email' => 'ikhw@virtualtour.local',
-                'password' => Hash::make('ikhw2026'),
-                'role' => 'administrator',
-            ]
-        );
-        User::updateOrCreate(
             ['username' => 'ikhw_admin'],
             [
                 'name' => 'Admin IKHW Aceh',

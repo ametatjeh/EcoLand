@@ -74,7 +74,7 @@ function virtualTourApiPlugin() {
 
     // Helper auth check
     const authHeader = req.headers['authorization'] || '';
-    const isAuthenticated = authHeader.includes('admin_token_ikhw') || authHeader.includes('admin_token_fip2b') || authHeader.startsWith('Bearer ');
+    const isAuthenticated = authHeader.includes('admin_token_ikhw') || authHeader.startsWith('Bearer ');
 
     try {
       // 1. Auth endpoints
@@ -82,7 +82,6 @@ function virtualTourApiPlugin() {
         const { username, password } = await readBody(req);
         if (
           (username === 'admin' && password === 'admin123') ||
-          (username === 'fip2b_admin' && password === 'fip2b2026') ||
           (username === 'ikhw_admin' && password === 'ikhw2026')
         ) {
           res.statusCode = 200;
