@@ -70,7 +70,7 @@ export async function initSettingsModule({ scenes = [], onSettingsUpdated } = {}
         <form id="org-settings-form">
           <div class="form-group" style="margin-bottom: 14px;">
             <label for="set-org-name" style="color: #fff; font-size: 13px;">Nama Organisasi / Pengelola Proyek: *</label>
-            <input type="text" id="set-org-name" class="form-input" required value="${escapeHtml(serverSettings.org_name || 'IKHW Aceh (Inisiatif Konservasi & Hutan Wisata)')}" />
+            <input type="text" id="set-org-name" class="form-input" required value="${escapeHtml(serverSettings.org_name || 'IKHW Aceh (Inisiatif Konservasi & Hutan Wakaf)')}" />
           </div>
 
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin-bottom: 14px;">
@@ -92,6 +92,31 @@ export async function initSettingsModule({ scenes = [], onSettingsUpdated } = {}
           <div style="display: flex; justify-content: flex-end;">
             <button type="submit" class="btn-primary-action btn-sm">
               💾 Simpan Identitas Organisasi
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- KARTU 2: DESKRIPSI PROGRAM DAN KAWASAN -->
+      <div class="settings-card" style="background: var(--clr-surface); padding: 22px; border-radius: var(--radius-md); border: 1px solid var(--clr-border);">
+        <h3 style="color: #fff; font-size: 16px; margin-top: 0; margin-bottom: 14px; border-bottom: 1px solid var(--clr-border-subtle); padding-bottom: 8px;">
+          📝 Deskripsi Program dan Kawasan
+        </h3>
+        <p style="color: var(--clr-text-muted); font-size: 12px; margin-top: -6px; margin-bottom: 14px; line-height: 1.5;">
+          Deskripsi ini tampil pada halaman Beranda (Hero Banner) dan Informasi Kawasan (Gambaran Umum & Lokasi Referensi).
+        </p>
+        <form id="program-desc-form">
+          <div class="form-group" style="margin-bottom: 16px;">
+            <label for="set-program-description" style="color: #fff; font-size: 13px; font-weight: 600;">Deskripsi Program/Kawasan: *</label>
+            <textarea id="set-program-description" class="form-input" rows="5" required style="line-height: 1.6; resize: vertical;" placeholder="Tulis deskripsi program dan kawasan restorasi...">${escapeHtml(serverSettings.program_description || 'Inisiatif restorasi bentang lahan dan pemulihan keanekaragaman hayati seluas kurang lebih 2 hektare. Program ini berfokus pada pengayaan tutupan vegetasi menggunakan spesies pohon kayu keras endemik Aceh dan pohon buah hutan pakan satwa.')}</textarea>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+            <button type="button" id="btn-cancel-program-desc" class="btn-secondary-action btn-sm">
+              Batal
+            </button>
+            <button type="submit" class="btn-primary-action btn-sm">
+              💾 Simpan Perubahan
             </button>
           </div>
         </form>
@@ -166,6 +191,55 @@ export async function initSettingsModule({ scenes = [], onSettingsUpdated } = {}
       if (submitBtn) {
         submitBtn.disabled = false;
         submitBtn.textContent = '💾 Simpan Identitas Organisasi';
+      }
+    }
+  });
+
+  // Handle Program Description Form
+  const programDescForm = container.querySelector('#program-desc-form');
+  const btnCancelDesc = container.querySelector('#btn-cancel-program-desc');
+  const descTextarea = container.querySelector('#set-program-description');
+  const initialProgramDesc = serverSettings.program_description || 'Inisiatif restorasi bentang lahan dan pemulihan keanekaragaman hayati seluas kurang lebih 2 hektare. Program ini berfokus pada pengayaan tutupan vegetasi menggunakan spesies pohon kayu keras endemik Aceh dan pohon buah hutan pakan satwa.';
+
+  btnCancelDesc?.addEventListener('click', () => {
+    if (descTextarea) {
+      descTextarea.value = initialProgramDesc;
+      EcoToast.info('Perubahan deskripsi dibatalkan.');
+    }
+  });
+
+  programDescForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const val = descTextarea?.value?.trim();
+    if (!val) {
+      EcoToast.error('Validasi Gagal', 'Deskripsi program/kawasan tidak boleh kosong.');
+      return;
+    }
+
+    const submitBtn = programDescForm.querySelector('button[type="submit"]');
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Menyimpan...';
+    }
+
+    try {
+      const res = await ApiService.saveSettings({
+        program_description: val,
+      });
+      serverSettings.program_description = val;
+      EcoToast.saved(res?.message || 'Deskripsi program dan kawasan berhasil disimpan.');
+
+      // Update public page text if already rendered in DOM
+      const heroDesc = document.getElementById('hero-desc');
+      if (heroDesc) heroDesc.textContent = val;
+      const infoGeneralDesc = document.getElementById('info-general-desc');
+      if (infoGeneralDesc) infoGeneralDesc.textContent = val;
+    } catch (err) {
+      EcoToast.error('✕ Gagal menyimpan deskripsi', err.message);
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = '💾 Simpan Perubahan';
       }
     }
   });

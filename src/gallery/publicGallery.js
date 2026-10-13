@@ -74,38 +74,44 @@ export async function initPublicGallery(containerId = 'public-gallery-container'
     </div>
 
     <!-- Lightbox Modal Container -->
-    <div id="gallery-lightbox-modal" class="fixed inset-0 z-50 bg-black/95 backdrop-blur-md hidden flex flex-col justify-between" role="dialog" aria-modal="true" aria-label="Penampil Foto">
+    <div id="gallery-lightbox-modal" class="fixed inset-0 z-50 bg-black/95 backdrop-blur-md hidden flex flex-col justify-between" role="dialog" aria-modal="true" aria-label="Penampil Foto Kawasan">
       <!-- Lightbox Header -->
-      <div class="flex items-center justify-between px-4 py-3 bg-slate-900/80 border-b border-slate-800 text-white select-none">
+      <div class="flex items-center justify-between px-5 py-3.5 bg-slate-900/90 border-b border-slate-800 text-white select-none z-20">
         <div class="flex items-center gap-3">
           <span id="lightbox-counter" class="text-xs font-mono text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20">1 / 1</span>
           <span id="lightbox-category-badge" class="text-xs font-medium text-slate-300 bg-slate-800 px-2.5 py-1 rounded-lg border border-slate-700">Kategori</span>
         </div>
-        <button id="btn-close-lightbox" class="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer" aria-label="Tutup penampil foto">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        <button id="btn-close-lightbox" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-red-500/20 text-slate-300 hover:text-red-400 border border-slate-700 hover:border-red-500/40 transition cursor-pointer font-bold text-sm" aria-label="Tutup penampil foto (Escape)">
+          <span>Tutup</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
         </button>
       </div>
 
       <!-- Lightbox Main Stage -->
-      <div class="relative flex-1 flex items-center justify-center p-4 overflow-hidden select-none" id="lightbox-stage">
+      <div class="relative flex-1 flex items-center justify-center p-4 overflow-hidden select-none cursor-pointer" id="lightbox-stage">
         <!-- Prev Button -->
-        <button id="btn-lightbox-prev" class="absolute left-4 z-10 p-3 rounded-full bg-slate-900/80 hover:bg-slate-800 text-white border border-slate-700 shadow-xl transition hover:scale-110 cursor-pointer" aria-label="Foto sebelumnya">
+        <button id="btn-lightbox-prev" class="absolute left-4 z-20 p-3 rounded-full bg-slate-900/80 hover:bg-slate-800 text-white border border-slate-700 shadow-xl transition hover:scale-110 cursor-pointer" aria-label="Foto sebelumnya">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
         </button>
 
-        <!-- Main Displayed Image -->
-        <div class="max-w-5xl max-h-[75vh] flex items-center justify-center transition-all duration-300">
+        <!-- Main Displayed Image (Stops propagation so clicking backdrop closes) -->
+        <div class="max-w-5xl max-h-[75vh] flex items-center justify-center transition-all duration-300 cursor-default" id="lightbox-img-wrapper">
           <img id="lightbox-img" src="" alt="" class="max-h-[72vh] max-w-full rounded-xl object-contain shadow-2xl border border-slate-800/80" />
+          <div id="lightbox-error-msg" class="hidden bg-slate-900 border border-slate-800 rounded-xl p-8 text-center text-slate-400">
+            <span class="text-3xl mb-2 block">⚠️</span>
+            <p class="font-semibold text-white text-sm">Gagal memuat gambar foto</p>
+            <p class="text-xs text-slate-400 mt-1">Berkas gambar tidak ditemukan atau belum tersedia.</p>
+          </div>
         </div>
 
         <!-- Next Button -->
-        <button id="btn-lightbox-next" class="absolute right-4 z-10 p-3 rounded-full bg-slate-900/80 hover:bg-slate-800 text-white border border-slate-700 shadow-xl transition hover:scale-110 cursor-pointer" aria-label="Foto berikutnya">
+        <button id="btn-lightbox-next" class="absolute right-4 z-20 p-3 rounded-full bg-slate-900/80 hover:bg-slate-800 text-white border border-slate-700 shadow-xl transition hover:scale-110 cursor-pointer" aria-label="Foto berikutnya">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
         </button>
       </div>
 
       <!-- Lightbox Footer (Info & Caption) -->
-      <div class="px-6 py-4 bg-slate-900/90 border-t border-slate-800 text-white flex flex-col md:flex-row md:items-center justify-between gap-3">
+      <div class="px-6 py-4 bg-slate-900/90 border-t border-slate-800 text-white flex flex-col md:flex-row md:items-center justify-between gap-3 z-20 select-none">
         <div>
           <h3 id="lightbox-title" class="text-base font-bold text-white leading-snug">Judul Foto</h3>
           <p id="lightbox-caption" class="text-xs text-slate-300 mt-1 max-w-2xl leading-relaxed">Deskripsi foto</p>
@@ -309,8 +315,25 @@ function setupLightboxListeners() {
   const btnNext = document.getElementById('btn-lightbox-next');
 
   if (btnClose) btnClose.addEventListener('click', closeLightbox);
-  if (btnPrev) btnPrev.addEventListener('click', prevLightboxPhoto);
-  if (btnNext) btnNext.addEventListener('click', nextLightboxPhoto);
+  if (btnPrev) btnPrev.addEventListener('click', (e) => { e.stopPropagation(); prevLightboxPhoto(); });
+  if (btnNext) btnNext.addEventListener('click', (e) => { e.stopPropagation(); nextLightboxPhoto(); });
+
+  // Backdrop click closes lightbox
+  const stage = document.getElementById('lightbox-stage');
+  const imgWrapper = document.getElementById('lightbox-img-wrapper');
+  if (stage) {
+    stage.addEventListener('click', (e) => {
+      // If clicked directly on stage (outside image wrapper)
+      if (e.target === stage) {
+        closeLightbox();
+      }
+    });
+  }
+  if (imgWrapper) {
+    imgWrapper.addEventListener('click', (e) => {
+      e.stopPropagation();
+    });
+  }
 
   // Keyboard navigation
   window.addEventListener('keydown', (e) => {
@@ -321,7 +344,6 @@ function setupLightboxListeners() {
   });
 
   // Touch swipe support on lightbox stage
-  const stage = document.getElementById('lightbox-stage');
   if (stage) {
     let touchStartX = 0;
     stage.addEventListener('touchstart', (e) => {
@@ -384,7 +406,15 @@ function updateLightboxContent() {
   const counter = document.getElementById('lightbox-counter');
   const catBadge = document.getElementById('lightbox-category-badge');
 
+  const errorMsg = document.getElementById('lightbox-error-msg');
+
   if (img) {
+    img.classList.remove('hidden');
+    if (errorMsg) errorMsg.classList.add('hidden');
+    img.onerror = () => {
+      img.classList.add('hidden');
+      if (errorMsg) errorMsg.classList.remove('hidden');
+    };
     img.src = photo.file_url || photo.file_path;
     img.alt = photo.alt_text || photo.title || 'Foto Kawasan';
   }

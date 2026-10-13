@@ -27,9 +27,11 @@ import {
 } from './utils.js';
 import { ApiService } from './services/api.js';
 import { initAdminPanel, openAdminView, handleAdminHashRoute } from './admin/admin.js';
+import { checkAdminAuth } from './admin/auth.js';
 import { initPublicTreeCatalog } from './katalog.js';
 import { initPublicZones } from './public_zones.js';
 import { initPublicGallery } from './gallery/publicGallery.js';
+import { initPublicTreeQr } from './treeQr.js';
 
 // ─── State ──────────────────────────────────────────────
 let viewer = null;
@@ -162,20 +164,39 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 // ─── Configurable UI Population ─────────────────────────
-function populateProjectIdentity() {
+async function populateProjectIdentity() {
   const brandTitle = document.getElementById('nav-brand-title');
   const brandSub = document.getElementById('nav-brand-sub');
   const heroTitle = document.getElementById('hero-title');
   const heroDesc = document.getElementById('hero-desc');
+  const infoGeneralDesc = document.getElementById('info-general-desc');
   const statLuas = document.getElementById('stat-luas');
 
   if (brandTitle) brandTitle.textContent = projectConfig.namaAplikasi || 'Eco Land';
-  if (brandSub) brandSub.textContent = `Virtual Tour 360° • ${projectConfig.organisasi}`;
+  if (brandSub) brandSub.textContent = 'IKHW Aceh — Inisiatif Konservasi & Hutan Wakaf';
   if (heroTitle) {
-    heroTitle.innerHTML = `Eco Land<br /><span style="display: block; font-size: 24px; font-weight: 600; opacity: 0.92; margin-top: 6px;">Virtual Tour 360° ${projectConfig.namaProyek}</span>`;
+    heroTitle.innerHTML = `Eco Land<br /><span style="display: block; font-size: 24px; font-weight: 600; opacity: 0.92; margin-top: 6px;">Kawasan Penanaman Pohon</span>`;
   }
   if (heroDesc) heroDesc.textContent = projectConfig.deskripsi;
+  if (infoGeneralDesc) infoGeneralDesc.textContent = projectConfig.deskripsi;
   if (statLuas) statLuas.textContent = projectConfig.luasDeskriptif;
+
+  try {
+    const res = await fetch('/api/settings/public');
+    if (res.ok) {
+      const data = await res.json();
+      const flat = data.flat || {};
+      if (flat.program_description) {
+        if (heroDesc) heroDesc.textContent = flat.program_description;
+        if (infoGeneralDesc) infoGeneralDesc.textContent = flat.program_description;
+      }
+      if (flat.org_name && brandSub) {
+        brandSub.textContent = flat.org_name;
+      }
+    }
+  } catch (e) {
+    console.debug('Public settings fetch fallback to config defaults:', e);
+  }
 }
 
 // ─── Tab Navigation ─────────────────────────────────────
@@ -238,10 +259,10 @@ function switchTab(tabId) {
     mainNavbar.style.display = tabId === 'admin' ? 'none' : '';
   }
 
-  // Toggle public global footer visibility (visible on beranda, info, galeri, katalog; hidden on tour, admin)
+  // Toggle public global footer visibility (visible on beranda, info, galeri, katalog, tree-qr; hidden on tour, admin)
   const globalFooter = document.getElementById('public-global-footer');
   if (globalFooter) {
-    globalFooter.style.display = ['beranda', 'info', 'galeri', 'katalog'].includes(tabId) ? 'block' : 'none';
+    globalFooter.style.display = ['beranda', 'info', 'galeri', 'katalog', 'tree-qr'].includes(tabId) ? 'block' : 'none';
   }
 
   // Update navbar active tab
@@ -279,6 +300,8 @@ function switchTab(tabId) {
       window.location.hash = 'tour';
       switchScene(sceneId);
     });
+  } else if (tabId === 'tree-qr') {
+    initPublicTreeQr('public-tree-qr-container');
   } else if (tabId === 'tour') {
     window.dispatchEvent(new Event('resize'));
   } else if (tabId === 'admin') {
@@ -288,8 +311,8 @@ function switchTab(tabId) {
 
 function handleHashRouting() {
   const fullHash = window.location.hash || '#beranda';
-  const hash = fullHash.replace(/^#\/?/, '') || 'beranda';
-  const validTabs = ['beranda', 'tour', 'info', 'galeri', 'katalog', 'admin'];
+  const hash = fullHash.replace(/^#\/?/, '').split('?')[0] || 'beranda';
+  const validTabs = ['beranda', 'tour', 'info', 'galeri', 'katalog', 'tree-qr', 'admin'];
 
   if (hash === 'titik') {
     window.location.replace('#beranda');

@@ -158,18 +158,64 @@ class PlantingActivityController extends Controller
             'person_in_charge' => ['sometimes', 'string', 'max:255'],
             'organizer' => ['sometimes', 'string', 'max:255'],
             'location_zone' => ['sometimes', 'string', 'max:255'],
+            'planting_zone_id' => ['nullable', 'string', 'exists:planting_zones,id'],
             'scene_id' => ['nullable', 'string', 'exists:scenes,id'],
             'photo_path' => ['nullable', 'string', 'max:255'],
             'notes' => ['nullable', 'string'],
+            'items' => ['sometimes', 'array'],
+            'items.*.id' => ['nullable', 'integer'],
+            'items.*.tree_species_id' => ['required_with:items', 'integer', 'exists:tree_species,id'],
+            'items.*.quantity' => ['required_with:items', 'integer', 'min:1'],
+            'items.*.unit' => ['nullable', 'string', 'max:50'],
         ]);
 
         return DB::transaction(function () use ($activity, $validated) {
+            $itemsData = $validated['items'] ?? null;
+            unset($validated['items']);
+
             $activity->update($validated);
+
+            if ($itemsData !== null) {
+                $existingItems = $activity->items()->get()->keyBy('id');
+                $keepIds = [];
+
+                foreach ($itemsData as $itemData) {
+                    $itemId = $itemData['id'] ?? null;
+                    if ($itemId && $existingItems->has($itemId)) {
+                        $item = $existingItems->get($itemId);
+                        $item->update([
+                            'tree_species_id' => $itemData['tree_species_id'],
+                            'quantity' => $itemData['quantity'],
+                            'unit' => $itemData['unit'] ?? 'batang',
+                        ]);
+                        $keepIds[] = $item->id;
+                    } else {
+                        $matching = $existingItems->firstWhere('tree_species_id', $itemData['tree_species_id']);
+                        if ($matching && !in_array($matching->id, $keepIds)) {
+                            $matching->update([
+                                'quantity' => $itemData['quantity'],
+                                'unit' => $itemData['unit'] ?? 'batang',
+                            ]);
+                            $keepIds[] = $matching->id;
+                        } else {
+                            $newItem = PlantingActivityItem::create([
+                                'planting_activity_id' => $activity->id,
+                                'tree_species_id' => $itemData['tree_species_id'],
+                                'quantity' => $itemData['quantity'],
+                                'unit' => $itemData['unit'] ?? 'batang',
+                            ]);
+                            $keepIds[] = $newItem->id;
+                        }
+                    }
+                }
+
+                $activity->items()->whereNotIn('id', $keepIds)->delete();
+            }
 
             return response()->json([
                 'success' => true,
                 'message' => 'Data kegiatan penanaman berhasil diperbarui.',
-                'activity' => $activity->load(['items.species', 'scene']),
+                'activity' => $activity->fresh(['items.species', 'scene', 'plantingZone']),
             ]);
         });
     }

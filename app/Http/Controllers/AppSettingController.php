@@ -26,10 +26,13 @@ class AppSettingController extends Controller
         }
 
         foreach ($data as $key => $value) {
-            AppSetting::where('key', $key)->update([
-                'value' => is_bool($value) ? ($value ? '1' : '0') : (string) $value,
-                'updated_at' => now(),
-            ]);
+            AppSetting::updateOrCreate(
+                ['key' => $key],
+                [
+                    'value' => is_bool($value) ? ($value ? '1' : '0') : (string) $value,
+                    'updated_at' => now(),
+                ]
+            );
         }
 
         ActivityLogger::log('update', 'settings', 'Memperbarui pengaturan sistem dan identitas organisasi', null, $data);

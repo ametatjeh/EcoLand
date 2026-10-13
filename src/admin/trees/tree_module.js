@@ -15,8 +15,11 @@ import { EcoToast } from '../../utils/toast.js';
 let currentTreeTab = 'dashboard';
 let cachedSpecies = [];
 let cachedActivities = [];
+let cachedZones = [];
+let cachedScenes = [];
 
 export async function initTreeModule({ scenes = [] } = {}) {
+  cachedScenes = scenes;
   const container = document.getElementById('admin-trees-content');
   if (!container) return;
 
@@ -25,6 +28,7 @@ export async function initTreeModule({ scenes = [] } = {}) {
 }
 
 export async function switchTreeSubTab(tabName, scenes = []) {
+  if (scenes && scenes.length > 0) cachedScenes = scenes;
   currentTreeTab = tabName;
   const container = document.getElementById('admin-trees-content');
   if (!container) return;
@@ -864,6 +868,7 @@ function renderSpeciesFormView(item = null, container) {
 // 3. KEGIATAN PENANAMAN
 // ─────────────────────────────────────────────────────────────
 async function renderActivitiesTab(container, scenes) {
+  if (scenes && scenes.length > 0) cachedScenes = scenes;
   container.innerHTML = `<div style="text-align: center; padding: 30px;">⏳ Memuat kegiatan penanaman...</div>`;
   const [resAct, resSp, resZones] = await Promise.all([
     ApiService.getPlantingActivities(),
@@ -873,6 +878,7 @@ async function renderActivitiesTab(container, scenes) {
   cachedActivities = resAct.activities || [];
   cachedSpecies = resSp.species || [];
   const zonesList = resZones.zones || [];
+  cachedZones = zonesList;
 
   container.innerHTML = `
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
@@ -1094,7 +1100,8 @@ function renderActivityRows(list) {
           <span class="admin-header-pill ${rateClass}" style="font-size: 11px;">${rateStr}</span>
         </td>
         <td style="padding: 10px 14px; text-align: center; white-space: nowrap;">
-          <button class="btn-del-activity icon-btn-sm" data-id="${a.id}" title="Hapus Kegiatan" style="color: #ef4444;">🗑️</button>
+          <button class="btn-edit-activity icon-btn-sm" data-id="${a.id}" title="Edit Kegiatan" aria-label="Edit Kegiatan" style="margin-right: 4px; color: #38bdf8;">✏️</button>
+          <button class="btn-del-activity icon-btn-sm" data-id="${a.id}" title="Hapus Kegiatan" aria-label="Hapus Kegiatan" style="color: #ef4444;">🗑️</button>
         </td>
       </tr>
     `;
@@ -1103,6 +1110,23 @@ function renderActivityRows(list) {
 }
 
 function bindActivityActionBtns(container, scenes) {
+  document.querySelectorAll('.btn-edit-activity').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const id = btn.getAttribute('data-id');
+      try {
+        btn.disabled = true;
+        btn.innerHTML = '⏳';
+        const res = await ApiService.getPlantingActivity(id);
+        const act = res.activity || res;
+        await renderActivityEditFormView(act, container, scenes || cachedScenes, cachedZones);
+      } catch (e) {
+        EcoToast.error('✕ Gagal memuat data kegiatan', e.message);
+        btn.disabled = false;
+        btn.innerHTML = '✏️';
+      }
+    });
+  });
+
   document.querySelectorAll('.btn-del-activity').forEach((btn) => {
     btn.addEventListener('click', async () => {
       const id = btn.getAttribute('data-id');
@@ -1117,6 +1141,390 @@ function bindActivityActionBtns(container, scenes) {
       }
     });
   });
+}
+
+/**
+ * Halaman Khusus Formulir Edit Kegiatan Penanaman
+ * Breadcrumb: Dashboard / Data Penanaman / Kegiatan Penanaman / Edit
+ */
+async function renderActivityEditFormView(activity, container, scenes = [], zonesList = []) {
+  if (!zonesList || zonesList.length === 0) {
+    if (cachedZones.length > 0) zonesList = cachedZones;
+    else {
+      const zRes = await ApiService.getZones();
+      zonesList = zRes.zones || [];
+      cachedZones = zonesList;
+    }
+  }
+  if (!scenes || scenes.length === 0) {
+    scenes = cachedScenes;
+  }
+  if (!cachedSpecies || cachedSpecies.length === 0) {
+    const spRes = await ApiService.getTreeSpecies();
+    cachedSpecies = spRes.species || [];
+  }
+
+  const existingItems = activity.items && activity.items.length > 0 ? activity.items : [];
+
+  container.innerHTML = `
+    <!-- Breadcrumb Navigasi -->
+    <div style="margin-bottom: 20px;">
+      <nav style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--clr-text-muted); margin-bottom: 8px;">
+        <a href="#admin/dashboard" style="color: var(--clr-text-muted); text-decoration: none;">Dashboard</a>
+        <span>&rsaquo;</span>
+        <span style="color: var(--clr-text-muted);">Data Penanaman</span>
+        <span>&rsaquo;</span>
+        <button type="button" id="breadcrumb-btn-act-list" style="background: none; border: none; color: var(--clr-text-muted); cursor: pointer; padding: 0; font-size: 12px; text-decoration: underline;">Kegiatan Penanaman</button>
+        <span>&rsaquo;</span>
+        <span style="color: #38bdf8; font-weight: 600;">Edit</span>
+      </nav>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+        <div>
+          <h2 style="font-size: 20px; font-weight: 700; color: #fff; margin: 0; display: flex; align-items: center; gap: 8px;">
+            <span>✏️</span> Edit Kegiatan Penanaman: ${escapeHtml(activity.batch_code)}
+          </h2>
+          <p style="font-size: 13px; color: var(--clr-text-muted); margin: 4px 0 0;">
+            Perbarui data pelaksanaan, kawasan penanaman, tim pelaksana, dan rincian jenis bibit yang ditanam.
+          </p>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <button type="button" id="btn-back-to-act" class="btn-secondary-action btn-sm">
+            ← Kembali
+          </button>
+          <button type="button" id="btn-cancel-act-top" class="btn-secondary-action btn-sm">
+            Batal
+          </button>
+          <button type="button" id="btn-save-act-top" class="btn-primary-action btn-sm">
+            💾 Simpan Perubahan
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Alert Notifikasi / Error Validasi -->
+    <div id="act-edit-alert" class="hidden" style="margin-bottom: 20px; padding: 14px 18px; border-radius: 8px; font-size: 13px;"></div>
+
+    <form id="form-edit-activity" style="display: flex; flex-direction: column; gap: 20px;">
+      <!-- CARD 1: INFORMASI BATCH & WAKTU -->
+      <div class="admin-pane-card" style="background: var(--clr-surface); border: 1px solid var(--clr-border); border-radius: 12px; padding: 22px;">
+        <div style="border-bottom: 1px solid var(--clr-border-subtle); padding-bottom: 12px; margin-bottom: 18px; display: flex; justify-content: space-between; align-items: center;">
+          <h3 style="font-size: 15px; font-weight: 700; color: #fff; margin: 0; display: flex; align-items: center; gap: 8px;">
+            <span>📋</span> Card 1 — Informasi Kegiatan & Batch
+          </h3>
+          <span style="font-size: 11px; color: #f59e0b;">* Field wajib diisi</span>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+          <div class="form-group">
+            <label for="edit-act-batch" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
+              Kode / Kelompok Batch:
+            </label>
+            <input type="text" id="edit-act-batch" class="form-input" readonly value="${escapeHtml(activity.batch_code)}" style="background: rgba(255,255,255,0.05); cursor: not-allowed; opacity: 0.85;" />
+            <small style="color: var(--clr-text-muted); font-size: 11px;">Kode unik batch penanaman dipertahankan sebagai referensi riwayat.</small>
+          </div>
+
+          <div class="form-group">
+            <label for="edit-act-date" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
+              Tanggal Penanaman: <span style="color: #ef4444;">*</span>
+            </label>
+            <input type="date" id="edit-act-date" class="form-input" required value="${activity.activity_date}" />
+          </div>
+
+          <div class="form-group" style="grid-column: 1 / -1;">
+            <label for="edit-act-name" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
+              Nama Kegiatan Penanaman: <span style="color: #ef4444;">*</span>
+            </label>
+            <input type="text" id="edit-act-name" class="form-input" required placeholder="Contoh: Penanaman Pohon Blok Utara Kawasan" value="${escapeHtml(activity.name)}" />
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD 2: LOKASI & PANORAMA -->
+      <div class="admin-pane-card" style="background: var(--clr-surface); border: 1px solid var(--clr-border); border-radius: 12px; padding: 22px;">
+        <div style="border-bottom: 1px solid var(--clr-border-subtle); padding-bottom: 12px; margin-bottom: 18px;">
+          <h3 style="font-size: 15px; font-weight: 700; color: #fff; margin: 0; display: flex; align-items: center; gap: 8px;">
+            <span>📍</span> Card 2 — Kawasan & Lokasi Penanaman
+          </h3>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+          <div class="form-group">
+            <label for="edit-act-zone-id" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
+              Kawasan Penanaman: <span style="color: #ef4444;">*</span>
+            </label>
+            <select id="edit-act-zone-id" class="form-select" required>
+              ${zonesList.map((z) => `<option value="${z.id}" ${z.id === activity.planting_zone_id ? 'selected' : ''}>${escapeHtml(z.name)} (${escapeHtml(z.zone_code || '')})</option>`).join('')}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="edit-act-zone" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
+              Zona Deskriptif / Blok Lapangan: <span style="color: #ef4444;">*</span>
+            </label>
+            <input type="text" id="edit-act-zone" class="form-input" required placeholder="Contoh: Blok A - Lereng Barat" value="${escapeHtml(activity.location_zone)}" />
+          </div>
+
+          <div class="form-group" style="grid-column: 1 / -1;">
+            <label for="edit-act-scene" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
+              Hubungkan ke Panorama Marzipano (Opsional):
+            </label>
+            <select id="edit-act-scene" class="form-select">
+              <option value="">-- Tanpa Hubungan Panorama --</option>
+              ${scenes.map((s) => `<option value="${s.id}" ${s.id === activity.scene_id ? 'selected' : ''}>${escapeHtml(s.name)}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD 3: PENANGGUNG JAWAB & ORGANISASI -->
+      <div class="admin-pane-card" style="background: var(--clr-surface); border: 1px solid var(--clr-border); border-radius: 12px; padding: 22px;">
+        <div style="border-bottom: 1px solid var(--clr-border-subtle); padding-bottom: 12px; margin-bottom: 18px;">
+          <h3 style="font-size: 15px; font-weight: 700; color: #fff; margin: 0; display: flex; align-items: center; gap: 8px;">
+            <span>👥</span> Card 3 — Pelaksana & Penanggung Jawab
+          </h3>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+          <div class="form-group">
+            <label for="edit-act-pic" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
+              Nama Penanggung Jawab (PIC): <span style="color: #ef4444;">*</span>
+            </label>
+            <input type="text" id="edit-act-pic" class="form-input" required placeholder="Penanggung Jawab Lapangan" value="${escapeHtml(activity.person_in_charge)}" />
+          </div>
+
+          <div class="form-group">
+            <label for="edit-act-org" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
+              Tim / Organisasi / Mitra: <span style="color: #ef4444;">*</span>
+            </label>
+            <input type="text" id="edit-act-org" class="form-input" required placeholder="Contoh: Tim IKHW Aceh" value="${escapeHtml(activity.organizer)}" />
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD 4: RINCIAN JENIS POHON & BIBIT AWAL -->
+      <div class="admin-pane-card" style="background: var(--clr-surface); border: 1px solid var(--clr-border); border-radius: 12px; padding: 22px;">
+        <div style="border-bottom: 1px solid var(--clr-border-subtle); padding-bottom: 12px; margin-bottom: 18px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+          <div>
+            <h3 style="font-size: 15px; font-weight: 700; color: #fff; margin: 0; display: flex; align-items: center; gap: 8px;">
+              <span>🌱</span> Card 4 — Rincian Jenis Pohon & Bibit Awal Ditanam
+            </h3>
+            <p style="font-size: 12px; color: var(--clr-text-muted); margin: 4px 0 0;">
+              Data bibit lama dimuat secara lengkap. Tambahkan atau sesuaikan jumlah tanpa menghapus detail yang tidak diubah.
+            </p>
+          </div>
+          <button type="button" id="btn-edit-add-item-row" class="btn-secondary-action btn-sm">
+            ➕ Tambah Baris Jenis
+          </button>
+        </div>
+
+        <div id="edit-act-items-container" style="display: flex; flex-direction: column; gap: 10px;">
+          <!-- Items will be rendered here -->
+        </div>
+      </div>
+
+      <!-- CARD 5: CATATAN TAMBAHAN -->
+      <div class="admin-pane-card" style="background: var(--clr-surface); border: 1px solid var(--clr-border); border-radius: 12px; padding: 22px;">
+        <div style="border-bottom: 1px solid var(--clr-border-subtle); padding-bottom: 12px; margin-bottom: 18px;">
+          <h3 style="font-size: 15px; font-weight: 700; color: #fff; margin: 0; display: flex; align-items: center; gap: 8px;">
+            <span>📝</span> Card 5 — Catatan Lapangan
+          </h3>
+        </div>
+
+        <div class="form-group">
+          <label for="edit-act-notes" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
+            Catatan Tambahan:
+          </label>
+          <textarea id="edit-act-notes" class="form-textarea" rows="3" placeholder="Kondisi cuaca saat tanam, perlakuan mulsa, persiapan lubang tanam...">${escapeHtml(activity.notes || '')}</textarea>
+        </div>
+      </div>
+
+      <!-- Tombol Aksi Bawah -->
+      <div style="display: flex; justify-content: flex-end; align-items: center; gap: 12px; padding: 18px 0; border-top: 1px solid var(--clr-border-subtle);">
+        <button type="button" id="btn-cancel-act-bottom" class="btn-secondary-action">
+          Batal
+        </button>
+        <button type="button" id="btn-save-act-bottom" class="btn-primary-action">
+          💾 Simpan Perubahan
+        </button>
+      </div>
+    </form>
+  `;
+
+  // Populate Item Rows
+  const itemsContainer = document.getElementById('edit-act-items-container');
+
+  const createItemRow = (item = null) => {
+    const row = document.createElement('div');
+    row.className = 'edit-act-item-row';
+    row.style.cssText = 'display: flex; gap: 8px; align-items: center; flex-wrap: wrap; background: rgba(255,255,255,0.02); padding: 10px; border-radius: 8px; border: 1px solid var(--clr-border-subtle);';
+    row.innerHTML = `
+      <select class="form-select edit-item-sp-select" style="flex: 2; min-width: 200px;" required>
+        <option value="">-- Pilih Jenis Pohon --</option>
+        ${cachedSpecies.map((s) => `<option value="${s.id}" ${item && s.id === item.tree_species_id ? 'selected' : ''}>${escapeHtml(s.common_name)} (${escapeHtml(s.scientific_name)})</option>`).join('')}
+      </select>
+      <input type="number" class="form-input edit-item-qty-input" style="flex: 1; min-width: 100px;" placeholder="Jumlah bibit" min="1" value="${item ? item.quantity : ''}" required />
+      <input type="text" class="form-input edit-item-unit-input" style="width: 90px;" value="${escapeHtml(item?.unit || 'batang')}" placeholder="Satuan" />
+      <button type="button" class="icon-btn-sm edit-btn-del-row" style="color: #ef4444;" title="Hapus Baris" aria-label="Hapus Baris">✕</button>
+    `;
+    row.querySelector('.edit-btn-del-row').addEventListener('click', () => {
+      if (itemsContainer.querySelectorAll('.edit-act-item-row').length > 1) {
+        row.remove();
+      } else {
+        EcoToast.warning('Peringatan Input', 'Minimal satu jenis pohon harus ada dalam kegiatan penanaman.');
+      }
+    });
+    return row;
+  };
+
+  if (existingItems.length > 0) {
+    existingItems.forEach((itm) => itemsContainer.appendChild(createItemRow(itm)));
+  } else {
+    itemsContainer.appendChild(createItemRow(null));
+  }
+
+  document.getElementById('btn-edit-add-item-row')?.addEventListener('click', () => {
+    itemsContainer.appendChild(createItemRow(null));
+  });
+
+  // Cancel and Back handlers
+  const handleCancelOrBack = () => {
+    renderActivitiesTab(container, scenes);
+  };
+
+  document.getElementById('breadcrumb-btn-act-list')?.addEventListener('click', handleCancelOrBack);
+  document.getElementById('btn-back-to-act')?.addEventListener('click', handleCancelOrBack);
+  document.getElementById('btn-cancel-act-top')?.addEventListener('click', handleCancelOrBack);
+  document.getElementById('btn-cancel-act-bottom')?.addEventListener('click', handleCancelOrBack);
+
+  // Save handler
+  const handleSave = async () => {
+    const alertBox = document.getElementById('act-edit-alert');
+    alertBox.classList.add('hidden');
+    alertBox.textContent = '';
+
+    const date = document.getElementById('edit-act-date').value;
+    const name = document.getElementById('edit-act-name').value.trim();
+    const zoneId = document.getElementById('edit-act-zone-id').value;
+    const locationZone = document.getElementById('edit-act-zone').value.trim();
+    const sceneId = document.getElementById('edit-act-scene').value;
+    const pic = document.getElementById('edit-act-pic').value.trim();
+    const org = document.getElementById('edit-act-org').value.trim();
+    const notes = document.getElementById('edit-act-notes').value.trim();
+
+    if (!date) {
+      alertBox.className = 'alert-banner alert-danger';
+      alertBox.textContent = 'Tanggal penanaman wajib diisi.';
+      alertBox.classList.remove('hidden');
+      alertBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
+    if (!name) {
+      alertBox.className = 'alert-banner alert-danger';
+      alertBox.textContent = 'Nama kegiatan penanaman wajib diisi.';
+      alertBox.classList.remove('hidden');
+      alertBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
+    if (!locationZone) {
+      alertBox.className = 'alert-banner alert-danger';
+      alertBox.textContent = 'Zona deskriptif / blok penanaman wajib diisi.';
+      alertBox.classList.remove('hidden');
+      alertBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
+    if (!pic) {
+      alertBox.className = 'alert-banner alert-danger';
+      alertBox.textContent = 'Nama penanggung jawab (PIC) wajib diisi.';
+      alertBox.classList.remove('hidden');
+      alertBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
+    // Collect items
+    const rows = itemsContainer.querySelectorAll('.edit-act-item-row');
+    const items = [];
+    let hasInvalidQty = false;
+
+    rows.forEach((r) => {
+      const spId = r.querySelector('.edit-item-sp-select').value;
+      const qtyStr = r.querySelector('.edit-item-qty-input').value;
+      const qty = parseInt(qtyStr, 10);
+      const unit = r.querySelector('.edit-item-unit-input').value.trim() || 'batang';
+
+      if (spId && !isNaN(qty) && qty > 0) {
+        items.push({ tree_species_id: spId, quantity: qty, unit });
+      } else if (spId && (isNaN(qty) || qty <= 0)) {
+        hasInvalidQty = true;
+      }
+    });
+
+    if (hasInvalidQty) {
+      alertBox.className = 'alert-banner alert-danger';
+      alertBox.textContent = 'Jumlah bibit harus berupa angka bulat positif (minimal 1).';
+      alertBox.classList.remove('hidden');
+      alertBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
+    if (items.length === 0) {
+      alertBox.className = 'alert-banner alert-danger';
+      alertBox.textContent = 'Pilih setidaknya 1 jenis pohon dengan jumlah bibit yang valid.';
+      alertBox.classList.remove('hidden');
+      alertBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
+    const payload = {
+      batch_code: activity.batch_code,
+      activity_date: date,
+      name,
+      planting_zone_id: zoneId || null,
+      location_zone: locationZone,
+      scene_id: sceneId || null,
+      person_in_charge: pic,
+      organizer: org,
+      notes,
+      items,
+    };
+
+    const saveBtns = [document.getElementById('btn-save-act-top'), document.getElementById('btn-save-act-bottom')];
+    saveBtns.forEach((b) => {
+      if (b) {
+        b.disabled = true;
+        b.innerHTML = '⏳ Menyimpan...';
+      }
+    });
+
+    try {
+      await ApiService.savePlantingActivity(payload, activity.id);
+      EcoToast.show({
+        type: 'success',
+        title: 'Berhasil diperbarui.',
+        message: `Data kegiatan penanaman '${activity.batch_code}' berhasil diperbarui.`,
+      });
+      await renderActivitiesTab(container, scenes);
+    } catch (err) {
+      alertBox.className = 'alert-banner alert-danger';
+      alertBox.textContent = `Gagal memperbarui kegiatan penanaman: ${err.message}. Seluruh data input tetap dipertahankan.`;
+      alertBox.classList.remove('hidden');
+      alertBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      EcoToast.error('✕ Gagal memperbarui kegiatan', err.message);
+      saveBtns.forEach((b) => {
+        if (b) {
+          b.disabled = false;
+          b.innerHTML = '💾 Simpan Perubahan';
+        }
+      });
+    }
+  };
+
+  document.getElementById('btn-save-act-top')?.addEventListener('click', handleSave);
+  document.getElementById('btn-save-act-bottom')?.addEventListener('click', handleSave);
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -1184,8 +1592,9 @@ async function renderSurveysTab(container) {
                     ${s.damage_symptoms ? `<br><span style="font-size: 11px; color: var(--clr-text-muted);">${escapeHtml(s.damage_symptoms)}</span>` : ''}
                   </td>
                   <td style="padding: 10px 14px;">${escapeHtml(s.inspector_name)}</td>
-                  <td style="padding: 10px 14px; text-align: center;">
-                    <button class="btn-del-survey icon-btn-sm" data-id="${s.id}" title="Hapus Survei" style="color: #ef4444;">🗑️</button>
+                  <td style="padding: 10px 14px; text-align: center; white-space: nowrap;">
+                    <button class="btn-edit-survey icon-btn-sm" data-id="${s.id}" title="Edit Survei" aria-label="Edit Survei" style="margin-right: 4px; color: #38bdf8;">✏️</button>
+                    <button class="btn-del-survey icon-btn-sm" data-id="${s.id}" title="Hapus Survei" aria-label="Hapus Survei" style="color: #ef4444;">🗑️</button>
                   </td>
                 </tr>
               `
@@ -1315,6 +1724,23 @@ async function renderSurveysTab(container) {
     }
   });
 
+  document.querySelectorAll('.btn-edit-survey').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const id = btn.getAttribute('data-id');
+      try {
+        btn.disabled = true;
+        btn.innerHTML = '⏳';
+        const res = await ApiService.getTreeSurveyDetail(id);
+        const srv = res.survey || res;
+        await renderSurveyEditFormView(srv, container);
+      } catch (e) {
+        EcoToast.error('✕ Gagal memuat data survei', e.message);
+        btn.disabled = false;
+        btn.innerHTML = '✏️';
+      }
+    });
+  });
+
   document.querySelectorAll('.btn-del-survey').forEach((btn) => {
     btn.addEventListener('click', async () => {
       const id = btn.getAttribute('data-id');
@@ -1329,6 +1755,334 @@ async function renderSurveysTab(container) {
       }
     });
   });
+}
+
+/**
+ * Halaman Khusus Formulir Edit Pemantauan Tanaman
+ * Breadcrumb: Dashboard / Data Penanaman / Pemantauan Tanaman / Edit
+ */
+async function renderSurveyEditFormView(survey, container) {
+  if (!cachedActivities || cachedActivities.length === 0) {
+    const actRes = await ApiService.getPlantingActivities();
+    cachedActivities = actRes.activities || [];
+  }
+
+  container.innerHTML = `
+    <!-- Breadcrumb Navigasi -->
+    <div style="margin-bottom: 20px;">
+      <nav style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--clr-text-muted); margin-bottom: 8px;">
+        <a href="#admin/dashboard" style="color: var(--clr-text-muted); text-decoration: none;">Dashboard</a>
+        <span>&rsaquo;</span>
+        <span style="color: var(--clr-text-muted);">Data Penanaman</span>
+        <span>&rsaquo;</span>
+        <button type="button" id="breadcrumb-btn-srv-list" style="background: none; border: none; color: var(--clr-text-muted); cursor: pointer; padding: 0; font-size: 12px; text-decoration: underline;">Pemantauan Tanaman</button>
+        <span>&rsaquo;</span>
+        <span style="color: #38bdf8; font-weight: 600;">Edit</span>
+      </nav>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+        <div>
+          <h2 style="font-size: 20px; font-weight: 700; color: #fff; margin: 0; display: flex; align-items: center; gap: 8px;">
+            <span>✏️</span> Edit Pemantauan Tanaman: ${escapeHtml(survey.batch_code || survey.id)}
+          </h2>
+          <p style="font-size: 13px; color: var(--clr-text-muted); margin: 4px 0 0;">
+            Koreksi hasil sensus lapangan, kondisi kesehatan bibit, dan pengukuran silvikultur batch tanaman.
+          </p>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <button type="button" id="btn-back-to-srv" class="btn-secondary-action btn-sm">
+            ← Kembali
+          </button>
+          <button type="button" id="btn-cancel-srv-top" class="btn-secondary-action btn-sm">
+            Batal
+          </button>
+          <button type="button" id="btn-save-srv-top" class="btn-primary-action btn-sm">
+            💾 Simpan Perubahan
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Alert Notifikasi / Error Validasi -->
+    <div id="srv-edit-alert" class="hidden" style="margin-bottom: 20px; padding: 14px 18px; border-radius: 8px; font-size: 13px;"></div>
+
+    <form id="form-edit-survey" style="display: flex; flex-direction: column; gap: 20px;">
+      <!-- CARD 1: IDENTITAS & WAKTU PEMANTAUAN -->
+      <div class="admin-pane-card" style="background: var(--clr-surface); border: 1px solid var(--clr-border); border-radius: 12px; padding: 22px;">
+        <div style="border-bottom: 1px solid var(--clr-border-subtle); padding-bottom: 12px; margin-bottom: 18px; display: flex; justify-content: space-between; align-items: center;">
+          <h3 style="font-size: 15px; font-weight: 700; color: #fff; margin: 0; display: flex; align-items: center; gap: 8px;">
+            <span>🔍</span> Card 1 — Informasi Batch & Jadwal Pemantauan
+          </h3>
+          <span style="font-size: 11px; color: #f59e0b;">* Field wajib diisi</span>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+          <div class="form-group">
+            <label for="edit-srv-act" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
+              Kelompok / Batch Penanaman: <span style="color: #ef4444;">*</span>
+            </label>
+            <select id="edit-srv-act" class="form-select" required>
+              <option value="">-- Pilih Batch Penanaman --</option>
+              ${cachedActivities.map((a) => `<option value="${a.id}" ${a.id === survey.planting_activity_id ? 'selected' : ''}>${escapeHtml(a.batch_code)} - ${escapeHtml(a.name)} (${a.total_initial_seedlings} bibit)</option>`).join('')}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="edit-srv-date" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
+              Tanggal Pemeriksaan: <span style="color: #ef4444;">*</span>
+            </label>
+            <input type="date" id="edit-srv-date" class="form-input" required value="${survey.survey_date}" />
+          </div>
+
+          <div class="form-group" style="grid-column: 1 / -1;">
+            <label for="edit-srv-inspector" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
+              Nama Petugas Pemeriksa: <span style="color: #ef4444;">*</span>
+            </label>
+            <input type="text" id="edit-srv-inspector" class="form-input" required placeholder="Nama Surveyor / Tim Lapangan" value="${escapeHtml(survey.inspector_name || '')}" />
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD 2: HASIL SENSUS TANAMAN -->
+      <div class="admin-pane-card" style="background: var(--clr-surface); border: 1px solid var(--clr-border); border-radius: 12px; padding: 22px;">
+        <div style="border-bottom: 1px solid var(--clr-border-subtle); padding-bottom: 12px; margin-bottom: 18px;">
+          <h3 style="font-size: 15px; font-weight: 700; color: #fff; margin: 0; display: flex; align-items: center; gap: 8px;">
+            <span>📊</span> Card 2 — Hasil Sensus & Kelangsungan Hidup
+          </h3>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px;">
+          <div class="form-group">
+            <label for="edit-srv-alive" style="color: #10b981; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
+              Jumlah Bibit Hidup: <span style="color: #ef4444;">*</span>
+            </label>
+            <input type="number" id="edit-srv-alive" class="form-input" required min="0" value="${survey.alive_count}" />
+            <small style="color: var(--clr-text-muted); font-size: 11px;">Bibit yang masih tegak dan hidup.</small>
+          </div>
+
+          <div class="form-group">
+            <label for="edit-srv-dead" style="color: #ef4444; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
+              Jumlah Mati: <span style="color: #ef4444;">*</span>
+            </label>
+            <input type="number" id="edit-srv-dead" class="form-input" required min="0" value="${survey.dead_count}" />
+            <small style="color: var(--clr-text-muted); font-size: 11px;">Bibit mati / kering.</small>
+          </div>
+
+          <div class="form-group">
+            <label for="edit-srv-missing" style="color: #f59e0b; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
+              Jumlah Hilang:
+            </label>
+            <input type="number" id="edit-srv-missing" class="form-input" min="0" value="${survey.missing_count || 0}" />
+            <small style="color: var(--clr-text-muted); font-size: 11px;">Ajir ada namun tanaman raib.</small>
+          </div>
+
+          <div class="form-group">
+            <label for="edit-srv-health" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
+              Kondisi Kesehatan Tanaman: <span style="color: #ef4444;">*</span>
+            </label>
+            <select id="edit-srv-health" class="form-select" required>
+              <option value="sangat_baik" ${survey.health_condition === 'sangat_baik' ? 'selected' : ''}>Sangat Baik (Segar, Tunas Aktif)</option>
+              <option value="baik" ${survey.health_condition === 'baik' ? 'selected' : ''}>Baik (Pertumbuhan Normal)</option>
+              <option value="sedang" ${survey.health_condition === 'sedang' ? 'selected' : ''}>Sedang (Daun Menguning/Kering Parsial)</option>
+              <option value="merana" ${survey.health_condition === 'merana' ? 'selected' : ''}>Merana (Pertumbuhan Terhambat)</option>
+              <option value="terserang_hama" ${survey.health_condition === 'terserang_hama' ? 'selected' : ''}>Terserang Hama / Penyakit</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD 3: PENGUKURAN & CATATAN LAPANGAN -->
+      <div class="admin-pane-card" style="background: var(--clr-surface); border: 1px solid var(--clr-border); border-radius: 12px; padding: 22px;">
+        <div style="border-bottom: 1px solid var(--clr-border-subtle); padding-bottom: 12px; margin-bottom: 18px;">
+          <h3 style="font-size: 15px; font-weight: 700; color: #fff; margin: 0; display: flex; align-items: center; gap: 8px;">
+            <span>📏</span> Card 3 — Pengukuran Silvikultur & Catatan Lapangan
+          </h3>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+          <div class="form-group">
+            <label for="edit-srv-height" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
+              Tinggi Rata-rata (cm, opsional):
+            </label>
+            <input type="number" step="0.1" min="0" id="edit-srv-height" class="form-input" placeholder="Misal: 65.5" value="${survey.average_height_cm || ''}" />
+          </div>
+
+          <div class="form-group">
+            <label for="edit-srv-diameter" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
+              Diameter Batang Rata-rata (cm, opsional):
+            </label>
+            <input type="number" step="0.1" min="0" id="edit-srv-diameter" class="form-input" placeholder="Misal: 1.8" value="${survey.average_diameter_cm || ''}" />
+          </div>
+
+          <div class="form-group" style="grid-column: 1 / -1;">
+            <label for="edit-srv-symptoms" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
+              Gejala / Penyebab Kerusakan (Jika ada):
+            </label>
+            <input type="text" id="edit-srv-symptoms" class="form-input" placeholder="Kekeringan, dimakan satwa, tertutup gulma..." value="${escapeHtml(survey.damage_symptoms || '')}" />
+          </div>
+
+          <div class="form-group" style="grid-column: 1 / -1;">
+            <label for="edit-srv-notes" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
+              Catatan Lapangan & Rekomendasi Tindakan:
+            </label>
+            <textarea id="edit-srv-notes" class="form-textarea" rows="3" placeholder="Perlu penyiangan piringan, pemupukan tambahan, penyulaman...">${escapeHtml(survey.field_notes || '')}</textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tombol Aksi Bawah -->
+      <div style="display: flex; justify-content: flex-end; align-items: center; gap: 12px; padding: 18px 0; border-top: 1px solid var(--clr-border-subtle);">
+        <button type="button" id="btn-cancel-srv-bottom" class="btn-secondary-action">
+          Batal
+        </button>
+        <button type="button" id="btn-save-srv-bottom" class="btn-primary-action">
+          💾 Simpan Perubahan
+        </button>
+      </div>
+    </form>
+  `;
+
+  // Cancel and Back handlers
+  const handleCancelOrBack = () => {
+    renderSurveysTab(container);
+  };
+
+  document.getElementById('breadcrumb-btn-srv-list')?.addEventListener('click', handleCancelOrBack);
+  document.getElementById('btn-back-to-srv')?.addEventListener('click', handleCancelOrBack);
+  document.getElementById('btn-cancel-srv-top')?.addEventListener('click', handleCancelOrBack);
+  document.getElementById('btn-cancel-srv-bottom')?.addEventListener('click', handleCancelOrBack);
+
+  // Save handler
+  const handleSave = async () => {
+    const alertBox = document.getElementById('srv-edit-alert');
+    alertBox.classList.add('hidden');
+    alertBox.textContent = '';
+
+    const actId = document.getElementById('edit-srv-act').value;
+    const date = document.getElementById('edit-srv-date').value;
+    const inspector = document.getElementById('edit-srv-inspector').value.trim();
+    const aliveStr = document.getElementById('edit-srv-alive').value;
+    const deadStr = document.getElementById('edit-srv-dead').value;
+    const missingStr = document.getElementById('edit-srv-missing').value;
+    const health = document.getElementById('edit-srv-health').value;
+    const height = parseFloat(document.getElementById('edit-srv-height').value) || null;
+    const diameter = parseFloat(document.getElementById('edit-srv-diameter').value) || null;
+    const symptoms = document.getElementById('edit-srv-symptoms').value.trim() || null;
+    const notes = document.getElementById('edit-srv-notes').value.trim() || null;
+
+    if (!actId) {
+      alertBox.className = 'alert-banner alert-danger';
+      alertBox.textContent = 'Pilih kelompok / batch penanaman.';
+      alertBox.classList.remove('hidden');
+      alertBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
+    if (!date) {
+      alertBox.className = 'alert-banner alert-danger';
+      alertBox.textContent = 'Tanggal pemeriksaan wajib diisi.';
+      alertBox.classList.remove('hidden');
+      alertBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
+    if (!inspector) {
+      alertBox.className = 'alert-banner alert-danger';
+      alertBox.textContent = 'Nama petugas pemeriksa wajib diisi.';
+      alertBox.classList.remove('hidden');
+      alertBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
+    const alive = parseInt(aliveStr, 10);
+    const dead = parseInt(deadStr, 10);
+    const missing = parseInt(missingStr, 10) || 0;
+
+    if (isNaN(alive) || alive < 0) {
+      alertBox.className = 'alert-banner alert-danger';
+      alertBox.textContent = 'Jumlah bibit hidup tidak boleh negatif.';
+      alertBox.classList.remove('hidden');
+      alertBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
+    if (isNaN(dead) || dead < 0) {
+      alertBox.className = 'alert-banner alert-danger';
+      alertBox.textContent = 'Jumlah bibit mati tidak boleh negatif.';
+      alertBox.classList.remove('hidden');
+      alertBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
+    if (missing < 0) {
+      alertBox.className = 'alert-banner alert-danger';
+      alertBox.textContent = 'Jumlah bibit hilang tidak boleh negatif.';
+      alertBox.classList.remove('hidden');
+      alertBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
+    // Verify against batch initial seedlings if available
+    const selectedAct = cachedActivities.find((a) => a.id === actId);
+    if (selectedAct && selectedAct.total_initial_seedlings > 0) {
+      if (alive > selectedAct.total_initial_seedlings) {
+        alertBox.className = 'alert-banner alert-danger';
+        alertBox.textContent = `Jumlah bibit hidup (${alive}) tidak boleh melebihi jumlah awal batch (${selectedAct.total_initial_seedlings} bibit).`;
+        alertBox.classList.remove('hidden');
+        alertBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
+    }
+
+    const payload = {
+      planting_activity_id: actId,
+      survey_date: date,
+      alive_count: alive,
+      dead_count: dead,
+      missing_count: missing,
+      health_condition: health,
+      inspector_name: inspector,
+      average_height_cm: height,
+      average_diameter_cm: diameter,
+      damage_symptoms: symptoms,
+      field_notes: notes,
+      is_verified: true,
+    };
+
+    const saveBtns = [document.getElementById('btn-save-srv-top'), document.getElementById('btn-save-srv-bottom')];
+    saveBtns.forEach((b) => {
+      if (b) {
+        b.disabled = true;
+        b.innerHTML = '⏳ Menyimpan...';
+      }
+    });
+
+    try {
+      await ApiService.saveTreeSurvey(payload, survey.id);
+      EcoToast.show({
+        type: 'success',
+        title: 'Berhasil diperbarui.',
+        message: 'Data hasil pemantauan tanaman berhasil diperbarui.',
+      });
+      await renderSurveysTab(container);
+    } catch (err) {
+      alertBox.className = 'alert-banner alert-danger';
+      alertBox.textContent = `Gagal memperbarui survei: ${err.message}. Seluruh data input tetap dipertahankan.`;
+      alertBox.classList.remove('hidden');
+      alertBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      EcoToast.error('✕ Gagal memperbarui survei', err.message);
+      saveBtns.forEach((b) => {
+        if (b) {
+          b.disabled = false;
+          b.innerHTML = '💾 Simpan Perubahan';
+        }
+      });
+    }
+  };
+
+  document.getElementById('btn-save-srv-top')?.addEventListener('click', handleSave);
+  document.getElementById('btn-save-srv-bottom')?.addEventListener('click', handleSave);
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -1388,8 +2142,9 @@ async function renderMaintenanceTab(container) {
                   </td>
                   <td style="padding: 10px 14px;">${escapeHtml(m.officer_or_team)}</td>
                   <td style="padding: 10px 14px; font-size: 12px; color: var(--clr-text-muted);">${escapeHtml(m.action_reason || m.notes || '-')}</td>
-                  <td style="padding: 10px 14px; text-align: center;">
-                    <button class="btn-del-maintenance icon-btn-sm" data-id="${m.id}" title="Hapus" style="color: #ef4444;">🗑️</button>
+                  <td style="padding: 10px 14px; text-align: center; white-space: nowrap;">
+                    <button class="btn-edit-maintenance icon-btn-sm" data-id="${m.id}" title="Edit Catatan Perawatan" aria-label="Edit Catatan Perawatan" style="margin-right: 4px; color: #38bdf8;">✏️</button>
+                    <button class="btn-del-maintenance icon-btn-sm" data-id="${m.id}" title="Hapus" aria-label="Hapus" style="color: #ef4444;">🗑️</button>
                   </td>
                 </tr>
               `
@@ -1502,6 +2257,23 @@ async function renderMaintenanceTab(container) {
     }
   });
 
+  document.querySelectorAll('.btn-edit-maintenance').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const id = btn.getAttribute('data-id');
+      try {
+        btn.disabled = true;
+        btn.innerHTML = '⏳';
+        const res = await ApiService.getTreeMaintenanceDetail(id);
+        const log = res.log || res.maintenance || res;
+        await renderMaintenanceEditFormView(log, container);
+      } catch (e) {
+        EcoToast.error('✕ Gagal memuat data perawatan', e.message);
+        btn.disabled = false;
+        btn.innerHTML = '✏️';
+      }
+    });
+  });
+
   document.querySelectorAll('.btn-del-maintenance').forEach((btn) => {
     btn.addEventListener('click', async () => {
       const id = btn.getAttribute('data-id');
@@ -1516,6 +2288,295 @@ async function renderMaintenanceTab(container) {
       }
     });
   });
+}
+
+/**
+ * Halaman Khusus Formulir Edit Perawatan dan Penyulaman
+ * Breadcrumb: Dashboard / Data Penanaman / Perawatan dan Penyulaman / Edit
+ */
+async function renderMaintenanceEditFormView(log, container) {
+  if (!cachedActivities || cachedActivities.length === 0) {
+    const actRes = await ApiService.getPlantingActivities();
+    cachedActivities = actRes.activities || [];
+  }
+
+  container.innerHTML = `
+    <!-- Breadcrumb Navigasi -->
+    <div style="margin-bottom: 20px;">
+      <nav style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--clr-text-muted); margin-bottom: 8px;">
+        <a href="#admin/dashboard" style="color: var(--clr-text-muted); text-decoration: none;">Dashboard</a>
+        <span>&rsaquo;</span>
+        <span style="color: var(--clr-text-muted);">Data Penanaman</span>
+        <span>&rsaquo;</span>
+        <button type="button" id="breadcrumb-btn-mnt-list" style="background: none; border: none; color: var(--clr-text-muted); cursor: pointer; padding: 0; font-size: 12px; text-decoration: underline;">Perawatan dan Penyulaman</button>
+        <span>&rsaquo;</span>
+        <span style="color: #38bdf8; font-weight: 600;">Edit</span>
+      </nav>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+        <div>
+          <h2 style="font-size: 20px; font-weight: 700; color: #fff; margin: 0; display: flex; align-items: center; gap: 8px;">
+            <span>✏️</span> Edit Perawatan & Penyulaman: ${escapeHtml(log.batch_code || log.id)}
+          </h2>
+          <p style="font-size: 13px; color: var(--clr-text-muted); margin: 4px 0 0;">
+            Koreksi tindakan silvikultur, bibit penyulaman baru, dan tim pelaksana penanganan bibit.
+          </p>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <button type="button" id="btn-back-to-mnt" class="btn-secondary-action btn-sm">
+            ← Kembali
+          </button>
+          <button type="button" id="btn-cancel-mnt-top" class="btn-secondary-action btn-sm">
+            Batal
+          </button>
+          <button type="button" id="btn-save-mnt-top" class="btn-primary-action btn-sm">
+            💾 Simpan Perubahan
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Alert Notifikasi / Error Validasi -->
+    <div id="mnt-edit-alert" class="hidden" style="margin-bottom: 20px; padding: 14px 18px; border-radius: 8px; font-size: 13px;"></div>
+
+    <form id="form-edit-maintenance" style="display: flex; flex-direction: column; gap: 20px;">
+      <!-- CARD 1: INFORMASI BATCH & WAKTU -->
+      <div class="admin-pane-card" style="background: var(--clr-surface); border: 1px solid var(--clr-border); border-radius: 12px; padding: 22px;">
+        <div style="border-bottom: 1px solid var(--clr-border-subtle); padding-bottom: 12px; margin-bottom: 18px; display: flex; justify-content: space-between; align-items: center;">
+          <h3 style="font-size: 15px; font-weight: 700; color: #fff; margin: 0; display: flex; align-items: center; gap: 8px;">
+            <span>🛠️</span> Card 1 — Informasi Batch & Jadwal Pelaksanaan
+          </h3>
+          <span style="font-size: 11px; color: #f59e0b;">* Field wajib diisi</span>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+          <div class="form-group">
+            <label for="edit-mnt-act" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
+              Kelompok / Batch Penanaman: <span style="color: #ef4444;">*</span>
+            </label>
+            <select id="edit-mnt-act" class="form-select" required>
+              <option value="">-- Pilih Batch Penanaman --</option>
+              ${cachedActivities.map((a) => `<option value="${a.id}" ${a.id === log.planting_activity_id ? 'selected' : ''}>${escapeHtml(a.batch_code)} - ${escapeHtml(a.name)}</option>`).join('')}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="edit-mnt-date" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
+              Tanggal Pelaksanaan: <span style="color: #ef4444;">*</span>
+            </label>
+            <input type="date" id="edit-mnt-date" class="form-input" required value="${log.maintenance_date}" />
+          </div>
+
+          <div class="form-group" style="grid-column: 1 / -1;">
+            <label for="edit-mnt-team" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
+              Petugas / Tim Pelaksana: <span style="color: #ef4444;">*</span>
+            </label>
+            <input type="text" id="edit-mnt-team" class="form-input" required placeholder="Contoh: Tim Silvikultur IKHW" value="${escapeHtml(log.officer_or_team || '')}" />
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD 2: TINDAKAN SILVIKULTUR & BIBIT -->
+      <div class="admin-pane-card" style="background: var(--clr-surface); border: 1px solid var(--clr-border); border-radius: 12px; padding: 22px;">
+        <div style="border-bottom: 1px solid var(--clr-border-subtle); padding-bottom: 12px; margin-bottom: 18px;">
+          <h3 style="font-size: 15px; font-weight: 700; color: #fff; margin: 0; display: flex; align-items: center; gap: 8px;">
+            <span>🌱</span> Card 2 — Tindakan Silvikultur & Penanganan Bibit
+          </h3>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+          <div class="form-group">
+            <label for="edit-mnt-action" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
+              Jenis Tindakan Silvikultur: <span style="color: #ef4444;">*</span>
+            </label>
+            <select id="edit-mnt-action" class="form-select" required>
+              <option value="penyiangan" ${log.action_type === 'penyiangan' ? 'selected' : ''}>Penyiangan (Pembersihan Gulma & Piringan)</option>
+              <option value="penyiraman" ${log.action_type === 'penyiraman' ? 'selected' : ''}>Penyiraman</option>
+              <option value="pemupukan" ${log.action_type === 'pemupukan' ? 'selected' : ''}>Pemupukan (Organik / NPK)</option>
+              <option value="perlindungan_bibit" ${log.action_type === 'perlindungan_bibit' ? 'selected' : ''}>Perlindungan Bibit / Ajir / Mulsa</option>
+              <option value="pengendalian_gangguan" ${log.action_type === 'pengendalian_gangguan' ? 'selected' : ''}>Pengendalian Hama / Gangguan</option>
+              <option value="penyulaman" ${log.action_type === 'penyulaman' ? 'selected' : ''}>Penyulaman (Tanam Pengganti Bibit Mati)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="edit-mnt-handled" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
+              Jumlah Tanaman Ditangani:
+            </label>
+            <input type="number" id="edit-mnt-handled" class="form-input" min="0" value="${log.plants_handled_count || 0}" />
+            <small style="color: var(--clr-text-muted); font-size: 11px;">Jumlah batang pohon yang dirawat / disiangi / dipupuk.</small>
+          </div>
+
+          <div class="form-group">
+            <label for="edit-mnt-replacement" style="color: #f59e0b; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
+              Bibit Penyulaman (Bibit Baru Pengganti):
+            </label>
+            <input type="number" id="edit-mnt-replacement" class="form-input" min="0" value="${log.replacement_plants_count || 0}" />
+            <small style="color: #f59e0b; font-size: 11px;">⚠️ Bibit pengganti dicatat terpisah dan tidak menggabungkan bibit awal.</small>
+          </div>
+
+          <div class="form-group">
+            <label for="edit-mnt-cost" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
+              Estimasi Biaya Tindakan (Rp, opsional):
+            </label>
+            <input type="number" min="0" id="edit-mnt-cost" class="form-input" placeholder="Contoh: 150000" value="${log.cost || ''}" />
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD 3: ALASAN & CATATAN LAPANGAN -->
+      <div class="admin-pane-card" style="background: var(--clr-surface); border: 1px solid var(--clr-border); border-radius: 12px; padding: 22px;">
+        <div style="border-bottom: 1px solid var(--clr-border-subtle); padding-bottom: 12px; margin-bottom: 18px;">
+          <h3 style="font-size: 15px; font-weight: 700; color: #fff; margin: 0; display: flex; align-items: center; gap: 8px;">
+            <span>📝</span> Card 3 — Alasan Silvikultur & Catatan Lapangan
+          </h3>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+          <div class="form-group">
+            <label for="edit-mnt-reason" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
+              Penyebab / Alasan Tindakan:
+            </label>
+            <input type="text" id="edit-mnt-reason" class="form-input" placeholder="Gulma menutupi tajuk bibit / bibit mati kekeringan / pemupukan berkala..." value="${escapeHtml(log.action_reason || '')}" />
+          </div>
+
+          <div class="form-group">
+            <label for="edit-mnt-notes" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
+              Catatan Tambahan & Dokumentasi:
+            </label>
+            <textarea id="edit-mnt-notes" class="form-textarea" rows="3" placeholder="Kondisi pasca tindakan, rekomendasi pemantauan lanjutan...">${escapeHtml(log.notes || '')}</textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tombol Aksi Bawah -->
+      <div style="display: flex; justify-content: flex-end; align-items: center; gap: 12px; padding: 18px 0; border-top: 1px solid var(--clr-border-subtle);">
+        <button type="button" id="btn-cancel-mnt-bottom" class="btn-secondary-action">
+          Batal
+        </button>
+        <button type="button" id="btn-save-mnt-bottom" class="btn-primary-action">
+          💾 Simpan Perubahan
+        </button>
+      </div>
+    </form>
+  `;
+
+  // Cancel and Back handlers
+  const handleCancelOrBack = () => {
+    renderMaintenanceTab(container);
+  };
+
+  document.getElementById('breadcrumb-btn-mnt-list')?.addEventListener('click', handleCancelOrBack);
+  document.getElementById('btn-back-to-mnt')?.addEventListener('click', handleCancelOrBack);
+  document.getElementById('btn-cancel-mnt-top')?.addEventListener('click', handleCancelOrBack);
+  document.getElementById('btn-cancel-mnt-bottom')?.addEventListener('click', handleCancelOrBack);
+
+  // Save handler
+  const handleSave = async () => {
+    const alertBox = document.getElementById('mnt-edit-alert');
+    alertBox.classList.add('hidden');
+    alertBox.textContent = '';
+
+    const actId = document.getElementById('edit-mnt-act').value;
+    const date = document.getElementById('edit-mnt-date').value;
+    const action = document.getElementById('edit-mnt-action').value;
+    const team = document.getElementById('edit-mnt-team').value.trim();
+    const handledStr = document.getElementById('edit-mnt-handled').value;
+    const replStr = document.getElementById('edit-mnt-replacement').value;
+    const costStr = document.getElementById('edit-mnt-cost').value;
+    const reason = document.getElementById('edit-mnt-reason').value.trim() || null;
+    const notes = document.getElementById('edit-mnt-notes').value.trim() || null;
+
+    if (!actId) {
+      alertBox.className = 'alert-banner alert-danger';
+      alertBox.textContent = 'Pilih kelompok / batch penanaman.';
+      alertBox.classList.remove('hidden');
+      alertBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
+    if (!date) {
+      alertBox.className = 'alert-banner alert-danger';
+      alertBox.textContent = 'Tanggal pelaksanaan wajib diisi.';
+      alertBox.classList.remove('hidden');
+      alertBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
+    if (!team) {
+      alertBox.className = 'alert-banner alert-danger';
+      alertBox.textContent = 'Petugas atau tim pelaksana wajib diisi.';
+      alertBox.classList.remove('hidden');
+      alertBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
+    const handled = parseInt(handledStr, 10) || 0;
+    const replacement = parseInt(replStr, 10) || 0;
+    const cost = costStr ? parseFloat(costStr) : null;
+
+    if (handled < 0) {
+      alertBox.className = 'alert-banner alert-danger';
+      alertBox.textContent = 'Jumlah tanaman ditangani tidak boleh negatif.';
+      alertBox.classList.remove('hidden');
+      alertBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
+    if (replacement < 0) {
+      alertBox.className = 'alert-banner alert-danger';
+      alertBox.textContent = 'Jumlah bibit penyulaman tidak boleh negatif.';
+      alertBox.classList.remove('hidden');
+      alertBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
+    const payload = {
+      planting_activity_id: actId,
+      maintenance_date: date,
+      action_type: action,
+      officer_or_team: team,
+      plants_handled_count: handled,
+      replacement_plants_count: replacement,
+      action_reason: reason,
+      notes,
+      cost,
+    };
+
+    const saveBtns = [document.getElementById('btn-save-mnt-top'), document.getElementById('btn-save-mnt-bottom')];
+    saveBtns.forEach((b) => {
+      if (b) {
+        b.disabled = true;
+        b.innerHTML = '⏳ Menyimpan...';
+      }
+    });
+
+    try {
+      await ApiService.saveTreeMaintenance(payload, log.id);
+      EcoToast.show({
+        type: 'success',
+        title: 'Berhasil diperbarui.',
+        message: 'Catatan perawatan dan penyulaman berhasil diperbarui.',
+      });
+      await renderMaintenanceTab(container);
+    } catch (err) {
+      alertBox.className = 'alert-banner alert-danger';
+      alertBox.textContent = `Gagal memperbarui catatan perawatan: ${err.message}. Seluruh data input tetap dipertahankan.`;
+      alertBox.classList.remove('hidden');
+      alertBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      EcoToast.error('✕ Gagal memperbarui perawatan', err.message);
+      saveBtns.forEach((b) => {
+        if (b) {
+          b.disabled = false;
+          b.innerHTML = '💾 Simpan Perubahan';
+        }
+      });
+    }
+  };
+
+  document.getElementById('btn-save-mnt-top')?.addEventListener('click', handleSave);
+  document.getElementById('btn-save-mnt-bottom')?.addEventListener('click', handleSave);
 }
 
 // ─────────────────────────────────────────────────────────────

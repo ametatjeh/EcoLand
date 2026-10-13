@@ -3471,8 +3471,21 @@ body {
 }
 .map-canvas-container {
   width: 100%;
-  height: 320px;
+  height: 520px;
   border-radius: 8px;
+  overflow: hidden;
+}
+
+@media (max-width: 992px) {
+  .map-canvas-container {
+    height: 400px;
+  }
+}
+
+@media (max-width: 640px) {
+  .map-canvas-container {
+    height: 340px;
+  }
 }
 .ref-map-info-text {
   font-size: 11px;

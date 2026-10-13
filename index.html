@@ -24,7 +24,7 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-      
+      @vite(['resources/css/app.css', 'resources/js/app.js'])
   </head>
   <body>
     <!-- App Container -->
@@ -39,7 +39,7 @@
           </div>
           <div class="brand-info">
             <span class="brand-title" id="nav-brand-title">Eco Land</span>
-            <span class="brand-subtitle" id="nav-brand-sub">Virtual Tour 360° &bull; IKHW Aceh</span>
+            <span class="brand-subtitle" id="nav-brand-sub">IKHW Aceh — Inisiatif Konservasi & Hutan Wakaf</span>
           </div>
         </div>
 
@@ -48,7 +48,7 @@
             🌿 Beranda
           </button>
           <button class="nav-tab-btn" data-tab="tour">
-            🔄 Virtual Tour 360
+            🔄 Virtual Tour 360°
           </button>
           <button class="nav-tab-btn" data-tab="info">
             ℹ️ Informasi Kawasan
@@ -58,6 +58,9 @@
           </button>
           <button class="nav-tab-btn" data-tab="katalog">
             🌳 Data Pohon
+          </button>
+          <button class="nav-tab-btn" data-tab="tree-qr">
+            📱 Tree QR Code
           </button>
         </nav>
 
@@ -88,10 +91,10 @@
                 🌱 Inisiatif Pemulihan Lahan & Silvikultur
               </div>
               <h1 class="hero-title" id="hero-title">
-                Eco Land<br /><span style="display: block; font-size: 24px; font-weight: 600; opacity: 0.92; margin-top: 6px;">Virtual Tour 360° Kawasan Penanaman Pohon</span>
+                Eco Land<br /><span style="display: block; font-size: 24px; font-weight: 600; opacity: 0.92; margin-top: 6px;">Kawasan Penanaman Pohon</span>
               </h1>
               <p class="hero-subtitle" id="hero-desc">
-                Jelajahi lanskap pemulihan ekosistem melalui panorama 360° interaktif berbasis Marzipano, amati pertumbuhan bibit pohon kayu keras dan pohon buah hutan pakan satwa dari berbagai sudut pandang lapangan.
+                Inisiatif restorasi bentang lahan dan pemulihan keanekaragaman hayati seluas kurang lebih 2 hektare. Program ini berfokus pada pengayaan tutupan vegetasi menggunakan spesies pohon kayu keras endemik Aceh dan pohon buah hutan pakan satwa.
               </p>
               <div class="hero-actions">
                 <button class="btn-primary-action" id="btn-hero-start-tour">
@@ -136,6 +139,18 @@
               </div>
             </div>
 
+            <!-- Peta Lokasi Titik Referensi Acuan (WGS84) di Beranda (Urutan di Atas Kawasan & Plot) -->
+            <div class="ref-map-container-box section-header-spacing">
+              <div class="ref-map-header">
+                <span>📍 Peta Lokasi Titik Referensi Acuan (WGS84)</span>
+                <span class="ref-coord-badge">5.4818556° N, 95.5840917° E</span>
+              </div>
+              <div id="home-ref-map" class="map-canvas-container"></div>
+              <div class="ref-map-info-text">
+                ℹ️ Peta menampilkan penanda lokasi titik acuan lapangan dan titik survei panorama 360°.
+              </div>
+            </div>
+
             <!-- Kawasan Penanaman Aktif Terdaftar -->
             <div class="section-header section-header-spacing">
               <div class="header-flex-between">
@@ -151,18 +166,6 @@
 
             <div class="points-grid" id="home-zones-grid">
               <!-- Dynamically populated via JS -->
-            </div>
-
-            <!-- Peta Lokasi Titik Referensi Acuan (WGS84) di Beranda -->
-            <div class="ref-map-container-box section-header-spacing">
-              <div class="ref-map-header">
-                <span>📍 Peta Lokasi Titik Referensi Acuan (WGS84)</span>
-                <span class="ref-coord-badge">5.4818556° N, 95.5840917° E</span>
-              </div>
-              <div id="home-ref-map" class="map-canvas-container"></div>
-              <div class="ref-map-info-text">
-                ℹ️ Peta menampilkan penanda lokasi titik acuan lapangan dan titik survei panorama 360°.
-              </div>
             </div>
           </div>
         </section>
@@ -293,9 +296,19 @@
             <div class="info-grid">
               <div class="info-main-content">
                 <h3>1. Gambaran Umum & Lokasi Referensi</h3>
-                <p>
-                  Kawasan penanaman pohon seluas kurang lebih 2 hektare (±20.000 m²) ini terletak di Provinsi Aceh dengan titik acuan koordinat referensi <strong>5.4818556° N, 95.5840917° E</strong> (datum WGS84 / EPSG:4326). Program ini difokuskan sebagai model percontohan restorasi ekosistem, pemulihan tutupan kanopi pohon, perlindungan tata air mikroklimat, dan serapan karbon biomassa lokal.
+                <p id="info-general-desc">
+                  Inisiatif restorasi bentang lahan dan pemulihan keanekaragaman hayati seluas kurang lebih 2 hektare. Program ini berfokus pada pengayaan tutupan vegetasi menggunakan spesies pohon kayu keras endemik Aceh dan pohon buah hutan pakan satwa.
                 </p>
+
+                <!-- Penjelasan Lokasi Acuan Spasial WGS84 -->
+                <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 12px; padding: 14px 18px; margin: 16px 0; font-size: 13px; line-height: 1.6; color: var(--clr-text-muted);">
+                  <strong style="color: #fff; display: block; margin-bottom: 4px;">📌 Penjelasan Lokasi & Acuan Spasial:</strong>
+                  <ul style="margin: 0 0 0 16px; padding: 0;">
+                    <li>Lokasi kawasan ditampilkan menggunakan titik referensi acuan <strong>WGS84 (5.4818556° N, 95.5840917° E)</strong> yang dapat diverifikasi secara faktual di lapangan.</li>
+                    <li>Titik referensi digunakan sebagai acuan lokasi lapangan dan titik survei dokumentasi panorama 360°, bukan otomatis merepresentasikan garis batas resmi seluruh kawasan.</li>
+                    <li>Informasi luas kawasan (±2 Hektare / 1.7 Ha tercatat aktif) dan komposisi vegetasi mengikuti catatan survei silvikultur yang telah diverifikasi.</li>
+                  </ul>
+                </div>
 
                 <!-- Peta Lokasi Referensi Biasa (Single Reference Pin, No Polygons) -->
                 <div class="ref-map-container-box">
@@ -411,7 +424,6 @@
                     <li><strong>Domain Publikasi:</strong> ikhw.org</li>
                     <li><strong>Luas Kawasan:</strong> ±2 Hektare (Deskriptif)</li>
                     <li><strong>Titik Acuan:</strong> 5.4818556° N, 95.5840917° E</li>
-                    <li><strong>Engine Virtual Tour:</strong> Marzipano WebGL</li>
                   </ul>
                 </div>
 
@@ -460,6 +472,15 @@
         </section>
 
         <!-- ==========================================
+             VIEW H: TREE QR CODE (PUBLIK)
+             ========================================== -->
+        <section id="view-tree-qr" class="view-pane">
+          <div class="home-wrapper" id="public-tree-qr-container">
+            <!-- Dynamically populated via treeQr.js -->
+          </div>
+        </section>
+
+        <!-- ==========================================
              SHARED PUBLIC FOOTER (GLOBAL)
              ========================================== -->
         <footer id="public-global-footer" class="landing-footer">
@@ -475,7 +496,7 @@
                   </div>
                   <div>
                     <h3 class="footer-brand-title">Eco Land</h3>
-                    <span class="footer-brand-sub">Kawasan Penanaman Pohon &bull; IKHW Aceh</span>
+                    <span class="footer-brand-sub">IKHW Aceh — Inisiatif Konservasi & Hutan Wakaf</span>
                   </div>
                 </div>
                 <p class="footer-brand-desc">
@@ -492,10 +513,11 @@
                 <h4 class="footer-heading">Navigasi Utama</h4>
                 <ul class="footer-links">
                   <li><a href="#beranda" class="footer-link"><span>🌿</span> Beranda &amp; Ringkasan</a></li>
-                  <li><a href="#tour" class="footer-link"><span>🔄</span> Virtual Tour 360</a></li>
+                  <li><a href="#tour" class="footer-link"><span>🔄</span> Virtual Tour 360°</a></li>
                   <li><a href="#info" class="footer-link"><span>ℹ️</span> Informasi Kawasan &amp; GIS</a></li>
                   <li><a href="#galeri" class="footer-link"><span>🖼️</span> Galeri Dokumentasi</a></li>
                   <li><a href="#katalog" class="footer-link"><span>🌳</span> Data Pohon &amp; Silvikultur</a></li>
+                  <li><a href="#tree-qr" class="footer-link"><span>📱</span> Tree QR Code</a></li>
                 </ul>
               </div>
 
@@ -1032,14 +1054,19 @@
 
     <!-- Admin Login Modal -->
     <div id="admin-login-modal" class="modal-overlay hidden">
-      <div class="modal-card modal-card-admin-login">
-        <div class="modal-header">
-          <div class="modal-header-brand">
-            <div class="modal-header-icon">🔐</div>
+      <div class="modal-card modal-card-admin-login" style="max-width: 440px; border-radius: 22px; border: 1px solid rgba(255,255,255,0.18); background: rgba(6, 20, 14, 0.94); backdrop-filter: blur(24px); box-shadow: 0 25px 60px rgba(0,0,0,0.8), 0 0 25px rgba(16, 185, 129, 0.2);">
+        <div class="modal-header" style="border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 16px;">
+          <div class="modal-header-brand" style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); display: flex; align-items: center; justify-content: center; color: #34d399;">
+              <svg style="width: 24px; height: 24px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9 9 0 01-9-9c0-4.97 4.03-9 9-9 4.14 0 7.63 2.8 8.65 6.64.12.44-.22.86-.68.86h-2.18c-.46 0-.85.34-.94.79a5.002 5.002 0 01-4.85 4.71H12v6z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v18" />
+              </svg>
+            </div>
             <div>
-              <h3 class="modal-header-title">Login Administrator</h3>
-              <p class="modal-header-sub">
-                Akses Manajemen Eco Land
+              <h3 class="modal-header-title" style="font-size: 18px; font-weight: 800; color: #fff; margin: 0; background: linear-gradient(135deg, #ffffff 40%, #a7f3d0 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">Eco Land</h3>
+              <p class="modal-header-sub" style="font-size: 12px; color: #94a3b8; margin: 2px 0 0;">
+                Land and Green Space Management System
               </p>
             </div>
           </div>
@@ -1052,28 +1079,46 @@
         </div>
 
         <form id="admin-login-form">
-          <div class="modal-body modal-body-login">
-            <div id="admin-login-error" class="login-error-alert hidden"></div>
+          <div class="modal-body modal-body-login" style="display: flex; flex-direction: column; gap: 14px; padding-top: 16px;">
+            <div id="admin-login-error" class="login-error-alert hidden" style="padding: 10px 14px; border-radius: 10px; background: rgba(153, 27, 27, 0.45); border: 1px solid rgba(239, 68, 68, 0.45); color: #fecaca; font-size: 13px;"></div>
 
             <div class="form-group">
-              <label for="admin-username">Username Administrator:</label>
-              <input type="text" id="admin-username" class="form-input" placeholder="admin" required />
+              <label for="admin-username" style="display: block; font-size: 12px; font-weight: 600; color: #a7f3d0; margin-bottom: 5px;">Alamat Email / Akun Administrator:</label>
+              <input type="text" id="admin-username" class="form-input" placeholder="admin@ecoland.local atau admin" required style="width: 100%; border-radius: 10px; background: rgba(3, 14, 8, 0.7); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 10px 14px;" />
             </div>
 
             <div class="form-group">
-              <label for="admin-password">Kata Sandi:</label>
-              <input type="password" id="admin-password" class="form-input" placeholder="••••••••" required />
+              <label for="admin-password" style="display: block; font-size: 12px; font-weight: 600; color: #a7f3d0; margin-bottom: 5px;">Kata Sandi:</label>
+              <input type="password" id="admin-password" class="form-input" placeholder="••••••••" required style="width: 100%; border-radius: 10px; background: rgba(3, 14, 8, 0.7); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 10px 14px;" />
             </div>
 
-            <div class="login-tip-box">
-              <small>Default kredensial pengelola: <code>admin</code> / <code>admin123</code></small>
+            <div style="padding-top: 4px;">
+              <button type="submit" class="btn-primary-action btn-login-submit" style="width: 100%; height: 44px; border-radius: 12px; font-weight: 700; background: linear-gradient(135deg, #059669 0%, #10b981 100%); border: 1px solid rgba(255,255,255,0.3); color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <span>Masuk ke Eco Land</span> →
+              </button>
             </div>
-          </div>
 
-          <div class="modal-footer modal-footer-login">
-            <button type="submit" class="btn-primary-action btn-login-submit">
-              Masuk Administrator
-            </button>
+            <div style="position: relative; margin: 4px 0; display: flex; align-items: center;">
+              <div style="flex-grow: 1; border-top: 1px solid rgba(255, 255, 255, 0.12);"></div>
+              <span style="flex-shrink: 0; margin: 0 12px; font-size: 11px; color: #94a3b8;">Atau masuk dengan</span>
+              <div style="flex-grow: 1; border-top: 1px solid rgba(255, 255, 255, 0.12);"></div>
+            </div>
+
+            <div>
+              <a href="{{ route('auth.google.redirect') }}" class="btn-glass-secondary" style="width: 100%; height: 42px; display: flex; align-items: center; justify-content: center; gap: 8px; border-radius: 12px; font-size: 13px; font-weight: 600; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.18); color: #e2e8f0; text-decoration: none;">
+                <svg style="width: 18px; height: 18px;" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
+                  <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+                  <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
+                  <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
+                </svg>
+                <span>Masuk dengan Google</span>
+              </a>
+            </div>
+
+            <div style="text-align: center; margin-top: 4px;">
+              <a href="/login" style="font-size: 11px; color: #34d399; text-decoration: none;">Buka Halaman Login Penuh →</a>
+            </div>
           </div>
         </form>
       </div>
@@ -1104,10 +1149,14 @@
     <!-- Global Toast Container -->
     <div id="ecozone-toast-container" class="ecozone-toast-container" role="status" aria-live="polite"></div>
 
-    
-    
+    @if(session('success'))
+      <div id="laravel-flash-success" class="hidden" data-message="{{ session('success') }}"></div>
+    @endif
+    @if(session('error'))
+      <div id="laravel-flash-error" class="hidden" data-message="{{ session('error') }}"></div>
+    @endif
 
     <!-- Main Module Script -->
-  <script type="module" src="/src/main.js"></script>
-</body>
+    
+  </body>
 </html>

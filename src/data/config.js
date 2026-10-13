@@ -9,7 +9,7 @@ export const projectConfig = {
   namaAplikasi: 'Eco Land',
   namaProyek: 'Kawasan Penanaman Pohon',
   subjudul: 'Virtual Tour 360° Pemulihan Ekosistem & Silvikultur',
-  organisasi: 'IKHW Aceh — Inisiatif Konservasi & Hutan Wisata',
+  organisasi: 'IKHW Aceh — Inisiatif Konservasi & Hutan Wakaf',
   domain: 'ikhw.org',
   emailKontak: 'info@ikhw.org',
 

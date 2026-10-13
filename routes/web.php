@@ -57,3 +57,13 @@ Route::get('/health', function () {
         'timestamp' => now()->toIso8601String(),
     ]);
 });
+
+// ─────────────────────────────────────────────────────────────
+// Eco Land Authentication & Google OAuth Routes
+// ─────────────────────────────────────────────────────────────
+Route::get('/login', [\App\Http\Controllers\AuthController::class, 'showLoginForm'])->name('login');
+Route::post('/login', [\App\Http\Controllers\AuthController::class, 'loginWeb'])->name('login.post');
+Route::match(['get', 'post'], '/logout', [\App\Http\Controllers\AuthController::class, 'logoutWeb'])->name('logout');
+
+Route::get('/auth/google/redirect', [\App\Http\Controllers\GoogleAuthController::class, 'redirect'])->name('auth.google.redirect');
+Route::get('/auth/google/callback', [\App\Http\Controllers\GoogleAuthController::class, 'callback'])->name('auth.google.callback');

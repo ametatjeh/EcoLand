@@ -338,6 +338,14 @@ export const ApiService = {
     return result;
   },
 
+  async getPlantingActivity(id) {
+    const res = await fetch(`/api/admin/trees/activities/${id}`, {
+      headers: this.getAuthHeaders(),
+    });
+    if (!res.ok) throw new Error('Gagal memuat detail kegiatan penanaman');
+    return await res.json();
+  },
+
   async deletePlantingActivity(id) {
     const res = await fetch(`/api/admin/trees/activities/${id}`, {
       method: 'DELETE',
@@ -365,6 +373,14 @@ export const ApiService = {
       headers: this.getAuthHeaders(),
     });
     if (!res.ok) throw new Error('Gagal memuat catatan survei pemantauan');
+    return await res.json();
+  },
+
+  async getTreeSurveyDetail(id) {
+    const res = await fetch(`/api/admin/trees/surveys/${id}`, {
+      headers: this.getAuthHeaders(),
+    });
+    if (!res.ok) throw new Error('Gagal memuat detail survei pemantauan');
     return await res.json();
   },
 
@@ -397,6 +413,14 @@ export const ApiService = {
       headers: this.getAuthHeaders(),
     });
     if (!res.ok) throw new Error('Gagal memuat catatan perawatan');
+    return await res.json();
+  },
+
+  async getTreeMaintenanceDetail(id) {
+    const res = await fetch(`/api/admin/trees/maintenance/${id}`, {
+      headers: this.getAuthHeaders(),
+    });
+    if (!res.ok) throw new Error('Gagal memuat detail catatan perawatan');
     return await res.json();
   },
 

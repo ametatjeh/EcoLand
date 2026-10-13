@@ -139,6 +139,8 @@ class TreeSurveyController extends Controller
         }
 
         $validated = $request->validate([
+            'planting_activity_id' => ['sometimes', 'string', 'exists:planting_activities,id'],
+            'tree_species_id' => ['nullable', 'integer', 'exists:tree_species,id'],
             'survey_date' => ['sometimes', 'date'],
             'alive_count' => ['sometimes', 'integer', 'min:0'],
             'dead_count' => ['sometimes', 'integer', 'min:0'],
@@ -156,13 +158,25 @@ class TreeSurveyController extends Controller
             'is_estimate' => ['nullable', 'boolean'],
         ]);
 
+        $actId = $validated['planting_activity_id'] ?? $survey->planting_activity_id;
+        $activity = PlantingActivity::find($actId);
+        $initial = $activity?->total_initial_seedlings ?? 0;
+        $alive = $validated['alive_count'] ?? $survey->alive_count;
+
+        if ($initial > 0 && $alive > $initial) {
+            return response()->json([
+                'success' => false,
+                'message' => "Jumlah tanaman hidup ({$alive}) melebihi total bibit awal yang ditanam ({$initial}). Jika terdapat tanaman pengganti dari penyulaman, catat di modul Perawatan & Penyulaman.",
+            ], 422);
+        }
+
         return DB::transaction(function () use ($survey, $validated) {
             $survey->update($validated);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Catatan survei berhasil diperbarui.',
-                'survey' => $survey->load(['activity.scene', 'species']),
+                'survey' => $survey->fresh(['activity.scene', 'species']),
             ]);
         });
     }

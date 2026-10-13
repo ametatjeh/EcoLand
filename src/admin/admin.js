@@ -507,6 +507,11 @@ export function parseAdminRoute(hashStr) {
 export function handleAdminHashRoute(hashStr) {
   const parsed = parseAdminRoute(hashStr);
   if (parsed) {
+    if (!checkAdminAuth()) {
+      sessionStorage.setItem('admin_redirect_hash', hashStr);
+      window.location.href = '/login';
+      return;
+    }
     switchAdminSubmenu(parsed.tab, parsed.subTab, false);
   }
 }
@@ -514,7 +519,7 @@ export function handleAdminHashRoute(hashStr) {
 export function openAdminView(defaultSubmenu = 'dashboard', defaultSubTab = null) {
   if (!checkAdminAuth()) {
     sessionStorage.setItem('admin_redirect_hash', getRouteFromTab(defaultSubmenu, defaultSubTab));
-    showLoginModal();
+    window.location.href = '/login';
     return;
   }
 

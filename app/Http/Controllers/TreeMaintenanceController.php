@@ -111,6 +111,8 @@ class TreeMaintenanceController extends Controller
         }
 
         $validated = $request->validate([
+            'planting_activity_id' => ['sometimes', 'string', 'exists:planting_activities,id'],
+            'tree_species_id' => ['nullable', 'integer', 'exists:tree_species,id'],
             'maintenance_date' => ['sometimes', 'date'],
             'action_type' => ['sometimes', 'string', 'in:penyiraman,penyiangan,pemupukan,perlindungan_bibit,pengendalian_gangguan,penyulaman'],
             'plants_handled_count' => ['nullable', 'integer', 'min:0'],
@@ -118,6 +120,8 @@ class TreeMaintenanceController extends Controller
             'action_reason' => ['nullable', 'string'],
             'officer_or_team' => ['sometimes', 'string', 'max:255'],
             'cost' => ['nullable', 'numeric', 'min:0'],
+            'photo_before_path' => ['nullable', 'string', 'max:255'],
+            'photo_after_path' => ['nullable', 'string', 'max:255'],
             'notes' => ['nullable', 'string'],
         ]);
 
@@ -127,7 +131,7 @@ class TreeMaintenanceController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Catatan perawatan berhasil diperbarui.',
-                'log' => $log->load(['activity.scene', 'species']),
+                'log' => $log->fresh(['activity.scene', 'species']),
             ]);
         });
     }

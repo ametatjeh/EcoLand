@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "leaflet": "^1.9.4",
-    "marzipano": "^0.10.2"
+    "marzipano": "^0.10.2",
+    "qrcode": "^1.5.4"
   }
 }
