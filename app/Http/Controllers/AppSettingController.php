@@ -43,4 +43,60 @@ class AppSettingController extends Controller
             'flat' => AppSetting::pluck('value', 'key'),
         ]);
     }
+
+    public function uploadLogo(Request $request)
+    {
+        $request->validate([
+            'logo' => 'required|file|mimes:jpeg,jpg,png,webp,svg|max:2048',
+        ]);
+
+        $file = $request->file('logo');
+        $extension = $file->getClientOriginalExtension() ?: 'png';
+        $filename = 'app_logo_' . date('Ymd_His') . '.' . strtolower($extension);
+        $storedPath = $file->storeAs('settings', $filename, 'public');
+        $logoUrl = '/storage/' . $storedPath;
+
+        AppSetting::updateOrCreate(
+            ['key' => 'app_logo'],
+            [
+                'value' => $logoUrl,
+                'group' => 'general',
+                'label' => 'Logo Aplikasi',
+                'type' => 'image',
+                'updated_at' => now(),
+            ]
+        );
+
+        ActivityLogger::log('update', 'settings', 'Mengunggah logo aplikasi baru: ' . $logoUrl, null, ['app_logo' => $logoUrl]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Logo aplikasi berhasil diunggah.',
+            'logo_url' => $logoUrl,
+            'flat' => AppSetting::pluck('value', 'key'),
+        ]);
+    }
+
+    public function removeLogo(Request $request)
+    {
+        AppSetting::updateOrCreate(
+            ['key' => 'app_logo'],
+            [
+                'value' => '',
+                'group' => 'general',
+                'label' => 'Logo Aplikasi',
+                'type' => 'image',
+                'updated_at' => now(),
+            ]
+        );
+
+        ActivityLogger::log('update', 'settings', 'Menghapus kustom logo aplikasi (kembali ke ikon default)', null, ['app_logo' => '']);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Logo aplikasi berhasil direset ke default.',
+            'logo_url' => null,
+            'flat' => AppSetting::pluck('value', 'key'),
+        ]);
+    }
 }

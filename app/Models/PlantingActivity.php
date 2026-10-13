@@ -30,7 +30,7 @@ class PlantingActivity extends Model
     ];
 
     protected $casts = [
-        'activity_date' => 'date',
+        'activity_date' => 'date:Y-m-d',
     ];
 
     protected static function boot()

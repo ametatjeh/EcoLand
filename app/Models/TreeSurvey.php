@@ -35,7 +35,7 @@ class TreeSurvey extends Model
     ];
 
     protected $casts = [
-        'survey_date' => 'date',
+        'survey_date' => 'date:Y-m-d',
         'alive_count' => 'integer',
         'dead_count' => 'integer',
         'missing_count' => 'integer',

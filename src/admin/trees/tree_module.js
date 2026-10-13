@@ -11,6 +11,7 @@
  */
 import { ApiService } from '../../services/api.js';
 import { EcoToast } from '../../utils/toast.js';
+import { toDateInputValue, formatDateDisplay, parseDateForPayload } from '../../utils/date.js';
 
 let currentTreeTab = 'dashboard';
 let cachedSpecies = [];
@@ -275,7 +276,7 @@ async function renderDashboardTab(container) {
                 <div style="padding: 8px 12px; background: rgba(255,255,255,0.03); border-radius: 4px; font-size: 12px;">
                   <div style="display: flex; justify-content: space-between;">
                     <strong>${escapeHtml(sv.batch_code || '-')}</strong>
-                    <span style="color: #94a3b8;">${sv.survey_date || '-'}</span>
+                    <span style="color: #94a3b8;">📅 ${formatDateDisplay(sv.survey_date)}</span>
                   </div>
                   <div style="color: #cbd5e1; margin-top: 2px;">
                     Hidup: <strong style="color: #34d399;">${sv.alive_count} btg</strong> • Kondisi: ${escapeHtml(sv.health_condition || '-')} • Petugas: ${escapeHtml(sv.inspector_name || '-')}
@@ -1038,9 +1039,15 @@ async function renderActivitiesTab(container, scenes) {
       return;
     }
 
+    const actDateVal = parseDateForPayload(document.getElementById('act-date').value);
+    if (!actDateVal) {
+      EcoToast.warning('Peringatan Input', 'Tanggal penanaman wajib diisi dengan tanggal yang valid!');
+      return;
+    }
+
     const payload = {
       batch_code: document.getElementById('act-batch').value.trim(),
-      activity_date: document.getElementById('act-date').value,
+      activity_date: actDateVal,
       name: document.getElementById('act-name').value.trim(),
       planting_zone_id: document.getElementById('act-zone-id').value || null,
       location_zone: document.getElementById('act-zone').value.trim(),
@@ -1080,7 +1087,7 @@ function renderActivityRows(list) {
       <tr style="border-bottom: 1px solid var(--clr-border);">
         <td style="padding: 10px 14px;">
           <span style="font-weight: 600;">${escapeHtml(a.batch_code)}</span><br>
-          <span style="font-size: 12px; color: var(--clr-text-muted);">${a.activity_date}</span>
+          <span style="font-size: 12px; color: var(--clr-text-muted);">📅 ${formatDateDisplay(a.activity_date)}</span>
         </td>
         <td style="padding: 10px 14px;">
           <span style="font-weight: 500;">${escapeHtml(a.name)}</span><br>
@@ -1225,11 +1232,12 @@ async function renderActivityEditFormView(activity, container, scenes = [], zone
             <small style="color: var(--clr-text-muted); font-size: 11px;">Kode unik batch penanaman dipertahankan sebagai referensi riwayat.</small>
           </div>
 
-          <div class="form-group">
+            <div class="form-group">
             <label for="edit-act-date" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
               Tanggal Penanaman: <span style="color: #ef4444;">*</span>
             </label>
-            <input type="date" id="edit-act-date" class="form-input" required value="${activity.activity_date}" />
+            <input type="date" id="edit-act-date" class="form-input" required value="${toDateInputValue(activity.activity_date)}" />
+            <small style="color: var(--clr-text-muted); font-size: 11px;">Format tersimpan: YYYY-MM-DD • Tampilan: ${formatDateDisplay(activity.activity_date)}</small>
           </div>
 
           <div class="form-group" style="grid-column: 1 / -1;">
@@ -1358,6 +1366,9 @@ async function renderActivityEditFormView(activity, container, scenes = [], zone
   const createItemRow = (item = null) => {
     const row = document.createElement('div');
     row.className = 'edit-act-item-row';
+    if (item && item.id) {
+      row.dataset.itemId = String(item.id);
+    }
     row.style.cssText = 'display: flex; gap: 8px; align-items: center; flex-wrap: wrap; background: rgba(255,255,255,0.02); padding: 10px; border-radius: 8px; border: 1px solid var(--clr-border-subtle);';
     row.innerHTML = `
       <select class="form-select edit-item-sp-select" style="flex: 2; min-width: 200px;" required>
@@ -1398,13 +1409,39 @@ async function renderActivityEditFormView(activity, container, scenes = [], zone
   document.getElementById('btn-cancel-act-top')?.addEventListener('click', handleCancelOrBack);
   document.getElementById('btn-cancel-act-bottom')?.addEventListener('click', handleCancelOrBack);
 
+  // Helper to clear existing field error messages
+  const clearFieldErrors = () => {
+    document.querySelectorAll('.field-error-msg').forEach((el) => el.remove());
+    document.querySelectorAll('.input-field-error').forEach((el) => {
+      el.classList.remove('input-field-error');
+      el.style.borderColor = '';
+    });
+  };
+
+  const showFieldError = (element, message) => {
+    if (!element) return;
+    element.classList.add('input-field-error');
+    element.style.borderColor = '#ef4444';
+    const errSpan = document.createElement('div');
+    errSpan.className = 'field-error-msg';
+    errSpan.style.cssText = 'color: #ef4444; font-size: 11px; margin-top: 4px; font-weight: 500;';
+    errSpan.textContent = `⚠ ${message}`;
+    if (element.nextSibling) {
+      element.parentNode.insertBefore(errSpan, element.nextSibling);
+    } else {
+      element.parentNode.appendChild(errSpan);
+    }
+  };
+
   // Save handler
   const handleSave = async () => {
     const alertBox = document.getElementById('act-edit-alert');
     alertBox.classList.add('hidden');
     alertBox.textContent = '';
+    clearFieldErrors();
 
-    const date = document.getElementById('edit-act-date').value;
+    const rawDate = document.getElementById('edit-act-date').value;
+    const date = parseDateForPayload(rawDate);
     const name = document.getElementById('edit-act-name').value.trim();
     const zoneId = document.getElementById('edit-act-zone-id').value;
     const locationZone = document.getElementById('edit-act-zone').value.trim();
@@ -1415,9 +1452,10 @@ async function renderActivityEditFormView(activity, container, scenes = [], zone
 
     if (!date) {
       alertBox.className = 'alert-banner alert-danger';
-      alertBox.textContent = 'Tanggal penanaman wajib diisi.';
+      alertBox.textContent = 'Tanggal penanaman wajib diisi dengan format tanggal yang valid.';
       alertBox.classList.remove('hidden');
       alertBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      showFieldError(document.getElementById('edit-act-date'), 'Tanggal penanaman tidak valid.');
       return;
     }
 
@@ -1426,6 +1464,7 @@ async function renderActivityEditFormView(activity, container, scenes = [], zone
       alertBox.textContent = 'Nama kegiatan penanaman wajib diisi.';
       alertBox.classList.remove('hidden');
       alertBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      showFieldError(document.getElementById('edit-act-name'), 'Nama kegiatan penanaman wajib diisi.');
       return;
     }
 
@@ -1434,6 +1473,7 @@ async function renderActivityEditFormView(activity, container, scenes = [], zone
       alertBox.textContent = 'Zona deskriptif / blok penanaman wajib diisi.';
       alertBox.classList.remove('hidden');
       alertBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      showFieldError(document.getElementById('edit-act-zone'), 'Zona deskriptif / blok penanaman wajib diisi.');
       return;
     }
 
@@ -1442,6 +1482,7 @@ async function renderActivityEditFormView(activity, container, scenes = [], zone
       alertBox.textContent = 'Nama penanggung jawab (PIC) wajib diisi.';
       alertBox.classList.remove('hidden');
       alertBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      showFieldError(document.getElementById('edit-act-pic'), 'Nama penanggung jawab (PIC) wajib diisi.');
       return;
     }
 
@@ -1455,11 +1496,17 @@ async function renderActivityEditFormView(activity, container, scenes = [], zone
       const qtyStr = r.querySelector('.edit-item-qty-input').value;
       const qty = parseInt(qtyStr, 10);
       const unit = r.querySelector('.edit-item-unit-input').value.trim() || 'batang';
+      const existingId = r.dataset.itemId ? parseInt(r.dataset.itemId, 10) : null;
 
       if (spId && !isNaN(qty) && qty > 0) {
-        items.push({ tree_species_id: spId, quantity: qty, unit });
+        const itemObj = { tree_species_id: spId, quantity: qty, unit };
+        if (existingId) itemObj.id = existingId;
+        items.push(itemObj);
       } else if (spId && (isNaN(qty) || qty <= 0)) {
         hasInvalidQty = true;
+        showFieldError(r.querySelector('.edit-item-qty-input'), 'Jumlah bibit minimal 1.');
+      } else if (!spId && qtyStr) {
+        showFieldError(r.querySelector('.edit-item-sp-select'), 'Pilih jenis pohon.');
       }
     });
 
@@ -1510,10 +1557,52 @@ async function renderActivityEditFormView(activity, container, scenes = [], zone
       await renderActivitiesTab(container, scenes);
     } catch (err) {
       alertBox.className = 'alert-banner alert-danger';
-      alertBox.textContent = `Gagal memperbarui kegiatan penanaman: ${err.message}. Seluruh data input tetap dipertahankan.`;
+
+      // Parse validation errors if returned from Laravel (422)
+      if (err.errors && typeof err.errors === 'object') {
+        const errorList = Object.entries(err.errors)
+          .map(([field, messages]) => {
+            const msg = Array.isArray(messages) ? messages.join(', ') : String(messages);
+
+            // Map field error to form input
+            if (field === 'name') showFieldError(document.getElementById('edit-act-name'), msg);
+            else if (field === 'activity_date') showFieldError(document.getElementById('edit-act-date'), msg);
+            else if (field === 'location_zone') showFieldError(document.getElementById('edit-act-zone'), msg);
+            else if (field === 'planting_zone_id') showFieldError(document.getElementById('edit-act-zone-id'), msg);
+            else if (field === 'scene_id') showFieldError(document.getElementById('edit-act-scene'), msg);
+            else if (field === 'person_in_charge') showFieldError(document.getElementById('edit-act-pic'), msg);
+            else if (field === 'organizer') showFieldError(document.getElementById('edit-act-org'), msg);
+            else if (field.startsWith('items.')) {
+              const parts = field.split('.');
+              const itemIdx = parseInt(parts[1], 10);
+              const subField = parts[2];
+              const itemRows = itemsContainer.querySelectorAll('.edit-act-item-row');
+              if (itemRows[itemIdx]) {
+                if (subField === 'tree_species_id') {
+                  showFieldError(itemRows[itemIdx].querySelector('.edit-item-sp-select'), msg);
+                } else if (subField === 'quantity') {
+                  showFieldError(itemRows[itemIdx].querySelector('.edit-item-qty-input'), msg);
+                }
+              }
+            }
+
+            return `<li>${escapeHtml(msg)}</li>`;
+          })
+          .join('');
+
+        alertBox.innerHTML = `
+          <strong>✕ Gagal memperbarui kegiatan: Terdapat kesalahan validasi input</strong>
+          <ul style="margin: 8px 0 0 18px; padding: 0;">${errorList}</ul>
+          <div style="margin-top: 6px; font-size: 11px; opacity: 0.85;">Seluruh data input yang telah Anda isi tetap dipertahankan. Silakan periksa kembali dan simpan ulang.</div>
+        `;
+      } else {
+        alertBox.textContent = `Gagal memperbarui kegiatan penanaman: ${err.message}. Seluruh data input tetap dipertahankan.`;
+      }
+
       alertBox.classList.remove('hidden');
       alertBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      EcoToast.error('✕ Gagal memperbarui kegiatan', err.message);
+      EcoToast.error('✕ Gagal memperbarui kegiatan', err.message || 'Terjadi kesalahan validasi.');
+
       saveBtns.forEach((b) => {
         if (b) {
           b.disabled = false;
@@ -1571,7 +1660,7 @@ async function renderSurveysTab(container) {
                   .map(
                     (s) => `
                 <tr style="border-bottom: 1px solid var(--clr-border);">
-                  <td style="padding: 10px 14px; font-weight: 600;">${s.survey_date}</td>
+                  <td style="padding: 10px 14px; font-weight: 600;">📅 ${formatDateDisplay(s.survey_date)}</td>
                   <td style="padding: 10px 14px;">
                     <span style="font-weight: 500;">${escapeHtml(s.batch_code)}</span><br>
                     <span style="font-size: 11px; color: var(--clr-text-muted);">${escapeHtml(s.location_zone)}</span>
@@ -1699,9 +1788,15 @@ async function renderSurveysTab(container) {
 
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
+    const surveyDateVal = parseDateForPayload(document.getElementById('srv-date').value);
+    if (!surveyDateVal) {
+      EcoToast.warning('Peringatan Input', 'Tanggal pemeriksaan wajib diisi dengan tanggal yang valid!');
+      return;
+    }
+
     const payload = {
       planting_activity_id: document.getElementById('srv-act').value,
-      survey_date: document.getElementById('srv-date').value,
+      survey_date: surveyDateVal,
       alive_count: parseInt(document.getElementById('srv-alive').value, 10),
       dead_count: parseInt(document.getElementById('srv-dead').value, 10) || 0,
       missing_count: parseInt(document.getElementById('srv-missing').value, 10) || 0,
@@ -1832,7 +1927,8 @@ async function renderSurveyEditFormView(survey, container) {
             <label for="edit-srv-date" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
               Tanggal Pemeriksaan: <span style="color: #ef4444;">*</span>
             </label>
-            <input type="date" id="edit-srv-date" class="form-input" required value="${survey.survey_date}" />
+            <input type="date" id="edit-srv-date" class="form-input" required value="${toDateInputValue(survey.survey_date)}" />
+            <small style="color: var(--clr-text-muted); font-size: 11px;">Format tersimpan: YYYY-MM-DD • Tampilan: ${formatDateDisplay(survey.survey_date)}</small>
           </div>
 
           <div class="form-group" style="grid-column: 1 / -1;">
@@ -1960,7 +2056,8 @@ async function renderSurveyEditFormView(survey, container) {
     alertBox.textContent = '';
 
     const actId = document.getElementById('edit-srv-act').value;
-    const date = document.getElementById('edit-srv-date').value;
+    const rawDate = document.getElementById('edit-srv-date').value;
+    const date = parseDateForPayload(rawDate);
     const inspector = document.getElementById('edit-srv-inspector').value.trim();
     const aliveStr = document.getElementById('edit-srv-alive').value;
     const deadStr = document.getElementById('edit-srv-dead').value;
@@ -1981,7 +2078,7 @@ async function renderSurveyEditFormView(survey, container) {
 
     if (!date) {
       alertBox.className = 'alert-banner alert-danger';
-      alertBox.textContent = 'Tanggal pemeriksaan wajib diisi.';
+      alertBox.textContent = 'Tanggal pemeriksaan wajib diisi dengan tanggal yang valid.';
       alertBox.classList.remove('hidden');
       alertBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
@@ -2129,7 +2226,7 @@ async function renderMaintenanceTab(container) {
                   .map(
                     (m) => `
                 <tr style="border-bottom: 1px solid var(--clr-border);">
-                  <td style="padding: 10px 14px; font-weight: 600;">${m.maintenance_date}</td>
+                  <td style="padding: 10px 14px; font-weight: 600;">📅 ${formatDateDisplay(m.maintenance_date)}</td>
                   <td style="padding: 10px 14px;">${escapeHtml(m.batch_code)} (${escapeHtml(m.location_zone)})</td>
                   <td style="padding: 10px 14px;">
                     <span class="admin-header-pill ${m.action_type === 'penyulaman' ? 'pill-warning' : 'pill-neutral'}" style="font-size: 11px;">
@@ -2236,9 +2333,15 @@ async function renderMaintenanceTab(container) {
 
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
+    const mntDateVal = parseDateForPayload(document.getElementById('mnt-date').value);
+    if (!mntDateVal) {
+      EcoToast.warning('Peringatan Input', 'Tanggal pelaksanaan perawatan wajib diisi dengan tanggal yang valid!');
+      return;
+    }
+
     const payload = {
       planting_activity_id: document.getElementById('mnt-act').value,
-      maintenance_date: document.getElementById('mnt-date').value,
+      maintenance_date: mntDateVal,
       action_type: document.getElementById('mnt-action').value,
       officer_or_team: document.getElementById('mnt-team').value.trim(),
       plants_handled_count: parseInt(document.getElementById('mnt-handled').value, 10) || 0,
@@ -2365,7 +2468,8 @@ async function renderMaintenanceEditFormView(log, container) {
             <label for="edit-mnt-date" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
               Tanggal Pelaksanaan: <span style="color: #ef4444;">*</span>
             </label>
-            <input type="date" id="edit-mnt-date" class="form-input" required value="${log.maintenance_date}" />
+            <input type="date" id="edit-mnt-date" class="form-input" required value="${toDateInputValue(log.maintenance_date)}" />
+            <small style="color: var(--clr-text-muted); font-size: 11px;">Format tersimpan: YYYY-MM-DD • Tampilan: ${formatDateDisplay(log.maintenance_date)}</small>
           </div>
 
           <div class="form-group" style="grid-column: 1 / -1;">
@@ -2479,7 +2583,8 @@ async function renderMaintenanceEditFormView(log, container) {
     alertBox.textContent = '';
 
     const actId = document.getElementById('edit-mnt-act').value;
-    const date = document.getElementById('edit-mnt-date').value;
+    const rawDate = document.getElementById('edit-mnt-date').value;
+    const date = parseDateForPayload(rawDate);
     const action = document.getElementById('edit-mnt-action').value;
     const team = document.getElementById('edit-mnt-team').value.trim();
     const handledStr = document.getElementById('edit-mnt-handled').value;
@@ -2498,7 +2603,7 @@ async function renderMaintenanceEditFormView(log, container) {
 
     if (!date) {
       alertBox.className = 'alert-banner alert-danger';
-      alertBox.textContent = 'Tanggal pelaksanaan wajib diisi.';
+      alertBox.textContent = 'Tanggal pelaksanaan wajib diisi dengan tanggal yang valid.';
       alertBox.classList.remove('hidden');
       alertBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;

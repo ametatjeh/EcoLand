@@ -4,6 +4,7 @@
  */
 
 import { ApiService } from '../services/api.js';
+import { formatDateDisplay } from '../utils/date.js';
 
 let cachedPublicPhotos = [];
 let cachedZones = [];
@@ -18,57 +19,64 @@ export async function initPublicGallery(containerId = 'public-gallery-container'
   if (!container) return;
 
   container.innerHTML = `
-    <div class="gallery-wrapper py-6">
-      <div class="section-header text-center mb-8">
-        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 mb-3">
-          📸 Dokumentasi Visual
-        </span>
-        <h2 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Galeri Foto Kawasan</h2>
-        <p class="text-slate-400 text-sm sm:text-base max-w-2xl mx-auto mt-2">
-          Dokumentasi visual kawasan penanaman, kegiatan, dan perkembangan tanaman berdasarkan foto yang tersedia.
+    <div class="gallery-wrapper">
+      <!-- Section Header Hero Banner -->
+      <div class="hero-section text-center relative overflow-hidden">
+        <div class="hero-badge">
+          <span>📸</span> Dokumentasi Visual & Silvikultur Kawasan
+        </div>
+        <h1 class="hero-title">
+          Galeri Foto Kawasan Restorasi
+        </h1>
+        <p class="hero-subtitle text-slate-300 text-sm max-w-2xl mx-auto leading-relaxed">
+          Dokumentasi visual perkembangan kawasan pemulihan lahan &plusmn;2 hektare, pelaksanaan penanaman, pertumbuhan tutupan tajuk, dan monitoring berkala.
         </p>
       </div>
 
       <!-- Filters & Search Toolbar -->
-      <div class="gallery-toolbar bg-slate-900/70 border border-slate-800 rounded-2xl p-4 mb-8 flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between">
-        <div class="flex flex-wrap items-center gap-2.5">
-          <div class="flex items-center gap-1.5 text-xs text-slate-400 font-medium mr-1">
-            <span>Filter Kawasan:</span>
+      <div class="bg-slate-900/70 backdrop-blur-xl border border-white/10 rounded-2xl p-4 sm:p-5 mb-8 shadow-2xl flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between">
+        <div class="flex flex-wrap items-center gap-3">
+          <div class="flex items-center gap-2">
+            <label for="gallery-filter-zone" class="text-xs text-slate-400 font-semibold uppercase tracking-wider flex items-center gap-1.5 shrink-0">
+              <span>🏞️</span> Kawasan:
+            </label>
+            <select id="gallery-filter-zone" class="bg-slate-950/80 hover:bg-slate-950 border border-white/10 hover:border-emerald-500/50 text-slate-200 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition shadow-inner cursor-pointer min-w-[160px]">
+              <option value="all">Semua Kawasan</option>
+            </select>
           </div>
-          <select id="gallery-filter-zone" class="bg-slate-800 border border-slate-700 text-white text-xs rounded-xl px-3 py-2 outline-none focus:border-emerald-500">
-            <option value="all">Semua Kawasan</option>
-          </select>
 
-          <div class="flex items-center gap-1.5 text-xs text-slate-400 font-medium ml-2 mr-1">
-            <span>Kategori:</span>
+          <div class="flex items-center gap-2">
+            <label for="gallery-filter-category" class="text-xs text-slate-400 font-semibold uppercase tracking-wider flex items-center gap-1.5 shrink-0">
+              <span>🏷️</span> Kategori:
+            </label>
+            <select id="gallery-filter-category" class="bg-slate-950/80 hover:bg-slate-950 border border-white/10 hover:border-emerald-500/50 text-slate-200 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition shadow-inner cursor-pointer min-w-[160px]">
+              <option value="all">Semua Kategori</option>
+              <option value="Kondisi Kawasan">Kondisi Kawasan</option>
+              <option value="Kegiatan Penanaman">Kegiatan Penanaman</option>
+              <option value="Pertumbuhan Tanaman">Pertumbuhan Tanaman</option>
+              <option value="Pemantauan">Pemantauan</option>
+              <option value="Perawatan">Perawatan</option>
+              <option value="Fasilitas">Fasilitas</option>
+              <option value="Dokumentasi Lainnya">Dokumentasi Lainnya</option>
+            </select>
           </div>
-          <select id="gallery-filter-category" class="bg-slate-800 border border-slate-700 text-white text-xs rounded-xl px-3 py-2 outline-none focus:border-emerald-500">
-            <option value="all">Semua Kategori</option>
-            <option value="Kondisi Kawasan">Kondisi Kawasan</option>
-            <option value="Kegiatan Penanaman">Kegiatan Penanaman</option>
-            <option value="Pertumbuhan Tanaman">Pertumbuhan Tanaman</option>
-            <option value="Pemantauan">Pemantauan</option>
-            <option value="Perawatan">Perawatan</option>
-            <option value="Fasilitas">Fasilitas</option>
-            <option value="Dokumentasi Lainnya">Dokumentasi Lainnya</option>
-          </select>
         </div>
 
-        <div class="relative min-w-[220px]">
-          <span class="absolute inset-y-0 left-3 flex items-center text-slate-500 text-sm">🔍</span>
+        <div class="relative min-w-[260px] md:max-w-xs w-full">
+          <span class="absolute inset-y-0 left-3.5 flex items-center text-slate-400 text-sm pointer-events-none">🔍</span>
           <input
             type="text"
             id="gallery-search-input"
-            placeholder="Cari foto..."
-            class="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-xl pl-9 pr-3 py-2 outline-none focus:border-emerald-500 placeholder-slate-500"
+            placeholder="Cari foto, judul, keterangan..."
+            class="w-full bg-slate-950/80 hover:bg-slate-950 border border-white/10 hover:border-emerald-500/50 text-slate-200 text-xs rounded-xl pl-10 pr-3.5 py-2.5 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 placeholder-slate-500 transition shadow-inner"
           />
         </div>
       </div>
 
       <!-- Grid Foto Galeri -->
-      <div id="gallery-grid-container" class="min-h-[300px]">
+      <div id="gallery-grid-container" class="min-h-[320px]">
         <div class="flex items-center justify-center py-20 text-slate-400 gap-2">
-          <span class="animate-spin text-xl">⏳</span> Memuat galeri foto...
+          <span class="loading-spinner"></span> Memuat galeri foto...
         </div>
       </div>
     </div>
@@ -237,15 +245,15 @@ function renderPhotoGrid() {
   }
 
   gridContainer.innerHTML = `
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
       ${filteredPhotos.map((photo, index) => {
         const zoneName = photo.zone ? photo.zone.name : 'Kawasan Penanaman';
-        const docDate = photo.documented_at ? formatDateIndo(photo.documented_at) : '-';
+        const docDate = formatDateDisplay(photo.documented_at);
         const imgUrl = photo.file_url || photo.file_path;
 
         return `
           <div
-            class="gallery-card group bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-lg hover:border-emerald-500/50 hover:shadow-emerald-500/10 transition-all duration-300 flex flex-col cursor-pointer"
+            class="gallery-card group bg-slate-900/60 backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl hover:border-emerald-500/40 hover:shadow-emerald-500/10 transition-all duration-300 flex flex-col cursor-pointer hover:-translate-y-1.5"
             data-index="${index}"
           >
             <!-- Thumbnail Box -->
@@ -257,38 +265,46 @@ function renderPhotoGrid() {
                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 onerror="this.src='/favicon.svg'"
               />
-              <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-3">
-                <span class="text-xs font-semibold text-white flex items-center gap-1.5 bg-black/60 backdrop-blur-sm px-2.5 py-1 rounded-lg">
-                  🔍 Perbesar
+              <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-3.5">
+                <span class="text-xs font-semibold text-white flex items-center gap-1.5 bg-black/75 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/10 shadow-lg">
+                  <span>🔍</span> Perbesar Foto
                 </span>
               </div>
-              <div class="absolute top-2.5 left-2.5 flex flex-wrap gap-1">
-                <span class="text-[10px] font-semibold bg-slate-900/80 backdrop-blur-sm text-emerald-400 border border-slate-700/80 px-2 py-0.5 rounded-md">
+              <div class="absolute top-3 left-3 flex flex-wrap gap-1.5">
+                <span class="text-[11px] font-semibold bg-slate-950/80 backdrop-blur-md text-emerald-400 border border-emerald-500/30 px-2.5 py-1 rounded-lg shadow-sm">
                   ${escapeHtml(photo.category || 'Dokumentasi')}
                 </span>
                 ${photo.is_cover ? `
-                  <span class="text-[10px] font-semibold bg-amber-500/90 text-slate-950 px-2 py-0.5 rounded-md font-bold">
-                    ⭐ Sampul
+                  <span class="text-[11px] font-bold bg-amber-500 text-slate-950 px-2.5 py-1 rounded-lg shadow-sm flex items-center gap-1">
+                    <span>⭐</span> Sampul
                   </span>
                 ` : ''}
               </div>
             </div>
 
             <!-- Content Details -->
-            <div class="p-3.5 flex-1 flex flex-col justify-between">
+            <div class="p-4 flex-1 flex flex-col justify-between gap-3 bg-slate-900/30">
               <div>
-                <h4 class="text-sm font-bold text-white line-clamp-1 group-hover:text-emerald-400 transition-colors">
+                <h4 class="text-sm font-bold text-white line-clamp-1 group-hover:text-emerald-400 transition-colors tracking-tight">
                   ${escapeHtml(photo.title || 'Dokumentasi Kawasan')}
                 </h4>
                 ${photo.caption ? `
-                  <p class="text-xs text-slate-400 line-clamp-2 mt-1 leading-relaxed">
+                  <p class="text-xs text-slate-400 line-clamp-2 mt-1.5 leading-relaxed">
                     ${escapeHtml(photo.caption)}
                   </p>
-                ` : ''}
+                ` : `
+                  <p class="text-xs text-slate-500 italic mt-1.5 line-clamp-1">
+                    Foto dokumentasi resmi kawasan penanaman
+                  </p>
+                `}
               </div>
-              <div class="mt-3 pt-2.5 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-500">
-                <span class="truncate max-w-[140px] text-slate-400">🏞️ ${escapeHtml(zoneName)}</span>
-                <span>📅 ${docDate}</span>
+              <div class="pt-3 border-t border-white/5 flex items-center justify-between text-[11px] text-slate-400">
+                <span class="truncate max-w-[130px] font-medium text-slate-300 flex items-center gap-1" title="${escapeHtml(zoneName)}">
+                  <span>🏞️</span> ${escapeHtml(zoneName)}
+                </span>
+                <span class="font-mono text-emerald-400/90 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                  📅 ${docDate}
+                </span>
               </div>
             </div>
           </div>

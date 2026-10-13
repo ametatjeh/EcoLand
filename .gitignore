@@ -33,3 +33,5 @@ dist-ssr
 /storage/framework/sessions/*
 /storage/framework/views/*
 /storage/logs/*
+/storage/app/public/*
+/public/storage

@@ -8,6 +8,7 @@
  * 5. Ekspor Data
  */
 import { ApiService } from '../services/api.js';
+import { formatDateDisplay } from '../utils/date.js';
 
 let currentReportTab = 'rekap';
 let cachedZones = [];
@@ -247,7 +248,7 @@ function renderSurvivalReport(container, data) {
                   <td style="padding: 8px; font-family: monospace; color: var(--clr-primary);">${item.batch_code}</td>
                   <td style="padding: 8px; font-weight: 600; color: #fff;">${item.name}</td>
                   <td style="padding: 8px;">${item.location_zone || '-'}</td>
-                  <td style="padding: 8px;">${item.last_survey_date || 'Belum pernah'}</td>
+                  <td style="padding: 8px;">${item.last_survey_date ? formatDateDisplay(item.last_survey_date) : 'Belum pernah'}</td>
                   <td style="padding: 8px; text-align: center; color: ${item.survival_rate !== null && item.survival_rate < 70 ? 'var(--clr-danger)' : 'var(--clr-gold)'}; font-weight: 700;">
                     ${item.survival_rate !== null ? item.survival_rate + '%' : '-'}
                   </td>

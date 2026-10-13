@@ -30,7 +30,7 @@ class TreeMaintenanceLog extends Model
     ];
 
     protected $casts = [
-        'maintenance_date' => 'date',
+        'maintenance_date' => 'date:Y-m-d',
         'plants_handled_count' => 'integer',
         'replacement_plants_count' => 'integer',
         'cost' => 'float',

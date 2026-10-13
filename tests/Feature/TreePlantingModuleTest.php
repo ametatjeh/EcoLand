@@ -147,6 +147,41 @@ class TreePlantingModuleTest extends TestCase
         $firstItem->refresh();
         $this->assertEquals(110, $firstItem->quantity);
         $this->assertStringContainsString('Koreksi penambahan 10 bibit', $firstItem->correction_log);
+
+        // Uji Update Kegiatan dan Detail Jenis Pohon (Memastikan string ID diterima dan data diperbarui tanpa duplikasi)
+        $updateRes = $this->withHeader('Authorization', "Bearer {$this->adminToken}")
+            ->putJson("/api/admin/trees/activities/{$activity->id}", [
+                'name' => 'Penanaman Pohon Blok Utara Kawasan (Diperbarui)',
+                'activity_date' => '2026-08-16',
+                'location_zone' => 'Area Penanaman 01 - Revisi',
+                'person_in_charge' => 'Koordinator Lapangan',
+                'organizer' => 'Tim IKHW Aceh',
+                'notes' => 'Catatan revisi kegiatan penanaman.',
+                'items' => [
+                    ['id' => $firstItem->id, 'tree_species_id' => $sp1->id, 'quantity' => 120, 'unit' => 'batang'],
+                    ['tree_species_id' => $sp2->id, 'quantity' => 60, 'unit' => 'batang'],
+                ],
+            ]);
+
+        $updateRes->assertStatus(200)
+            ->assertJson([
+                'success' => true,
+                'message' => 'Data kegiatan penanaman berhasil diperbarui.',
+            ]);
+
+        $activity->refresh();
+        $this->assertEquals('Penanaman Pohon Blok Utara Kawasan (Diperbarui)', $activity->name);
+        $this->assertEquals(180, $activity->total_initial_seedlings);
+        $this->assertEquals(2, $activity->items()->count());
+
+        // Uji validasi penolakan ketika tree_species_id tidak valid
+        $invalidRes = $this->withHeader('Authorization', "Bearer {$this->adminToken}")
+            ->putJson("/api/admin/trees/activities/{$activity->id}", [
+                'items' => [
+                    ['tree_species_id' => 'spesies-tidak-ada', 'quantity' => 10],
+                ],
+            ]);
+        $invalidRes->assertStatus(422);
     }
 
     /**
@@ -210,6 +245,20 @@ class TreePlantingModuleTest extends TestCase
         // Survei terbaru harus bertanggal 2026-11-01 dengan 88 hidup
         $this->assertEquals('2026-11-01', $act->latest_survey->survey_date->format('Y-m-d'));
         $this->assertEquals(88, $act->latest_survey->alive_count);
+
+        // Uji Update Tanggal Survei dan Serialisasi API YYYY-MM-DD
+        $surveyRecord = TreeSurvey::where('planting_activity_id', $act->id)->first();
+        $updateSrvRes = $this->withHeader('Authorization', "Bearer {$this->adminToken}")
+            ->putJson("/api/admin/trees/surveys/{$surveyRecord->id}", [
+                'survey_date' => '2026-10-15',
+                'alive_count' => 96,
+                'dead_count' => 4,
+            ]);
+
+        $updateSrvRes->assertStatus(200);
+        $surveyRecord->refresh();
+        $this->assertEquals('2026-10-15', $surveyRecord->survey_date->format('Y-m-d'));
+        $this->assertEquals('2026-10-15', $surveyRecord->toArray()['survey_date']);
     }
 
     /**

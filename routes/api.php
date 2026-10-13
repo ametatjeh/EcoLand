@@ -97,6 +97,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/settings', [AppSettingController::class, 'index']);
         Route::post('/settings', [AppSettingController::class, 'update']);
         Route::put('/settings', [AppSettingController::class, 'update']);
+        Route::post('/settings/logo', [AppSettingController::class, 'uploadLogo']);
+        Route::delete('/settings/logo', [AppSettingController::class, 'removeLogo']);
 
         // 6. Pengguna & Hak Akses
         Route::get('/users', [UserController::class, 'index']);

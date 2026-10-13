@@ -58,8 +58,8 @@ class PlantingZone extends Model
         'is_published' => 'boolean',
         'is_archived' => 'boolean',
         'gallery_photos' => 'array',
-        'measurement_date' => 'date',
-        'start_date' => 'date',
+        'measurement_date' => 'date:Y-m-d',
+        'start_date' => 'date:Y-m-d',
     ];
 
     protected static function boot()

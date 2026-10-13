@@ -334,7 +334,12 @@ export const ApiService = {
       body: JSON.stringify(data),
     });
     const result = await res.json();
-    if (!res.ok) throw new Error(result.message || 'Gagal menyimpan kegiatan penanaman');
+    if (!res.ok) {
+      const err = new Error(result.message || 'Gagal menyimpan kegiatan penanaman');
+      err.errors = result.errors || null;
+      err.status = res.status;
+      throw err;
+    }
     return result;
   },
 
@@ -664,6 +669,27 @@ export const ApiService = {
     });
     const result = await res.json();
     if (!res.ok) throw new Error(result.message || 'Gagal menyimpan pengaturan');
+    return result;
+  },
+
+  async uploadLogo(formData) {
+    const res = await fetch('/api/admin/settings/logo', {
+      method: 'POST',
+      headers: this.getAuthHeadersMultipart(),
+      body: formData,
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.message || 'Gagal mengunggah logo aplikasi');
+    return result;
+  },
+
+  async removeLogo() {
+    const res = await fetch('/api/admin/settings/logo', {
+      method: 'DELETE',
+      headers: this.getAuthHeaders(),
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.message || 'Gagal menghapus logo aplikasi');
     return result;
   },
 

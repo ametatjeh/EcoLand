@@ -140,7 +140,7 @@ class TreeSurveyController extends Controller
 
         $validated = $request->validate([
             'planting_activity_id' => ['sometimes', 'string', 'exists:planting_activities,id'],
-            'tree_species_id' => ['nullable', 'integer', 'exists:tree_species,id'],
+            'tree_species_id' => ['nullable', 'string', 'exists:tree_species,id'],
             'survey_date' => ['sometimes', 'date'],
             'alive_count' => ['sometimes', 'integer', 'min:0'],
             'dead_count' => ['sometimes', 'integer', 'min:0'],

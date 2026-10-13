@@ -30,51 +30,53 @@
     <!-- App Container -->
     <div id="app">
       <!-- Main Navbar -->
-      <header id="main-navbar">
-        <div class="brand-wrapper" id="brand-btn" title="Kembali ke Beranda">
-          <div class="brand-logo-icon">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-            </svg>
+      <header id="main-navbar" class="sticky top-0 z-50 backdrop-blur-xl bg-slate-950/85 border-b border-white/10 transition-all w-full">
+        <div class="max-w-[1240px] mx-auto px-6 w-full flex items-center justify-between h-20">
+          <div class="brand-wrapper group cursor-pointer" id="brand-btn" title="Kembali ke Beranda">
+            <div class="brand-logo-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+              </svg>
+            </div>
+            <div class="brand-info">
+              <span class="brand-title" id="nav-brand-title">Eco Land</span>
+              <span class="brand-subtitle" id="nav-brand-sub">IKHW Aceh &bull; Konservasi &plusmn;2 Hektare</span>
+            </div>
           </div>
-          <div class="brand-info">
-            <span class="brand-title" id="nav-brand-title">Eco Land</span>
-            <span class="brand-subtitle" id="nav-brand-sub">IKHW Aceh — Inisiatif Konservasi & Hutan Wakaf</span>
+
+          <nav class="nav-tabs" id="nav-tabs">
+            <button class="nav-tab-btn active" data-tab="beranda">
+              <span class="nav-icon">🌿</span> Beranda
+            </button>
+            <button class="nav-tab-btn" data-tab="tour">
+              <span class="nav-icon">🔄</span> Virtual Tour 360°
+            </button>
+            <button class="nav-tab-btn" data-tab="info">
+              <span class="nav-icon">ℹ️</span> Informasi Kawasan
+            </button>
+            <button class="nav-tab-btn" data-tab="galeri">
+              <span class="nav-icon">🖼️</span> Galeri Foto
+            </button>
+            <button class="nav-tab-btn" data-tab="katalog">
+              <span class="nav-icon">🌳</span> Data Pohon
+            </button>
+            <button class="nav-tab-btn" data-tab="tree-qr">
+              <span class="nav-icon">📱</span> Tree QR
+            </button>
+            <button class="nav-tab-btn btn-nav-login" id="nav-btn-admin" data-tab="admin" title="Login Petugas">
+              <span class="nav-icon">🔐</span> Login
+            </button>
+          </nav>
+
+          <div class="header-right-actions">
+            <button id="btn-mobile-menu" aria-label="Menu navigasi">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="3" y1="6" x2="21" y2="6"/>
+                <line x1="3" y1="12" x2="21" y2="12"/>
+                <line x1="3" y1="18" x2="21" y2="18"/>
+              </svg>
+            </button>
           </div>
-        </div>
-
-        <nav class="nav-tabs" id="nav-tabs">
-          <button class="nav-tab-btn active" data-tab="beranda">
-            🌿 Beranda
-          </button>
-          <button class="nav-tab-btn" data-tab="tour">
-            🔄 Virtual Tour 360°
-          </button>
-          <button class="nav-tab-btn" data-tab="info">
-            ℹ️ Informasi Kawasan
-          </button>
-          <button class="nav-tab-btn" data-tab="galeri">
-            🖼️ Galeri Kawasan
-          </button>
-          <button class="nav-tab-btn" data-tab="katalog">
-            🌳 Data Pohon
-          </button>
-          <button class="nav-tab-btn" data-tab="tree-qr">
-            📱 Tree QR Code
-          </button>
-        </nav>
-
-        <div class="header-right-actions">
-          <button class="nav-tab-btn btn-nav-admin" id="nav-btn-admin" data-tab="admin" title="Login">
-            🔐 Login
-          </button>
-          <button id="btn-mobile-menu" aria-label="Menu navigasi">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="3" y1="6" x2="21" y2="6"/>
-              <line x1="3" y1="12" x2="21" y2="12"/>
-              <line x1="3" y1="18" x2="21" y2="18"/>
-            </svg>
-          </button>
         </div>
       </header>
 
@@ -186,7 +188,7 @@
 
             <!-- Tour Top Bar Overlay -->
             <div id="tour-top-bar">
-              <div class="tour-info-card">
+              <div class="tour-info-card hidden md:block">
                 <div class="tour-scene-title">
                   <span id="tour-scene-seq" class="tour-scene-sequence">Titik 1</span>
                   <span id="tour-scene-name">Gerbang Masuk Kawasan</span>
@@ -211,12 +213,6 @@
                     <line x1="3" y1="18" x2="21" y2="18"/>
                   </svg>
                 </button>
-                <button id="btn-exit-to-list" class="icon-btn" aria-label="Kembali ke Beranda" title="Kembali ke Beranda">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-                    <polyline points="9 22 9 12 15 12 15 22"/>
-                  </svg>
-                </button>
               </div>
             </div>
 
@@ -235,44 +231,10 @@
             </aside>
             <div id="sidebar-overlay"></div>
 
-            <!-- Floating Controls -->
-            <div id="tour-controls">
-              <button id="btn-prev-scene" class="icon-btn" aria-label="Titik Sebelumnya" title="Titik Sebelumnya">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <polyline points="15 18 9 12 15 6"/>
-                </svg>
-              </button>
-              <button id="btn-next-scene" class="icon-btn" aria-label="Titik Berikutnya" title="Titik Berikutnya">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <polyline points="9 18 15 12 9 6"/>
-                </svg>
-              </button>
-              <button id="btn-zoom-in" class="icon-btn" aria-label="Zoom In" title="Perbesar">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/>
-                </svg>
-              </button>
-              <button id="btn-zoom-out" class="icon-btn" aria-label="Zoom Out" title="Perkecil">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/>
-                </svg>
-              </button>
-              <button id="btn-reset-view" class="icon-btn" aria-label="Reset Pandangan" title="Reset Pandangan">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/>
-                </svg>
-              </button>
-              <button id="btn-fullscreen" class="icon-btn" aria-label="Layar Penuh" title="Layar Penuh">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>
-                </svg>
-              </button>
-            </div>
-
             <!-- Compact Radar / Minimap Card Overlay -->
             <div id="tour-minimap-card">
               <div class="minimap-header">
-                <span>📍 Titik Lokasi Lapangan</span>
+                <span>📍 Titik Lokasi</span>
                 <button id="btn-minimap-minimize" class="btn-minimap-toggle">Tutup</button>
               </div>
               <div id="tour-minimap"></div>
@@ -436,15 +398,6 @@
                   </ul>
                 </div>
 
-                <div class="info-sidebar-card">
-                  <h4>Kontak & Informasi</h4>
-                  <p class="contact-desc">
-                    Untuk kerja sama konservasi dan informasi relawan penanaman pohon:
-                  </p>
-                  <p class="contact-links">
-                    ✉️ info@ikhw.org<br/>
-                    🌐 ikhw.org
-                  </p>
                 </div>
               </div>
             </div>
@@ -455,10 +408,8 @@
              VIEW: GALERI FOTO KAWASAN (PUBLIK)
              ========================================== -->
         <section id="view-galeri" class="view-pane">
-          <div class="home-wrapper" id="galeri">
-            <div id="public-gallery-container">
-              <!-- Dynamically populated via publicGallery.js -->
-            </div>
+          <div id="public-gallery-container">
+            <!-- Dynamically populated via publicGallery.js -->
           </div>
         </section>
 
@@ -475,7 +426,7 @@
              VIEW H: TREE QR CODE (PUBLIK)
              ========================================== -->
         <section id="view-tree-qr" class="view-pane">
-          <div class="home-wrapper" id="public-tree-qr-container">
+          <div id="public-tree-qr-container">
             <!-- Dynamically populated via treeQr.js -->
           </div>
         </section>
@@ -483,100 +434,43 @@
         <!-- ==========================================
              SHARED PUBLIC FOOTER (GLOBAL)
              ========================================== -->
-        <footer id="public-global-footer" class="landing-footer">
-          <div class="footer-container">
-            <div class="footer-grid">
-              <!-- Brand & Mission Column -->
-              <div class="footer-col footer-col-brand">
-                <div class="footer-brand-header">
-                  <div class="footer-brand-icon">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 class="footer-brand-title">Eco Land</h3>
-                    <span class="footer-brand-sub">IKHW Aceh — Inisiatif Konservasi & Hutan Wakaf</span>
-                  </div>
+        <footer id="public-global-footer" class="border-t border-white/10 bg-slate-950/85 backdrop-blur-xl mt-auto relative z-10 text-xs text-slate-400 w-full">
+          <div class="max-w-[1240px] mx-auto px-6 py-8 sm:py-10">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+
+              <div class="brand-wrapper group cursor-default">
+                <div class="brand-logo-icon">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                  </svg>
                 </div>
-                <p class="footer-brand-desc">
-                  Platform pemantauan konservasi vegetasi alami dan penanaman pohon seluas &plusmn;2 Hektare berbasis Virtual Tour 360&deg; Marzipano dan pendataan geospasial terbuka.
-                </p>
-                <div class="footer-status-pill">
-                  <span class="status-pulse-dot"></span>
-                  <span>Sistem Monitoring Spasial Aktif 2026</span>
+                <div class="brand-info">
+                  <span class="brand-title">Eco Land</span>
+                  <span class="brand-subtitle">IKHW Aceh &bull; Konservasi &plusmn;2 Hektare</span>
                 </div>
               </div>
 
-              <!-- Quick Navigation Column -->
-              <div class="footer-col">
-                <h4 class="footer-heading">Navigasi Utama</h4>
-                <ul class="footer-links">
-                  <li><a href="#beranda" class="footer-link"><span>🌿</span> Beranda &amp; Ringkasan</a></li>
-                  <li><a href="#tour" class="footer-link"><span>🔄</span> Virtual Tour 360°</a></li>
-                  <li><a href="#info" class="footer-link"><span>ℹ️</span> Informasi Kawasan &amp; GIS</a></li>
-                  <li><a href="#galeri" class="footer-link"><span>🖼️</span> Galeri Dokumentasi</a></li>
-                  <li><a href="#katalog" class="footer-link"><span>🌳</span> Data Pohon &amp; Silvikultur</a></li>
-                  <li><a href="#tree-qr" class="footer-link"><span>📱</span> Tree QR Code</a></li>
-                </ul>
-              </div>
-
-              <!-- Location & Coordinates Column -->
-              <div class="footer-col">
-                <h4 class="footer-heading">Lokasi &amp; Acuan Spasial</h4>
-                <div class="footer-info-list">
-                  <div class="footer-info-item">
-                    <span class="footer-info-icon">📍</span>
-                    <div>
-                      <strong>Lokasi Lapangan:</strong>
-                      <p>Kawasan Konservasi &amp; Pesisir, Kab. Aceh Besar, Aceh</p>
-                    </div>
-                  </div>
-                  <div class="footer-info-item">
-                    <span class="footer-info-icon">🧭</span>
-                    <div>
-                      <strong>Koordinat Acuan WGS84:</strong>
-                      <p class="footer-coord-badge">5.4818556° N, 95.5840917° E</p>
-                    </div>
-                  </div>
-                  <div class="footer-info-item">
-                    <span class="footer-info-icon">📐</span>
-                    <div>
-                      <strong>Luas Terkelola:</strong>
-                      <p>&plusmn; 2 Hektare (1.7 Ha tercatat aktif)</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Admin & Technology Column -->
-              <div class="footer-col">
-                <h4 class="footer-heading">Akses Pengelola</h4>
-                <p class="footer-col-text">
-                  Portal otorisasi tim lapangan dan surveyor vegetasi untuk pembaruan hotspot 360&deg; dan data silvikultur.
-                </p>
-                <a href="#admin" class="footer-admin-btn">
-                  <span>🔐</span>
-                  <span>Login Administrator</span>
+              <div class="flex items-center justify-center gap-3">
+                <a href="https://github.com/ametatjeh" target="_blank" rel="noopener noreferrer"
+                  title="GitHub"
+                  class="w-9 h-9 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-slate-300 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all">
+                  <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd" />
+                  </svg>
                 </a>
-                <div class="footer-tech-stack">
-                  <span class="tech-tag">Marzipano 360°</span>
-                  <span class="tech-tag">Laravel 13</span>
-                  <span class="tech-tag">Leaflet GIS</span>
-                </div>
+                <a href="https://discord.com/login" target="_blank" rel="noopener noreferrer"
+                  title="Discord"
+                  class="w-9 h-9 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-slate-300 hover:text-indigo-400 hover:bg-indigo-500/10 hover:border-indigo-400/30 transition-all">
+                  <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057c.001.022.015.043.03.056a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z" />
+                  </svg>
+                </a>
               </div>
-            </div>
 
-            <!-- Bottom Copyright Bar -->
-            <div class="footer-bottom-bar">
-              <div class="footer-copyright">
-                &copy; 2026 <strong>Eco Land &plusmn;2 Hektare</strong> &bull; IKHW Aceh. Seluruh hak cipta dilindungi undang-undang.
+              <div class="text-slate-400 text-center md:text-right text-[11px]">
+                Copyright &copy; 2026 <a href="https://nagakecil.site/" target="_blank" rel="noopener noreferrer" class="font-bold text-blue-400 hover:text-blue-300 transition-colors">nagakecil</a>. All Rights Reserved.
               </div>
-              <div class="footer-bottom-meta">
-                <span class="meta-item">Ekosistem Restorasi Hutan Tropis</span>
-                <span class="meta-dot">&bull;</span>
-                <span class="meta-item">Marzipano Spatial Engine</span>
-              </div>
+
             </div>
           </div>
         </footer>

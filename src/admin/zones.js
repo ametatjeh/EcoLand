@@ -5,6 +5,7 @@
 import { ApiService } from '../services/api.js';
 import { renderAdminZoneGallery } from './zoneGallery.js';
 import { EcoToast } from '../utils/toast.js';
+import { toDateInputValue, formatDateDisplay, parseDateForPayload } from '../utils/date.js';
 
 let currentZoneTab = 'list';
 let cachedZones = [];
@@ -483,7 +484,7 @@ function renderZoneFormView(existingZone = null) {
             </div>
             <div class="form-group">
               <label for="form-zone-meas-date">Tanggal Pengukuran:</label>
-              <input type="date" id="form-zone-meas-date" class="form-input" value="${existingZone && existingZone.measurement_date ? existingZone.measurement_date.substring(0, 10) : ''}" />
+              <input type="date" id="form-zone-meas-date" class="form-input" value="${existingZone && existingZone.measurement_date ? toDateInputValue(existingZone.measurement_date) : ''}" />
             </div>
           </div>
 
@@ -513,7 +514,7 @@ function renderZoneFormView(existingZone = null) {
             </div>
             <div class="form-group">
               <label for="form-zone-start-date">Tanggal Mulai Program:</label>
-              <input type="date" id="form-zone-start-date" class="form-input" value="${existingZone && existingZone.start_date ? existingZone.start_date.substring(0, 10) : ''}" />
+              <input type="date" id="form-zone-start-date" class="form-input" value="${existingZone && existingZone.start_date ? toDateInputValue(existingZone.start_date) : ''}" />
             </div>
           </div>
 
@@ -571,12 +572,12 @@ function renderZoneFormView(existingZone = null) {
         area_size: parseFloat(document.getElementById('form-zone-area-size').value) || 0,
         area_unit: document.getElementById('form-zone-area-unit').value,
         measurement_method: document.getElementById('form-zone-meas-method').value.trim(),
-        measurement_date: document.getElementById('form-zone-meas-date').value || null,
+        measurement_date: parseDateForPayload(document.getElementById('form-zone-meas-date').value),
         land_condition_notes: document.getElementById('form-zone-land-notes').value.trim(),
         person_in_charge: document.getElementById('form-zone-pic').value.trim(),
         organization: document.getElementById('form-zone-org').value.trim(),
         planting_target: document.getElementById('form-zone-target').value ? parseInt(document.getElementById('form-zone-target').value) : null,
-        start_date: document.getElementById('form-zone-start-date').value || null,
+        start_date: parseDateForPayload(document.getElementById('form-zone-start-date').value),
         internal_notes: document.getElementById('form-zone-internal-notes').value.trim(),
         is_published: document.getElementById('form-zone-published').checked,
       };
@@ -803,7 +804,7 @@ function renderTabLahanHtml(data) {
           </tr>
           <tr>
             <td style="color: var(--clr-text-muted); padding: 10px 0;">Tanggal Pengukuran</td>
-            <td style="color: #fff;">${l.measurement_date || '-'}</td>
+            <td style="color: #fff;">${formatDateDisplay(l.measurement_date)}</td>
           </tr>
           <tr>
             <td style="color: var(--clr-text-muted); padding: 10px 0;">Kondisi Lahan & Tanah</td>
@@ -874,7 +875,7 @@ function renderTabPenanamanHtml(data) {
                 <tr style="border-bottom: 1px solid var(--clr-border-subtle);">
                   <td style="padding: 8px; font-family: monospace; color: var(--clr-primary);">${act.batch_code}</td>
                   <td style="padding: 8px; font-weight: 600; color: #fff;">${escapeHtml(act.name)}</td>
-                  <td style="padding: 8px;">${act.activity_date ? act.activity_date.substring(0, 10) : '-'}</td>
+                  <td style="padding: 8px;">${formatDateDisplay(act.activity_date)}</td>
                   <td style="padding: 8px;">
                     ${act.items && act.items.length > 0 ? act.items.map((it) => `${it.species ? it.species.local_name : 'Pohon'}: ${it.quantity} ${it.unit || 'btg'}`).join(', ') : '-'}
                   </td>
@@ -911,7 +912,7 @@ function renderTabPemantauanHtml(data) {
           <tbody>
             ${surveys.map((sv) => `
               <tr style="border-bottom: 1px solid var(--clr-border-subtle);">
-                <td style="padding: 8px;">${sv.survey_date ? sv.survey_date.substring(0, 10) : '-'}</td>
+                <td style="padding: 8px;">${formatDateDisplay(sv.survey_date)}</td>
                 <td style="padding: 8px; font-weight: 500; color: #fff;">${sv.activity ? sv.activity.name : '-'}</td>
                 <td style="padding: 8px; text-align: center; color: var(--clr-primary); font-weight: 600;">${sv.alive_count || 0}</td>
                 <td style="padding: 8px; text-align: center; color: var(--clr-danger);">${sv.dead_count || 0}</td>
@@ -948,7 +949,7 @@ function renderTabPerawatanHtml(data) {
           <tbody>
             ${logs.map((lg) => `
               <tr style="border-bottom: 1px solid var(--clr-border-subtle);">
-                <td style="padding: 8px;">${lg.maintenance_date ? lg.maintenance_date.substring(0, 10) : '-'}</td>
+                <td style="padding: 8px;">${formatDateDisplay(lg.maintenance_date)}</td>
                 <td style="padding: 8px; font-weight: 600; color: #fff; text-transform: capitalize;">${escapeHtml(lg.action_type || '-')}</td>
                 <td style="padding: 8px; text-align: center;">${lg.plants_treated_count || 0}</td>
                 <td style="padding: 8px; text-align: center; color: var(--clr-primary); font-weight: 600;">${lg.replacement_plants_count || 0}</td>

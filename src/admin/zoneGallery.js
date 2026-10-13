@@ -6,6 +6,7 @@
 
 import { ApiService } from '../services/api.js';
 import { EcoToast } from '../utils/toast.js';
+import { toDateInputValue, formatDateDisplay, parseDateForPayload } from '../utils/date.js';
 
 let currentZoneData = null;
 let currentPhotos = [];
@@ -346,7 +347,7 @@ function renderAdminPhotoCards() {
       ${filtered.map((photo) => {
         const imgUrl = photo.file_url || photo.file_path;
         const sizeKb = photo.file_size ? `${Math.round(photo.file_size / 1024)} KB` : '-';
-        const docDate = photo.documented_at ? photo.documented_at.substring(0, 10) : '-';
+        const docDate = formatDateDisplay(photo.documented_at);
 
         return `
           <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden flex flex-col justify-between hover:border-slate-700 transition shadow-lg">
@@ -527,7 +528,8 @@ function setupUploadModal() {
       formData.append('title', document.getElementById('upload-title-input').value.trim());
       formData.append('category', document.getElementById('upload-category-input').value);
       formData.append('caption', document.getElementById('upload-caption-input').value.trim());
-      formData.append('documented_at', document.getElementById('upload-date-input').value);
+      const uploadDocAt = parseDateForPayload(document.getElementById('upload-date-input').value);
+      if (uploadDocAt) formData.append('documented_at', uploadDocAt);
       formData.append('is_published', document.getElementById('upload-is-published').checked ? '1' : '0');
       formData.append('is_cover', document.getElementById('upload-is-cover').checked ? '1' : '0');
 
@@ -603,7 +605,8 @@ function setupEditModal() {
       formData.append('title', document.getElementById('edit-title-input').value.trim());
       formData.append('caption', document.getElementById('edit-caption-input').value.trim());
       formData.append('category', document.getElementById('edit-category-input').value);
-      formData.append('documented_at', document.getElementById('edit-date-input').value);
+      const editDocAt = parseDateForPayload(document.getElementById('edit-date-input').value);
+      if (editDocAt) formData.append('documented_at', editDocAt);
       formData.append('is_published', document.getElementById('edit-is-published').checked ? '1' : '0');
       formData.append('is_cover', document.getElementById('edit-is-cover').checked ? '1' : '0');
 
@@ -641,7 +644,7 @@ function openEditModal(photo) {
   document.getElementById('edit-title-input').value = photo.title || '';
   document.getElementById('edit-caption-input').value = photo.caption || '';
   document.getElementById('edit-category-input').value = photo.category || 'Kondisi Kawasan';
-  document.getElementById('edit-date-input').value = photo.documented_at ? photo.documented_at.substring(0, 10) : '';
+  document.getElementById('edit-date-input').value = toDateInputValue(photo.documented_at);
   document.getElementById('edit-is-published').checked = Boolean(photo.is_published);
   document.getElementById('edit-is-cover').checked = Boolean(photo.is_cover);
 

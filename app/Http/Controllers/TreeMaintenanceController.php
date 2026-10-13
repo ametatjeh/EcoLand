@@ -112,7 +112,7 @@ class TreeMaintenanceController extends Controller
 
         $validated = $request->validate([
             'planting_activity_id' => ['sometimes', 'string', 'exists:planting_activities,id'],
-            'tree_species_id' => ['nullable', 'integer', 'exists:tree_species,id'],
+            'tree_species_id' => ['nullable', 'string', 'exists:tree_species,id'],
             'maintenance_date' => ['sometimes', 'date'],
             'action_type' => ['sometimes', 'string', 'in:penyiraman,penyiangan,pemupukan,perlindungan_bibit,pengendalian_gangguan,penyulaman'],
             'plants_handled_count' => ['nullable', 'integer', 'min:0'],

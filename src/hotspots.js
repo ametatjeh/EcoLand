@@ -22,7 +22,10 @@ function createLinkHotspotElement(hotspot, targetName, onClick) {
   wrapper.setAttribute('tabindex', '0');
   wrapper.setAttribute('aria-label', `Menuju ${targetName || hotspot.target}`);
 
-  // Icon img dengan rotasi arah hotspot
+  // Icon img dengan rotasi arah hotspot di dalam wrapper berdenyut
+  const pulseWrapper = document.createElement('div');
+  pulseWrapper.className = 'link-hotspot-pulse';
+
   const icon = document.createElement('img');
   icon.src = '/img/link.png';
   icon.className = 'link-hotspot-icon';
@@ -30,12 +33,14 @@ function createLinkHotspotElement(hotspot, targetName, onClick) {
   icon.style.transform = `rotate(${rotationRad}rad)`;
   icon.style.webkitTransform = `rotate(${rotationRad}rad)`;
 
+  pulseWrapper.appendChild(icon);
+
   // Tooltip nama scene tujuan
   const tooltip = document.createElement('div');
   tooltip.className = 'hotspot-tooltip link-hotspot-tooltip';
   tooltip.textContent = targetName || 'Lihat Lokasi';
 
-  wrapper.appendChild(icon);
+  wrapper.appendChild(pulseWrapper);
   wrapper.appendChild(tooltip);
 
   const handleClick = (e) => {
@@ -60,7 +65,9 @@ function createLinkHotspotElement(hotspot, targetName, onClick) {
  */
 function createInfoHotspotElement(hotspot) {
   const wrapper = document.createElement('div');
-  wrapper.className = 'hotspot info-hotspot';
+  // Default terbuka di layar desktop (> 768px), sedangkan khusus tampilan mobile default tertutup
+  const isDesktop = typeof window !== 'undefined' && window.innerWidth > 768;
+  wrapper.className = isDesktop ? 'hotspot info-hotspot visible' : 'hotspot info-hotspot';
   wrapper.setAttribute('role', 'button');
   wrapper.setAttribute('tabindex', '0');
 

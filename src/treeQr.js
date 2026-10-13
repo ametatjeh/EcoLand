@@ -12,58 +12,77 @@ import { ApiService } from './services/api.js';
 let cachedSpecies = [];
 let cachedZones = [];
 let currentCategory = 'all';
+let currentSearchTerm = '';
 
 export async function initPublicTreeQr(containerId = 'public-tree-qr-container') {
   const container = document.getElementById(containerId);
   if (!container) return;
 
   container.innerHTML = `
-    <div class="tree-qr-wrapper py-6">
-      <!-- Section Header -->
-      <div class="section-header text-center mb-8">
-        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 mb-3">
-          📱 Identifikasi Cerdas Flora & Blok
-        </span>
-        <h2 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Tree QR Code Kawasan Restorasi</h2>
-        <p class="text-slate-400 text-sm sm:text-base max-w-2xl mx-auto mt-2 leading-relaxed">
-          Pindai QR code di lapangan untuk mengakses profil biologis jenis pohon atau data blok penanaman kawasan secara langsung melalui sistem informasi publik.
+    <div class="tree-qr-wrapper py-2 sm:py-4">
+      <!-- Section Header Hero Banner -->
+      <div class="hero-section text-center relative overflow-hidden" style="padding: 36px 24px; margin-bottom: 28px; border-radius: var(--radius-lg);">
+        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 mb-3.5 shadow-sm">
+          <span>📱</span> Identifikasi Digital Flora & Blok Kawasan
+        </div>
+        <h1 class="hero-title text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white tracking-tight" style="margin: 6px 0 10px;">
+          Tree QR Code Kawasan Restorasi
+        </h1>
+        <p class="hero-subtitle text-slate-300 text-xs sm:text-sm max-w-2xl mx-auto leading-relaxed" style="margin: 0 auto 20px;">
+          Pindai QR code di lapangan untuk mengakses profil biologis jenis pohon, taksonomi, atau data blok penanaman kawasan secara langsung melalui sistem informasi publik.
         </p>
 
         <!-- Informational Banner: Kejujuran Data Lapangan -->
-        <div class="mt-6 max-w-3xl mx-auto bg-slate-900/80 border border-slate-800 rounded-2xl p-4 text-left text-xs text-slate-300 flex items-start gap-3 shadow-lg">
+        <div class="max-w-2xl mx-auto bg-slate-900/90 border border-slate-800/90 rounded-2xl p-4 sm:p-5 text-left text-xs text-slate-300 flex items-start gap-3.5 shadow-xl backdrop-blur-sm">
           <span class="text-xl shrink-0 mt-0.5">ℹ️</span>
           <div>
-            <strong class="text-white font-semibold">Catatan Identifikasi Lapangan:</strong>
-            <p class="mt-1 leading-relaxed text-slate-400">
+            <strong class="text-emerald-400 font-semibold block mb-0.5">Catatan Identifikasi Lapangan:</strong>
+            <p class="leading-relaxed text-slate-400 text-xs">
               Sistem saat ini menerapkan identifikasi QR Code berbasis <strong>Master Jenis Spesies Pohon</strong> dan <strong>Kelompok / Blok Penanaman</strong> terverifikasi. QR Code individual per batang pohon hanya diterbitkan apabila penomoran tag pohon lapangan telah tercatat dalam basis data resmi.
             </p>
           </div>
         </div>
       </div>
 
-      <!-- Filter Controls -->
-      <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-4 mb-8 flex flex-col sm:flex-row gap-4 items-center justify-between max-w-4xl mx-auto">
-        <div class="flex items-center gap-2">
-          <span class="text-xs text-slate-400 font-medium">Kategori Objek:</span>
-          <div class="flex gap-1.5">
-            <button type="button" class="btn-qr-filter px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer bg-emerald-600 text-white" data-type="all">
+      <!-- Filter Controls & Search Toolbar -->
+      <div class="treeqr-toolbar bg-slate-900/90 backdrop-blur-md border border-slate-800/90 rounded-2xl p-4 sm:p-5 mb-8 flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between max-w-5xl mx-auto shadow-xl">
+        <div class="flex flex-wrap items-center gap-2.5">
+          <span class="text-xs text-slate-400 font-semibold uppercase tracking-wider flex items-center gap-1.5 mr-1">
+            <span>🔍</span> Filter:
+          </span>
+          <div class="flex flex-wrap gap-2">
+            <button type="button" class="btn-qr-filter px-4 py-2 rounded-xl text-xs font-semibold transition cursor-pointer bg-emerald-600 text-white shadow-md shadow-emerald-950/30 border border-emerald-500/30" data-type="all">
               Semua Objek
             </button>
-            <button type="button" class="btn-qr-filter px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer bg-slate-800 text-slate-300 hover:bg-slate-700" data-type="species">
+            <button type="button" class="btn-qr-filter px-4 py-2 rounded-xl text-xs font-semibold transition cursor-pointer bg-slate-800/90 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700/80 hover:border-slate-600" data-type="species">
               🌳 Jenis Spesies Pohon
             </button>
-            <button type="button" class="btn-qr-filter px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer bg-slate-800 text-slate-300 hover:bg-slate-700" data-type="zone">
+            <button type="button" class="btn-qr-filter px-4 py-2 rounded-xl text-xs font-semibold transition cursor-pointer bg-slate-800/90 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700/80 hover:border-slate-600" data-type="zone">
               🏞️ Kelompok / Blok Kawasan
             </button>
           </div>
         </div>
-        <div class="text-xs text-slate-500 font-mono">
-          <span id="qr-items-count">Memuat data...</span>
+
+        <div class="flex items-center gap-3 w-full md:w-auto">
+          <!-- Live Search Input -->
+          <div class="relative flex-1 md:w-64">
+            <span class="absolute inset-y-0 left-3.5 flex items-center text-slate-400 text-xs pointer-events-none">🔎</span>
+            <input
+              type="text"
+              id="qr-search-input"
+              placeholder="Cari nama pohon, blok, famili..."
+              class="w-full bg-slate-800/90 hover:bg-slate-800 border border-slate-700/80 hover:border-slate-600 text-white text-xs rounded-xl pl-9 pr-3.5 py-2 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 placeholder-slate-500 transition shadow-inner"
+            />
+          </div>
+
+          <div class="text-[11px] font-mono text-emerald-400 bg-emerald-500/10 px-3 py-2 rounded-xl border border-emerald-500/20 whitespace-nowrap shrink-0 shadow-sm">
+            <span id="qr-items-count">Memuat...</span>
+          </div>
         </div>
       </div>
 
       <!-- Grid Cards -->
-      <div id="tree-qr-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+      <div id="tree-qr-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
         <div class="col-span-full py-16 text-center text-slate-400 flex items-center justify-center gap-2">
           <span class="animate-spin text-xl">⏳</span> Memuat data QR Code...
         </div>
@@ -118,16 +137,24 @@ function setupFilterEvents() {
   filterBtns.forEach((btn) => {
     btn.addEventListener('click', () => {
       filterBtns.forEach((b) => {
-        b.classList.remove('bg-emerald-600', 'text-white');
-        b.classList.add('bg-slate-800', 'text-slate-300');
+        b.classList.remove('bg-emerald-600', 'text-white', 'shadow-md', 'shadow-emerald-950/30', 'border-emerald-500/30');
+        b.classList.add('bg-slate-800/90', 'text-slate-300', 'border-slate-700/80');
       });
-      btn.classList.remove('bg-slate-800', 'text-slate-300');
-      btn.classList.add('bg-emerald-600', 'text-white');
+      btn.classList.remove('bg-slate-800/90', 'text-slate-300', 'border-slate-700/80');
+      btn.classList.add('bg-emerald-600', 'text-white', 'shadow-md', 'shadow-emerald-950/30', 'border-emerald-500/30');
 
       currentCategory = btn.getAttribute('data-type') || 'all';
       renderGrid();
     });
   });
+
+  const searchInput = document.getElementById('qr-search-input');
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+      currentSearchTerm = (e.target.value || '').trim().toLowerCase();
+      renderGrid();
+    });
+  }
 }
 
 function setupModalEvents() {
@@ -182,7 +209,7 @@ function renderGrid() {
   const countEl = document.getElementById('qr-items-count');
   if (!grid) return;
 
-  const items = [];
+  let items = [];
 
   if (currentCategory === 'all' || currentCategory === 'species') {
     cachedSpecies.forEach((sp) => {
@@ -216,14 +243,29 @@ function renderGrid() {
     });
   }
 
+  // Filter pencarian
+  if (currentSearchTerm) {
+    items = items.filter((it) => {
+      const matchTitle = (it.title || '').toLowerCase().includes(currentSearchTerm);
+      const matchSub = (it.subtitle || '').toLowerCase().includes(currentSearchTerm);
+      const matchId = (it.id || '').toLowerCase().includes(currentSearchTerm);
+      const matchOrigin = (it.origin || '').toLowerCase().includes(currentSearchTerm);
+      return matchTitle || matchSub || matchId || matchOrigin;
+    });
+  }
+
   if (countEl) {
-    countEl.textContent = `Menampilkan ${items.length} objek teridentifikasi`;
+    countEl.textContent = `Menampilkan ${items.length} objek`;
   }
 
   if (items.length === 0) {
     grid.innerHTML = `
       <div class="col-span-full bg-slate-900/50 border border-slate-800 rounded-2xl p-12 text-center text-slate-400">
-        Belum ada objek terdaftar untuk kategori ini.
+        <div class="text-3xl mb-2">🔍</div>
+        <p class="font-bold text-white text-sm mb-1">Tidak Ada Objek Ditemukan</p>
+        <p class="text-xs text-slate-400">
+          ${currentSearchTerm ? `Tidak ada hasil untuk kata kunci "${escapeHtml(currentSearchTerm)}".` : 'Belum ada objek terdaftar untuk kategori ini.'}
+        </p>
       </div>
     `;
     return;

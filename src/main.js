@@ -196,6 +196,11 @@ async function populateProjectIdentity() {
       if (flat.org_name && brandSub) {
         brandSub.textContent = flat.org_name;
       }
+      if (flat.app_logo) {
+        document.querySelectorAll('.brand-logo-icon').forEach((box) => {
+          box.innerHTML = `<img src="${flat.app_logo}" alt="Logo" style="width: 100%; height: 100%; object-fit: contain; padding: 4px;" />`;
+        });
+      }
     }
   } catch (e) {
     console.debug('Public settings fetch fallback to config defaults:', e);

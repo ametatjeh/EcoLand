@@ -35,7 +35,7 @@ class PlantingZonePhoto extends Model
         'is_published' => 'boolean',
         'sort_order' => 'integer',
         'file_size' => 'integer',
-        'documented_at' => 'date',
+        'documented_at' => 'date:Y-m-d',
     ];
 
     protected $appends = [

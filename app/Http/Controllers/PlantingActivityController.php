@@ -164,9 +164,24 @@ class PlantingActivityController extends Controller
             'notes' => ['nullable', 'string'],
             'items' => ['sometimes', 'array'],
             'items.*.id' => ['nullable', 'integer'],
-            'items.*.tree_species_id' => ['required_with:items', 'integer', 'exists:tree_species,id'],
+            'items.*.tree_species_id' => ['required_with:items', 'string', 'exists:tree_species,id'],
             'items.*.quantity' => ['required_with:items', 'integer', 'min:1'],
             'items.*.unit' => ['nullable', 'string', 'max:50'],
+        ], [
+            'name.required' => 'Nama kegiatan penanaman wajib diisi.',
+            'activity_date.required' => 'Tanggal kegiatan penanaman wajib diisi.',
+            'activity_date.date' => 'Format tanggal kegiatan tidak valid.',
+            'person_in_charge.required' => 'Nama penanggung jawab (PIC) wajib diisi.',
+            'organizer.required' => 'Penyelenggara / kelompok pelaksana wajib diisi.',
+            'location_zone.required' => 'Zona lokasi penanaman wajib diisi.',
+            'planting_zone_id.exists' => 'Kawasan penanaman yang dipilih tidak valid.',
+            'scene_id.exists' => 'Titik panorama yang dipilih tidak valid.',
+            'items.*.tree_species_id.required_with' => 'Jenis pohon pada setiap baris wajib dipilih.',
+            'items.*.tree_species_id.string' => 'ID jenis pohon harus berupa karakter string yang valid.',
+            'items.*.tree_species_id.exists' => 'Jenis pohon yang dipilih tidak terdaftar di master data.',
+            'items.*.quantity.required_with' => 'Jumlah bibit pada setiap baris wajib diisi.',
+            'items.*.quantity.integer' => 'Jumlah bibit harus berupa angka bulat positif.',
+            'items.*.quantity.min' => 'Jumlah bibit minimal 1 batang.',
         ]);
 
         return DB::transaction(function () use ($activity, $validated) {
