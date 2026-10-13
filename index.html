@@ -464,14 +464,100 @@
         <!-- ==========================================
              SHARED PUBLIC FOOTER (GLOBAL)
              ========================================== -->
-        <footer id="public-global-footer" class="landing-footer py-8 border-t border-emerald-950/40 bg-slate-950/80 text-center">
-          <div class="max-w-4xl mx-auto px-4 space-y-1.5 text-center">
-            <p class="text-xs sm:text-sm text-slate-300 font-medium tracking-tight">
-              &copy; 2026 Kawasan Penanaman Pohon &plusmn;2 Hektare &bull; IKHW Aceh. Hak cipta dilindungi.
-            </p>
-            <p class="text-[11px] sm:text-xs text-slate-400">
-              Sistem Informasi Restorasi Silvikultur &amp; Virtual Tour 360&deg; Marzipano
-            </p>
+        <footer id="public-global-footer" class="landing-footer">
+          <div class="footer-container">
+            <div class="footer-grid">
+              <!-- Brand & Mission Column -->
+              <div class="footer-col footer-col-brand">
+                <div class="footer-brand-header">
+                  <div class="footer-brand-icon">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 class="footer-brand-title">Kawasan Penanaman Pohon</h3>
+                    <span class="footer-brand-sub">IKHW Aceh &bull; Restorasi Silvikultur</span>
+                  </div>
+                </div>
+                <p class="footer-brand-desc">
+                  Sistem pemantauan konservasi vegetasi alami dan penanaman pohon seluas &plusmn;2 Hektare berbasis Virtual Tour 360&deg; Marzipano dan pendataan geospasial terbuka.
+                </p>
+                <div class="footer-status-pill">
+                  <span class="status-pulse-dot"></span>
+                  <span>Sistem Monitoring Spasial Aktif 2026</span>
+                </div>
+              </div>
+
+              <!-- Quick Navigation Column -->
+              <div class="footer-col">
+                <h4 class="footer-heading">Navigasi Utama</h4>
+                <ul class="footer-links">
+                  <li><a href="#beranda" class="footer-link"><span>🌿</span> Beranda &amp; Ringkasan</a></li>
+                  <li><a href="#tour" class="footer-link"><span>🔄</span> Virtual Tour 360</a></li>
+                  <li><a href="#info" class="footer-link"><span>ℹ️</span> Informasi Kawasan &amp; GIS</a></li>
+                  <li><a href="#galeri" class="footer-link"><span>🖼️</span> Galeri Dokumentasi</a></li>
+                  <li><a href="#katalog" class="footer-link"><span>🌳</span> Data Pohon &amp; Silvikultur</a></li>
+                </ul>
+              </div>
+
+              <!-- Location & Coordinates Column -->
+              <div class="footer-col">
+                <h4 class="footer-heading">Lokasi &amp; Acuan Spasial</h4>
+                <div class="footer-info-list">
+                  <div class="footer-info-item">
+                    <span class="footer-info-icon">📍</span>
+                    <div>
+                      <strong>Lokasi Lapangan:</strong>
+                      <p>Kawasan Konservasi &amp; Pesisir, Kab. Aceh Besar, Aceh</p>
+                    </div>
+                  </div>
+                  <div class="footer-info-item">
+                    <span class="footer-info-icon">🧭</span>
+                    <div>
+                      <strong>Koordinat Acuan WGS84:</strong>
+                      <p class="footer-coord-badge">5.4818556° N, 95.5840917° E</p>
+                    </div>
+                  </div>
+                  <div class="footer-info-item">
+                    <span class="footer-info-icon">📐</span>
+                    <div>
+                      <strong>Luas Terkelola:</strong>
+                      <p>&plusmn; 2 Hektare (1.7 Ha tercatat aktif)</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Admin & Technology Column -->
+              <div class="footer-col">
+                <h4 class="footer-heading">Akses Pengelola</h4>
+                <p class="footer-col-text">
+                  Portal otorisasi tim lapangan dan surveyor vegetasi untuk pembaruan hotspot 360&deg; dan data silvikultur.
+                </p>
+                <a href="#admin" class="footer-admin-btn">
+                  <span>🔐</span>
+                  <span>Login Administrator</span>
+                </a>
+                <div class="footer-tech-stack">
+                  <span class="tech-tag">Marzipano 360°</span>
+                  <span class="tech-tag">Laravel 13</span>
+                  <span class="tech-tag">Leaflet GIS</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Bottom Copyright Bar -->
+            <div class="footer-bottom-bar">
+              <div class="footer-copyright">
+                &copy; 2026 <strong>Kawasan Penanaman Pohon &plusmn;2 Hektare</strong> &bull; IKHW Aceh. Seluruh hak cipta dilindungi undang-undang.
+              </div>
+              <div class="footer-bottom-meta">
+                <span class="meta-item">Ekosistem Restorasi Hutan Tropis</span>
+                <span class="meta-dot">&bull;</span>
+                <span class="meta-item">Marzipano Spatial Engine</span>
+              </div>
+            </div>
           </div>
         </footer>
 
