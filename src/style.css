@@ -3892,3 +3892,210 @@ body:has(#view-admin.active) #public-global-footer,
 .footer-bottom-right {
   color: #94a3b8;
 }
+
+
+/* Hero Title Subtitle */
+.hero-title-sub {
+  display: block;
+  font-size: 24px;
+  font-weight: 600;
+  opacity: 0.92;
+  margin-top: 6px;
+}
+
+/* Spatial Reference Info Notice */
+.spatial-ref-notice {
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  border-radius: 12px;
+  padding: 14px 18px;
+  margin: 16px 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--clr-text-muted);
+}
+
+.spatial-ref-title {
+  color: #fff;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.spatial-ref-list {
+  margin: 0 0 0 16px;
+  padding: 0;
+}
+
+/* Admin Login Modal (Zero Inline Styles) */
+.modal-card-admin-login {
+  max-width: 440px;
+  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(6, 20, 14, 0.94);
+  -webkit-backdrop-filter: blur(24px);
+  backdrop-filter: blur(24px);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 25px rgba(16, 185, 129, 0.2);
+}
+
+.modal-header-admin-login {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 16px;
+}
+
+.modal-header-brand-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.modal-brand-badge {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #34d399;
+}
+
+.modal-brand-badge svg {
+  width: 24px;
+  height: 24px;
+}
+
+.modal-title-gradient {
+  font-size: 18px;
+  font-weight: 800;
+  color: #fff;
+  margin: 0;
+  background: linear-gradient(135deg, #ffffff 40%, #a7f3d0 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.modal-title-desc {
+  font-size: 12px;
+  color: #94a3b8;
+  margin: 2px 0 0;
+}
+
+.modal-body-login-box {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-top: 16px;
+}
+
+.login-error-alert-box {
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: rgba(153, 27, 27, 0.45);
+  border: 1px solid rgba(239, 68, 68, 0.45);
+  color: #fecaca;
+  font-size: 13px;
+}
+
+.login-field-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #a7f3d0;
+  margin-bottom: 5px;
+}
+
+.login-field-input {
+  width: 100%;
+  border-radius: 10px;
+  background: rgba(3, 14, 8, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  padding: 10px 14px;
+  outline: none;
+}
+
+.login-field-input:focus {
+  border-color: #10b981;
+}
+
+.login-btn-container {
+  padding-top: 4px;
+}
+
+.btn-login-submit-action {
+  width: 100%;
+  height: 44px;
+  border-radius: 12px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.login-divider-row {
+  position: relative;
+  margin: 4px 0;
+  display: flex;
+  align-items: center;
+}
+
+.login-divider-line {
+  flex-grow: 1;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.login-divider-text {
+  flex-shrink: 0;
+  margin: 0 12px;
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.btn-google-login {
+  width: 100%;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #e2e8f0;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+
+.btn-google-login:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.btn-google-login svg {
+  width: 18px;
+  height: 18px;
+}
+
+.login-full-page-wrap {
+  text-align: center;
+  margin-top: 4px;
+}
+
+.login-full-page-link {
+  font-size: 11px;
+  color: #34d399;
+  text-decoration: none;
+}
+
+.login-full-page-link:hover {
+  text-decoration: underline;
+}

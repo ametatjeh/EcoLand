@@ -8,7 +8,6 @@
   <meta
     name="description"
     content="Eco Land — Virtual Tour 360° Kawasan Penanaman Pohon ±2 Hektare Aceh. Jelajahi panorama interaktif berbasis Marzipano dan pelajari program restorasi ekosistem." />
-  <meta name="theme-color" content="#0c1410" />
   <title>Eco Land — Virtual Tour Kawasan Penanaman Pohon ±2 Hektare | IKHW Aceh</title>
   <link rel="canonical" href="https://ikhw.org/" />
   <meta property="og:type" content="website" />
@@ -111,7 +110,7 @@
               🌱 Inisiatif Pemulihan Lahan & Silvikultur
             </div>
             <h1 class="hero-title" id="hero-title">
-              Eco Land<br /><span style="display: block; font-size: 24px; font-weight: 600; opacity: 0.92; margin-top: 6px;">Kawasan Penanaman Pohon</span>
+              Eco Land<br /><span class="hero-title-sub">Kawasan Penanaman Pohon</span>
             </h1>
             <p class="hero-subtitle" id="hero-desc">
               Inisiatif restorasi bentang lahan dan pemulihan keanekaragaman hayati seluas kurang lebih 2 hektare. Program ini berfokus pada pengayaan tutupan vegetasi menggunakan spesies pohon kayu keras endemik Aceh dan pohon buah hutan pakan satwa.
@@ -281,9 +280,9 @@
               </p>
 
               <!-- Penjelasan Lokasi Acuan Spasial WGS84 -->
-              <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 12px; padding: 14px 18px; margin: 16px 0; font-size: 13px; line-height: 1.6; color: var(--clr-text-muted);">
-                <strong style="color: #fff; display: block; margin-bottom: 4px;">📌 Penjelasan Lokasi & Acuan Spasial:</strong>
-                <ul style="margin: 0 0 0 16px; padding: 0;">
+              <div class="spatial-ref-notice">
+                  <strong class="spatial-ref-title">📌 Penjelasan Lokasi & Acuan Spasial:</strong>
+                  <ul class="spatial-ref-list">
                   <li>Lokasi kawasan ditampilkan menggunakan titik referensi acuan <strong>WGS84 (5.4818556° N, 95.5840917° E)</strong> yang dapat diverifikasi secara faktual di lapangan.</li>
                   <li>Titik referensi digunakan sebagai acuan lokasi lapangan dan titik survei dokumentasi panorama 360°, bukan otomatis merepresentasikan garis batas resmi seluruh kawasan.</li>
                   <li>Informasi luas kawasan (±2 Hektare / 1.7 Ha tercatat aktif) dan komposisi vegetasi mengikuti catatan survei silvikultur yang telah diverifikasi.</li>
@@ -938,14 +937,18 @@
            ========================================== -->
     <footer id="public-global-footer" class="public-global-footer border-t border-white/10 bg-slate-950/90 backdrop-blur-xl mt-auto relative z-10 text-xs text-slate-400 w-full">
       <div class="footer-container max-w-[1320px] mx-auto px-5 w-full flex flex-col sm:flex-row items-center justify-between gap-4 py-5">
-        <div class="footer-left-links flex items-center gap-5 text-[13px] font-medium">
-          <a href="#info" class="footer-nav-link inline-flex items-center gap-1.5 text-slate-300 hover:text-emerald-400 transition-colors" data-tab="info">
-            <span>ℹ️</span> <span>Detail Kawasan</span>
-          </a>
-          <a href="#tour" class="footer-nav-link inline-flex items-center gap-1.5 text-slate-300 hover:text-emerald-400 transition-colors" data-tab="tour">
-            <span>🔄</span> <span>Virtual Tour</span>
-          </a>
-        </div>
+        <!-- Brand Logo & Identity (Left) -->
+        <a href="#beranda" class="brand-wrapper group cursor-pointer flex items-center gap-3 shrink-0" title="Kembali ke Beranda">
+          <div class="brand-logo-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+            </svg>
+          </div>
+          <div class="brand-info flex flex-col">
+            <span class="brand-title">Eco Land</span>
+            <span class="brand-subtitle">IKHW Aceh &bull; Konservasi &plusmn;2 Hektare</span>
+          </div>
+        </a>
         <div class="footer-right-copyright text-slate-400 text-center sm:text-right text-[12px]">
           Copyright &copy; 2026 <a href="https://nagakecil.site/" target="_blank" rel="noopener noreferrer" class="font-bold text-blue-400 hover:text-blue-300 transition-colors">nagakecil</a>. All Rights Reserved.
         </div>
@@ -954,76 +957,76 @@
   </div>
 
   <!-- Admin Login Modal -->
-  <div id="admin-login-modal" class="modal-overlay hidden">
-    <div class="modal-card modal-card-admin-login" style="max-width: 440px; border-radius: 22px; border: 1px solid rgba(255,255,255,0.18); background: rgba(6, 20, 14, 0.94); backdrop-filter: blur(24px); box-shadow: 0 25px 60px rgba(0,0,0,0.8), 0 0 25px rgba(16, 185, 129, 0.2);">
-      <div class="modal-header" style="border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 16px;">
-        <div class="modal-header-brand" style="display: flex; align-items: center; gap: 12px;">
-          <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); display: flex; align-items: center; justify-content: center; color: #34d399;">
-            <svg style="width: 24px; height: 24px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9 9 0 01-9-9c0-4.97 4.03-9 9-9 4.14 0 7.63 2.8 8.65 6.64.12.44-.22.86-.68.86h-2.18c-.46 0-.85.34-.94.79a5.002 5.002 0 01-4.85 4.71H12v6z" />
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v18" />
-            </svg>
-          </div>
-          <div>
-            <h3 class="modal-header-title" style="font-size: 18px; font-weight: 800; color: #fff; margin: 0; background: linear-gradient(135deg, #ffffff 40%, #a7f3d0 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">Eco Land</h3>
-            <p class="modal-header-sub" style="font-size: 12px; color: #94a3b8; margin: 2px 0 0;">
-              Land and Green Space Management System
-            </p>
-          </div>
-        </div>
-        <button id="btn-close-login-modal" class="icon-btn" aria-label="Tutup">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="18" y1="6" x2="6" y2="18" />
-            <line x1="6" y1="6" x2="18" y2="18" />
-          </svg>
-        </button>
-      </div>
-
-      <form id="admin-login-form">
-        <div class="modal-body modal-body-login" style="display: flex; flex-direction: column; gap: 14px; padding-top: 16px;">
-          <div id="admin-login-error" class="login-error-alert hidden" style="padding: 10px 14px; border-radius: 10px; background: rgba(153, 27, 27, 0.45); border: 1px solid rgba(239, 68, 68, 0.45); color: #fecaca; font-size: 13px;"></div>
-
-          <div class="form-group">
-            <label for="admin-username" style="display: block; font-size: 12px; font-weight: 600; color: #a7f3d0; margin-bottom: 5px;">Alamat Email / Akun Administrator:</label>
-            <input type="text" id="admin-username" class="form-input" placeholder="admin@ecoland.local atau admin" required style="width: 100%; border-radius: 10px; background: rgba(3, 14, 8, 0.7); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 10px 14px;" />
-          </div>
-
-          <div class="form-group">
-            <label for="admin-password" style="display: block; font-size: 12px; font-weight: 600; color: #a7f3d0; margin-bottom: 5px;">Kata Sandi:</label>
-            <input type="password" id="admin-password" class="form-input" placeholder="••••••••" required style="width: 100%; border-radius: 10px; background: rgba(3, 14, 8, 0.7); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 10px 14px;" />
-          </div>
-
-          <div style="padding-top: 4px;">
-            <button type="submit" class="btn-primary-action btn-login-submit" style="width: 100%; height: 44px; border-radius: 12px; font-weight: 700; background: linear-gradient(135deg, #059669 0%, #10b981 100%); border: 1px solid rgba(255,255,255,0.3); color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
-              <span>Masuk ke Eco Land</span> →
-            </button>
-          </div>
-
-          <div style="position: relative; margin: 4px 0; display: flex; align-items: center;">
-            <div style="flex-grow: 1; border-top: 1px solid rgba(255, 255, 255, 0.12);"></div>
-            <span style="flex-shrink: 0; margin: 0 12px; font-size: 11px; color: #94a3b8;">Atau masuk dengan</span>
-            <div style="flex-grow: 1; border-top: 1px solid rgba(255, 255, 255, 0.12);"></div>
-          </div>
-
-          <div>
-            <a href="{{ route('auth.google.redirect') }}" class="btn-glass-secondary" style="width: 100%; height: 42px; display: flex; align-items: center; justify-content: center; gap: 8px; border-radius: 12px; font-size: 13px; font-weight: 600; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.18); color: #e2e8f0; text-decoration: none;">
-              <svg style="width: 18px; height: 18px;" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
-                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
-                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
-                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
+    <div id="admin-login-modal" class="modal-overlay hidden">
+      <div class="modal-card modal-card-admin-login">
+        <div class="modal-header modal-header-admin-login">
+          <div class="modal-header-brand modal-header-brand-wrap">
+            <div class="modal-brand-badge">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9 9 0 01-9-9c0-4.97 4.03-9 9-9 4.14 0 7.63 2.8 8.65 6.64.12.44-.22.86-.68.86h-2.18c-.46 0-.85.34-.94.79a5.002 5.002 0 01-4.85 4.71H12v6z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v18" />
               </svg>
-              <span>Masuk dengan Google</span>
-            </a>
+            </div>
+            <div>
+              <h3 class="modal-header-title modal-title-gradient">Eco Land</h3>
+              <p class="modal-header-sub modal-title-desc">
+                Land and Green Space Management System
+              </p>
+            </div>
           </div>
-
-          <div style="text-align: center; margin-top: 4px;">
-            <a href="/login" style="font-size: 11px; color: #34d399; text-decoration: none;">Buka Halaman Login Penuh →</a>
-          </div>
+          <button id="btn-close-login-modal" class="icon-btn" aria-label="Tutup">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
         </div>
-      </form>
+
+        <form id="admin-login-form">
+          <div class="modal-body modal-body-login modal-body-login-box">
+            <div id="admin-login-error" class="login-error-alert login-error-alert-box hidden"></div>
+
+            <div class="form-group">
+              <label for="admin-username" class="login-field-label">Alamat Email / Akun Administrator:</label>
+              <input type="text" id="admin-username" class="form-input login-field-input" placeholder="admin@ecoland.local atau admin" required />
+            </div>
+
+            <div class="form-group">
+              <label for="admin-password" class="login-field-label">Kata Sandi:</label>
+              <input type="password" id="admin-password" class="form-input login-field-input" placeholder="••••••••" required />
+            </div>
+
+            <div class="login-btn-container">
+              <button type="submit" class="btn-primary-action btn-login-submit btn-login-submit-action">
+                <span>Masuk ke Eco Land</span> →
+              </button>
+            </div>
+
+            <div class="login-divider-row">
+              <div class="login-divider-line"></div>
+              <span class="login-divider-text">Atau masuk dengan</span>
+              <div class="login-divider-line"></div>
+            </div>
+
+            <div>
+              <a href="{{ route('auth.google.redirect') }}" class="btn-glass-secondary btn-google-login">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
+                  <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+                  <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
+                  <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
+                </svg>
+                <span>Masuk dengan Google</span>
+              </a>
+            </div>
+
+            <div class="login-full-page-wrap">
+              <a href="/login" class="login-full-page-link">Buka Halaman Login Penuh →</a>
+            </div>
+          </div>
+        </form>
+      </div>
     </div>
-  </div>
 
   <!-- Modal Detail Kawasan Publik -->
   <div id="public-zone-modal" class="modal-overlay hidden">
