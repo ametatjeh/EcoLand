@@ -1,0 +1,17 @@
+PANDUAN PENYIMPANAN FOTO PANORAMA TITIK 2 s/d TITIK 6
+===================================================
+Folder ini disiapkan untuk file foto 360° hasil pengambilan lapangan menggunakan Go Street View di HP Android.
+
+DAFTAR TITIK & LOKASI FILE:
+- Titik 1: public/tours/titik-1/panorama.jpg (5.4813500° N, 95.5835500° E)
+- Titik 2: public/tours/titik-2/panorama.jpg (5.4816800° N, 95.5838000° E)
+- Titik 3: public/tours/titik-3/panorama.jpg (5.4818556° N, 95.5840917° E - Titik Acuan Pusat)
+- Titik 4: public/tours/titik-4/panorama.jpg (5.4821500° N, 95.5843500° E)
+- Titik 5: public/tours/titik-5/panorama.jpg (5.4821000° N, 95.5835800° E)
+- Titik 6: public/tours/titik-6/panorama.jpg (5.4824200° N, 95.5842000° E)
+
+PERSYARATAN FOTO GO STREET VIEW:
+1. Format gambar: JPG (.jpg), PNG (.png), atau WebP (.webp).
+2. Proyeksi: Equirectangular 360° x 180° dengan rasio aspek 2:1 (lebar tepat 2x tinggi).
+3. Resolusi disarankan: 4096 x 2048 piksel atau lebih tinggi untuk ketajaman visual.
+4. Ukuran file: Dioptimalkan antara 3 MB - 10 MB per foto agar cepat dimuat di HP Android.

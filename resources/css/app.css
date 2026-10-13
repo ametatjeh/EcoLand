@@ -1,0 +1,9 @@
+/* ======================================================================
+   Kawasan Penanaman Pohon ±2 Hektare — Virtual Tour Marzipano
+   Main Application Stylesheet Entry Point
+   ====================================================================== */
+
+@import "tailwindcss";
+@source "../views";
+@source "../../src";
+@import "../../src/style.css";
