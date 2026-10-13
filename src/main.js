@@ -16,7 +16,7 @@ import {
 import { addHotspots, setInfoHotspotHandler, showDefaultInfoModal } from './hotspots.js';
 import { initSidebar, renderSceneList, setActiveScene } from './sidebar.js';
 import { initControls, toggleFullscreen } from './controls.js';
-import { initMinimap, updateMinimapScene } from './minimap.js';
+import { initMinimap, updateMinimapScene, invalidateMinimapSize } from './minimap.js';
 import { initLocationMap, invalidateLocationMapSize } from './map.js';
 import { initStreetViewGuide } from './streetview_guide.js';
 import {
@@ -110,6 +110,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     btnMinimapToggle.addEventListener('click', () => {
       const isMin = minimapCard.classList.toggle('minimized');
       btnMinimapToggle.textContent = isMin ? 'Buka Radar' : 'Tutup';
+      if (!isMin) {
+        setTimeout(() => invalidateMinimapSize(), 150);
+      }
     });
   }
 
@@ -304,6 +307,7 @@ function switchTab(tabId) {
     initPublicTreeQr('public-tree-qr-container');
   } else if (tabId === 'tour') {
     window.dispatchEvent(new Event('resize'));
+    setTimeout(() => invalidateMinimapSize(), 200);
   } else if (tabId === 'admin') {
     window.dispatchEvent(new Event('resize'));
   }

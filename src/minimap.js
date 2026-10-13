@@ -137,3 +137,13 @@ export function updateMinimapScene(sceneId) {
     }
   });
 }
+
+/**
+ * Refresh ukuran minimap bila kontainer berubah
+ */
+export function invalidateMinimapSize() {
+  if (miniMap) {
+    miniMap.invalidateSize();
+  }
+}
+
