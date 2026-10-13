@@ -177,7 +177,7 @@ function virtualTourApiPlugin() {
         if (fs.existsSync(scenesPath)) {
           try {
             customScenes = JSON.parse(fs.readFileSync(scenesPath, 'utf-8'));
-          } catch (e) {}
+          } catch (e) { }
         }
         customScenes[sceneId] = newName;
         fs.writeFileSync(scenesPath, JSON.stringify(customScenes, null, 2), 'utf-8');
@@ -286,4 +286,9 @@ export default defineConfig({
     tailwindcss(),
     virtualTourApiPlugin(),
   ],
+
+  // Tambahan untuk mengatur peringatan ukuran bundle
+  build: {
+    chunkSizeWarningLimit: 1000, // Batas peringatan 1000 kB (1 MB)
+  },
 });

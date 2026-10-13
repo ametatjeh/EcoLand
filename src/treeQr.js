@@ -45,19 +45,19 @@ export async function initPublicTreeQr(containerId = 'public-tree-qr-container')
       </div>
 
       <!-- Filter Controls & Search Toolbar -->
-      <div class="treeqr-toolbar bg-slate-900/90 backdrop-blur-md border border-slate-800/90 rounded-2xl p-4 sm:p-5 mb-8 flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between max-w-5xl mx-auto shadow-xl">
-        <div class="flex flex-wrap items-center gap-2.5">
+      <div class="treeqr-toolbar bg-slate-900/70 backdrop-blur-xl border border-white/10 rounded-2xl px-4 py-3 sm:px-5 sm:py-3.5 mb-9 flex flex-col md:flex-row gap-3.5 items-stretch md:items-center justify-between max-w-5xl mx-auto shadow-2xl" style="margin-bottom: 36px;">
+        <div class="flex flex-wrap items-center gap-2">
           <span class="text-xs text-slate-400 font-semibold uppercase tracking-wider flex items-center gap-1.5 mr-1">
             <span>🔍</span> Filter:
           </span>
-          <div class="flex flex-wrap gap-2">
-            <button type="button" class="btn-qr-filter px-4 py-2 rounded-xl text-xs font-semibold transition cursor-pointer bg-emerald-600 text-white shadow-md shadow-emerald-950/30 border border-emerald-500/30" data-type="all">
+          <div class="flex flex-wrap gap-1.5">
+            <button type="button" class="btn-qr-filter px-3.5 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer bg-emerald-600 text-white shadow-sm border border-emerald-500/40" data-type="all">
               Semua Objek
             </button>
-            <button type="button" class="btn-qr-filter px-4 py-2 rounded-xl text-xs font-semibold transition cursor-pointer bg-slate-800/90 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700/80 hover:border-slate-600" data-type="species">
+            <button type="button" class="btn-qr-filter px-3.5 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer bg-slate-800/90 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700/80 hover:border-slate-600" data-type="species">
               🌳 Jenis Spesies Pohon
             </button>
-            <button type="button" class="btn-qr-filter px-4 py-2 rounded-xl text-xs font-semibold transition cursor-pointer bg-slate-800/90 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700/80 hover:border-slate-600" data-type="zone">
+            <button type="button" class="btn-qr-filter px-3.5 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer bg-slate-800/90 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700/80 hover:border-slate-600" data-type="zone">
               🏞️ Kelompok / Blok Kawasan
             </button>
           </div>
@@ -71,11 +71,11 @@ export async function initPublicTreeQr(containerId = 'public-tree-qr-container')
               type="text"
               id="qr-search-input"
               placeholder="Cari nama pohon, blok, famili..."
-              class="w-full bg-slate-800/90 hover:bg-slate-800 border border-slate-700/80 hover:border-slate-600 text-white text-xs rounded-xl pl-9 pr-3.5 py-2 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 placeholder-slate-500 transition shadow-inner"
+              class="w-full bg-slate-950/80 hover:bg-slate-950 border border-white/10 hover:border-emerald-500/50 text-white text-xs rounded-xl pl-9 pr-3.5 py-2 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 placeholder-slate-500 transition shadow-inner"
             />
           </div>
 
-          <div class="text-[11px] font-mono text-emerald-400 bg-emerald-500/10 px-3 py-2 rounded-xl border border-emerald-500/20 whitespace-nowrap shrink-0 shadow-sm">
+          <div class="text-[11px] font-mono text-emerald-400 bg-emerald-500/10 px-3 py-1.5 rounded-xl border border-emerald-500/20 whitespace-nowrap shrink-0 shadow-sm">
             <span id="qr-items-count">Memuat...</span>
           </div>
         </div>

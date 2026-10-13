@@ -711,6 +711,9 @@ export function switchAdminSubmenu(tabName, subTab = null, updateHash = true) {
 
   refreshActiveAdminTab();
 
+  // Reset scroll to top when changing admin tabs
+  window.scrollTo(0, 0);
+
   // If opening editor, resize Marzipano canvas and refresh hotspot lists
   if (tabName === 'editor' && editorInstance) {
     setTimeout(() => {

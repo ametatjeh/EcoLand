@@ -21,20 +21,20 @@ export async function initPublicGallery(containerId = 'public-gallery-container'
   container.innerHTML = `
     <div class="gallery-wrapper">
       <!-- Section Header Hero Banner -->
-      <div class="hero-section text-center relative overflow-hidden">
-        <div class="hero-badge">
+      <div class="hero-section text-center relative overflow-hidden" style="padding: 28px 24px; margin-bottom: 24px;">
+        <div class="hero-badge" style="margin-bottom: 14px;">
           <span>📸</span> Dokumentasi Visual & Silvikultur Kawasan
         </div>
-        <h1 class="hero-title">
+        <h1 class="hero-title" style="font-size: 32px; margin-bottom: 10px;">
           Galeri Foto Kawasan Restorasi
         </h1>
-        <p class="hero-subtitle text-slate-300 text-sm max-w-2xl mx-auto leading-relaxed">
+        <p class="hero-subtitle text-slate-300 text-sm max-w-2xl mx-auto leading-relaxed" style="margin-bottom: 0;">
           Dokumentasi visual perkembangan kawasan pemulihan lahan &plusmn;2 hektare, pelaksanaan penanaman, pertumbuhan tutupan tajuk, dan monitoring berkala.
         </p>
       </div>
 
       <!-- Filters & Search Toolbar -->
-      <div class="bg-slate-900/70 backdrop-blur-xl border border-white/10 rounded-2xl p-4 sm:p-5 mb-8 shadow-2xl flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between">
+      <div class="gallery-filter-toolbar bg-slate-900/70 backdrop-blur-xl border border-white/10 rounded-2xl p-4 sm:p-5 shadow-2xl flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between" style="margin-bottom: 36px;">
         <div class="flex flex-wrap items-center gap-3">
           <div class="flex items-center gap-2">
             <label for="gallery-filter-zone" class="text-xs text-slate-400 font-semibold uppercase tracking-wider flex items-center gap-1.5 shrink-0">

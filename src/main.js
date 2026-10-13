@@ -208,12 +208,40 @@ async function populateProjectIdentity() {
 }
 
 // ─── Tab Navigation ─────────────────────────────────────
+// ─── Tab Navigation ─────────────────────────────────────
 function setupNavigation() {
   const tabs = document.querySelectorAll('.nav-tab-btn');
   const brandBtn = document.getElementById('brand-btn');
   const mobileToggle = document.getElementById('btn-mobile-menu');
   const navTabsContainer = document.getElementById('nav-tabs');
-  const adminNavBtn = document.getElementById('nav-btn-admin');
+  const mobileBackdrop = document.getElementById('mobile-nav-backdrop');
+  const desktopAdminBtn = document.getElementById('nav-btn-admin-desktop');
+  const footerAdminBtn = document.getElementById('footer-btn-admin');
+
+  function closeMobileMenu() {
+    if (navTabsContainer) navTabsContainer.classList.remove('mobile-open');
+    if (mobileBackdrop) mobileBackdrop.classList.remove('show');
+    if (mobileToggle) {
+      mobileToggle.setAttribute('aria-expanded', 'false');
+      const openIcon = mobileToggle.querySelector('.hamburger-icon-open');
+      const closeIcon = mobileToggle.querySelector('.hamburger-icon-close');
+      if (openIcon) openIcon.classList.remove('hidden');
+      if (closeIcon) closeIcon.classList.add('hidden');
+    }
+  }
+
+  function toggleMobileMenu() {
+    if (!navTabsContainer) return;
+    const isOpen = navTabsContainer.classList.toggle('mobile-open');
+    if (mobileBackdrop) mobileBackdrop.classList.toggle('show', isOpen);
+    if (mobileToggle) {
+      mobileToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      const openIcon = mobileToggle.querySelector('.hamburger-icon-open');
+      const closeIcon = mobileToggle.querySelector('.hamburger-icon-close');
+      if (openIcon) openIcon.classList.toggle('hidden', isOpen);
+      if (closeIcon) closeIcon.classList.toggle('hidden', !isOpen);
+    }
+  }
 
   tabs.forEach((tab) => {
     tab.addEventListener('click', () => {
@@ -223,12 +251,19 @@ function setupNavigation() {
       } else {
         window.location.hash = target;
       }
-      if (navTabsContainer) navTabsContainer.classList.remove('mobile-open');
+      closeMobileMenu();
     });
   });
 
-  if (adminNavBtn) {
-    adminNavBtn.addEventListener('click', (e) => {
+  if (desktopAdminBtn) {
+    desktopAdminBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      openAdminView();
+    });
+  }
+
+  if (footerAdminBtn) {
+    footerAdminBtn.addEventListener('click', (e) => {
       e.preventDefault();
       openAdminView();
     });
@@ -237,14 +272,45 @@ function setupNavigation() {
   if (brandBtn) {
     brandBtn.addEventListener('click', () => {
       window.location.hash = 'beranda';
+      closeMobileMenu();
     });
   }
 
-  if (mobileToggle && navTabsContainer) {
-    mobileToggle.addEventListener('click', () => {
-      navTabsContainer.classList.toggle('mobile-open');
+  if (mobileToggle) {
+    mobileToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleMobileMenu();
     });
   }
+
+  if (mobileBackdrop) {
+    mobileBackdrop.addEventListener('click', closeMobileMenu);
+  }
+
+  // Close mobile drawer on Escape key or click outside
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeMobileMenu();
+  });
+
+  document.addEventListener('click', (e) => {
+    if (navTabsContainer && navTabsContainer.classList.contains('mobile-open')) {
+      if (!navTabsContainer.contains(e.target) && !mobileToggle.contains(e.target)) {
+        closeMobileMenu();
+      }
+    }
+  });
+
+  // Footer Navigation Links
+  document.querySelectorAll('.footer-nav-link').forEach((link) => {
+    link.addEventListener('click', (e) => {
+      const target = link.getAttribute('data-tab');
+      if (target) {
+        e.preventDefault();
+        window.location.hash = target;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    });
+  });
 
   // Buttons on Beranda
   const btnHeroTour = document.getElementById('btn-hero-start-tour');
@@ -267,6 +333,12 @@ function switchTab(tabId) {
     mainNavbar.style.display = tabId === 'admin' ? 'none' : '';
   }
 
+  // Toggle public views container visibility
+  const viewsContainer = document.getElementById('views-container');
+  if (viewsContainer) {
+    viewsContainer.style.display = tabId === 'admin' ? 'none' : '';
+  }
+
   // Toggle public global footer visibility (visible on beranda, info, galeri, katalog, tree-qr; hidden on tour, admin)
   const globalFooter = document.getElementById('public-global-footer');
   if (globalFooter) {
@@ -283,9 +355,9 @@ function switchTab(tabId) {
     pane.classList.toggle('active', pane.id === `view-${tabId}`);
   });
 
-  // Smooth scroll to top when changing public views
+  // Reset scroll to top when changing views
   if (tabId !== 'tour') {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo(0, 0);
   }
 
   // Specific triggers
