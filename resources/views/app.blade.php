@@ -63,12 +63,19 @@
             <button class="nav-tab-btn" data-tab="tree-qr">
               <span class="nav-icon">📱</span> Tree QR
             </button>
-            <button class="nav-tab-btn btn-nav-login" id="nav-btn-admin" data-tab="admin" title="Login Petugas">
+            <button class="nav-tab-btn mobile-only-login btn-nav-login" data-tab="admin" title="Login Petugas">
               <span class="nav-icon">🔐</span> Login
             </button>
           </nav>
 
           <div class="header-right-actions">
+            <button class="btn-nav-admin desktop-only-login" id="nav-btn-admin" data-tab="admin" title="Login Petugas">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
+              <span>Login</span>
+            </button>
             <button id="btn-mobile-menu" aria-label="Menu navigasi">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <line x1="3" y1="6" x2="21" y2="6"/>
