@@ -32,8 +32,9 @@
 
         body {
             font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: radial-gradient(circle at 50% 50%, #061910 0%, #030805 100%);
-            background-color: var(--bg-deep);
+            background: #090d16;
+            background: radial-gradient(circle at 50% 50%, #0d1424 0%, #060913 100%);
+            background-color: #090d16;
             color: #ffffff;
             min-height: 100vh;
             overflow-x: hidden;
@@ -48,7 +49,7 @@
             width: 420px;
             height: 420px;
             border-radius: 50%;
-            background: radial-gradient(circle, rgba(16, 185, 129, 0.22) 0%, rgba(16, 185, 129, 0) 70%);
+            background: radial-gradient(circle, rgba(56, 189, 248, 0.16) 0%, rgba(56, 189, 248, 0) 70%);
             filter: blur(60px);
             z-index: 1;
             pointer-events: none;
@@ -62,7 +63,7 @@
             width: 460px;
             height: 460px;
             border-radius: 50%;
-            background: radial-gradient(circle, rgba(5, 150, 105, 0.18) 0%, rgba(5, 150, 105, 0) 70%);
+            background: radial-gradient(circle, rgba(129, 140, 248, 0.14) 0%, rgba(129, 140, 248, 0) 70%);
             filter: blur(65px);
             z-index: 1;
             pointer-events: none;
@@ -624,7 +625,7 @@
             }
 
             function animate() {
-                if (!isRunning) return;
+                if (!isRunning || !uniforms || !config || !renderer || !scene || !camera) return;
                 animationFrameId = requestAnimationFrame(animate);
 
                 const elapsedTime = clock.getElapsedTime();
@@ -658,7 +659,7 @@
             }
 
             function startAnimation() {
-                if (!isRunning && renderer && scene && camera) {
+                if (!isRunning && renderer && scene && camera && uniforms && config) {
                     isRunning = true;
                     animate();
                 }
@@ -696,9 +697,9 @@
                 renderer.setSize(window.innerWidth, window.innerHeight);
                 renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
 
-                // 2. Konfigurasi Parameter (BreathDearMedusa Organik Eco Land)
-                const config = {
-                    cursor: { radius: 0.065, strength: 3.0, dragFactor: 0.02 },
+                // 2. Konfigurasi Parameter (BreathDearMedusa 100% Identik PMB UNIDA)
+                config = {
+                    cursor: { radius: 0.065, strength: 3.0, dragFactor: 0.015 },
                     halo: {
                         outerOscFrequency: 2.6,
                         outerOscAmplitude: 0.76,
@@ -712,18 +713,18 @@
                         scaleY: 1.0
                     },
                     particles: {
-                        baseSize: 0.024,
-                        activeSize: 0.064,
+                        baseSize: 0.022,
+                        activeSize: 0.058,
                         blobScaleX: 1.0,
-                        blobScaleY: 0.65,
-                        rotationSpeed: 0.12,
-                        rotationJitter: 0.22,
+                        blobScaleY: 0.60,
+                        rotationSpeed: 0.10,
+                        rotationJitter: 0.20,
                         cursorFollowStrength: 1.0,
                         oscillationFactor: 1.0,
-                        colorBase: '#0a3d28',    // Deep luminous emerald forest
-                        colorOne: '#10b981',     // Vibrant emerald
-                        colorTwo: '#34d399',     // Radiant mint green
-                        colorThree: '#a7f3d0'    // Sparkling jade spores
+                        colorBase: '#0f172a',    // PMB UNIDA Deep Slate Base
+                        colorOne: '#38bdf8',     // PMB UNIDA Sky Cyan
+                        colorTwo: '#818cf8',     // PMB UNIDA Radiant Violet Indigo
+                        colorThree: '#ffffff'    // PMB UNIDA Sparkling White Stars
                     }
                 };
 
@@ -762,8 +763,8 @@
                 instancedGeometry.setAttribute('aOffset', new THREE.InstancedBufferAttribute(offsets, 3));
                 instancedGeometry.setAttribute('aRandom', new THREE.InstancedBufferAttribute(randoms, 1));
 
-                // 4. Uniforms & Shader Material
-                const uniforms = {
+                // 4. Uniforms & Shader Material (Assign ke modul uniforms)
+                uniforms = {
                     uTime: { value: 0 },
                     uMouse: { value: new THREE.Vector2(0, 0) },
                     uResolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
