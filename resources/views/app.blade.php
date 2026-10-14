@@ -22,6 +22,13 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
     rel="stylesheet" />
+  @php
+    $isLoggedInAdmin = \Illuminate\Support\Facades\Auth::check() && \Illuminate\Support\Facades\Auth::user()->isAdmin();
+    $adminTargetUrl = $isLoggedInAdmin ? url('/#admin/dashboard') : route('login');
+  @endphp
+  <script>
+    window.ECO_SERVER_AUTH = {{ $isLoggedInAdmin ? 'true' : 'false' }};
+  </script>
   @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
@@ -93,19 +100,15 @@
           <button class="nav-tab-btn" data-tab="karbon">
             <span class="nav-icon">🍃</span> <span>Monitoring Karbon</span>
           </button>
-          @php
-            $isLoggedInAdmin = \Illuminate\Support\Facades\Auth::check() && \Illuminate\Support\Facades\Auth::user()->isAdmin();
-            $adminTargetUrl = $isLoggedInAdmin ? url('/#admin/dashboard') : route('login');
-          @endphp
           <!-- Mobile-only login item inside nav-tabs -->
-          <a href="{{ $adminTargetUrl }}" class="nav-tab-btn mobile-only-nav-item btn-nav-login" data-tab="admin" title="{{ $isLoggedInAdmin ? 'Dashboard Eco Land' : 'Login Eco Land' }}">
+          <a href="{{ $adminTargetUrl }}" class="nav-tab-btn mobile-only-nav-item btn-nav-login" data-tab="{{ $isLoggedInAdmin ? 'admin' : 'login' }}" title="{{ $isLoggedInAdmin ? 'Dashboard Eco Land' : 'Login Eco Land' }}">
             <span class="nav-icon">{{ $isLoggedInAdmin ? '📊' : '🔐' }}</span> <span class="nav-text">{{ $isLoggedInAdmin ? 'Dashboard' : 'Login' }}</span>
           </a>
         </nav>
 
         <!-- Right Action: Desktop Login Button + Mobile Hamburger Button -->
         <div class="header-right-actions flex items-center gap-3 shrink-0">
-          <a href="{{ $adminTargetUrl }}" class="header-login-btn desktop-only-login {{ $isLoggedInAdmin ? 'is-authenticated' : '' }}" id="nav-btn-admin-desktop" data-tab="admin" title="{{ $isLoggedInAdmin ? 'Dashboard Eco Land' : 'Login Eco Land' }}">
+          <a href="{{ $adminTargetUrl }}" class="header-login-btn desktop-only-login {{ $isLoggedInAdmin ? 'is-authenticated' : '' }}" id="nav-btn-admin-desktop" data-tab="{{ $isLoggedInAdmin ? 'admin' : 'login' }}" title="{{ $isLoggedInAdmin ? 'Dashboard Eco Land' : 'Login Eco Land' }}">
             @if($isLoggedInAdmin)
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <rect x="3" y="3" width="7" height="7"></rect>
