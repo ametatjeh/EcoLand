@@ -74,12 +74,20 @@
             100% { transform: scale(1.18) translate(15px, 15px); opacity: 1; }
         }
 
+        /* Mobile Phone (< 768px): Nonaktifkan animasi background */
         @media (max-width: 767.98px) {
             #medusa-bg-wrapper {
                 display: none !important;
             }
             .ambient-glow-1, .ambient-glow-2 {
                 display: none !important;
+            }
+        }
+
+        /* Desktop & Tablet (>= 768px): Tampilkan animasi background */
+        @media (min-width: 768px) {
+            #medusa-bg-wrapper {
+                display: block !important;
             }
         }
 
@@ -180,6 +188,14 @@
             height: 44px;
             color: #34d399;
             filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.35));
+        }
+
+        .logo-wrap img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            padding: 8px;
+            filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.35));
         }
 
         .brand-title {
@@ -370,10 +386,16 @@
             <div class="brand-header">
                 <a href="/" style="display: inline-block; text-decoration: none;">
                     <div class="logo-wrap">
-                        <svg class="logo-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9 9 0 01-9-9c0-4.97 4.03-9 9-9 4.14 0 7.63 2.8 8.65 6.64.12.44-.22.86-.68.86h-2.18c-.46 0-.85.34-.94.79a5.002 5.002 0 01-4.85 4.71H12v6z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v18" />
-                        </svg>
+                        @php
+                            $currentLogo = $appLogo ?? \App\Models\AppSetting::getVal('app_logo');
+                        @endphp
+                        @if(!empty($currentLogo))
+                            <img src="{{ asset($currentLogo) }}" alt="Logo Eco Land" class="logo-img" />
+                        @else
+                            <svg class="logo-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+                            </svg>
+                        @endif
                     </div>
                 </a>
                 <h1 class="brand-title">Eco Land</h1>
@@ -581,8 +603,10 @@
         // Bioluminescent Interactive Organic Particle Halo & Wave Mesh
         // =========================================================================
         (function initMedusaBackground() {
-            function isMobileDevice() {
-                return window.innerWidth < 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            // Tampilkan animasi background untuk Desktop dan Tablet (lebar >= 768px).
+            // Hanya nonaktifkan pada smartphone / layar mobile kecil (< 768px).
+            function isSmallMobileScreen() {
+                return window.innerWidth < 768;
             }
 
             let initialized = false;
@@ -646,8 +670,8 @@
                     return;
                 }
 
-                // Jangan inisialisasi pada perangkat mobile demi menghemat GPU, baterai & memori
-                if (isMobileDevice()) return;
+                // Jangan inisialisasi pada smartphone / layar mobile kecil demi performa
+                if (isSmallMobileScreen()) return;
                 if (initialized) {
                     startAnimation();
                     return;
@@ -917,15 +941,25 @@
                 const mesh = new THREE.InstancedMesh(instancedGeometry, material, count);
                 scene.add(mesh);
 
-                // 5. Interaksi Mouse & Kursor Dinamis
-                window.addEventListener('pointermove', (e) => {
-                    if (isMobileDevice()) return;
+                // 5. Interaksi Kursor Dinamis (Mouse Desktop & Touch Tablet)
+                const updatePointerPos = (clientX, clientY) => {
+                    if (isSmallMobileScreen()) return;
                     hasPointerMoved = true;
-                    const normX = (e.clientX / window.innerWidth) * 2 - 1;
-                    const normY = -(e.clientY / window.innerHeight) * 2 + 1;
+                    const normX = (clientX / window.innerWidth) * 2 - 1;
+                    const normY = -(clientY / window.innerHeight) * 2 + 1;
                     const plane = computeVisiblePlaneSize();
                     targetMouseX = (normX * plane.width) / 2;
                     targetMouseY = (normY * plane.height) / 2;
+                };
+
+                window.addEventListener('pointermove', (e) => {
+                    updatePointerPos(e.clientX, e.clientY);
+                }, { passive: true });
+
+                window.addEventListener('touchmove', (e) => {
+                    if (e.touches && e.touches[0]) {
+                        updatePointerPos(e.touches[0].clientX, e.touches[0].clientY);
+                    }
                 }, { passive: true });
 
                 // 6. Inisialisasi Clock & Render Loop
@@ -933,10 +967,10 @@
                 startAnimation();
             }
 
-            // 7. Responsive Window Resize & Mobile Toggle
+            // 7. Responsive Window Resize & Device Toggle (Aktif pada Desktop & Tablet >= 768px)
             window.addEventListener('resize', () => {
                 const wrapper = document.getElementById('medusa-bg-wrapper');
-                if (isMobileDevice()) {
+                if (isSmallMobileScreen()) {
                     stopAnimation();
                     if (wrapper) wrapper.style.display = 'none';
                 } else {
@@ -956,10 +990,10 @@
 
             if (document.readyState === 'loading') {
                 document.addEventListener('DOMContentLoaded', () => {
-                    if (!isMobileDevice()) startThreeAnimation();
+                    if (!isSmallMobileScreen()) startThreeAnimation();
                 });
             } else {
-                if (!isMobileDevice()) startThreeAnimation();
+                if (!isSmallMobileScreen()) startThreeAnimation();
             }
         })();
     </script>
