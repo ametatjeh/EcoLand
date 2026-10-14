@@ -67,33 +67,46 @@ export function initAuth() {
     btnClose.addEventListener('click', closeLoginModal);
   }
 
-  if (btnLogout) {
-    btnLogout.addEventListener('click', (e) => {
+  const handleLogout = (e) => {
+    if (e && typeof e.preventDefault === 'function') {
       e.preventDefault();
-      performLogout();
-    });
+    }
+    performLogout();
+  };
+
+  if (btnLogout) {
+    btnLogout.addEventListener('click', handleLogout);
   }
 
   document.querySelectorAll('.btn-sidebar-quick-logout').forEach((btn) => {
-    btn.addEventListener('click', (e) => {
-      e.preventDefault();
-      performLogout();
-    });
+    btn.addEventListener('click', handleLogout);
   });
 }
 
-export async function performLogout() {
-  if (confirm('Apakah Anda yakin ingin keluar dari sesi administrator?')) {
-    try {
-      await ApiService.logout();
-    } catch (e) {
-      console.warn('API logout error:', e);
+export function performLogout() {
+  try {
+    const token = ApiService.getToken();
+    if (token) {
+      fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        keepalive: true,
+      }).catch(() => {});
     }
-    ApiService.clearSession();
-    sessionStorage.removeItem('admin_redirect_hash');
-    notifyAuthChange(false);
-    window.location.href = '/logout';
+  } catch (e) {
+    console.warn('API logout error:', e);
   }
+
+  ApiService.clearSession();
+  try {
+    sessionStorage.clear();
+    localStorage.removeItem('vtour_admin_token');
+    localStorage.removeItem('vtour_admin_user');
+    localStorage.removeItem('admin_redirect_hash');
+  } catch {}
+
+  // Full page redirect to server-side logout
+  window.location.href = '/logout';
 }
 
 export function showLoginModal() {
