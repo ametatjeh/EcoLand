@@ -76,3 +76,31 @@ Route::match(['get', 'post'], '/logout', [\App\Http\Controllers\AuthController::
 
 Route::get('/auth/google/redirect', [\App\Http\Controllers\GoogleAuthController::class, 'redirect'])->name('auth.google.redirect');
 Route::get('/auth/google/callback', [\App\Http\Controllers\GoogleAuthController::class, 'callback'])->name('auth.google.callback');
+
+// ─────────────────────────────────────────────────────────────
+// File Streaming Fallback for Production (aaPanel/Nginx/Symlink safety)
+// ─────────────────────────────────────────────────────────────
+Route::get('/storage/{path}', function (string $path) {
+    // Prevent directory traversal
+    $cleanPath = str_replace(['..', "\0"], '', $path);
+    $cleanPath = ltrim($cleanPath, '/\\');
+
+    // 1. Primary: storage/app/public/ (tempat upload Laravel)
+    $storageFile = storage_path('app/public/' . $cleanPath);
+    if (file_exists($storageFile) && is_file($storageFile)) {
+        return response()->file($storageFile, [
+            'Cache-Control' => 'public, max-age=31536000, immutable',
+        ]);
+    }
+
+    // 2. Fallback: public/storage/ (jika file fisik tersimpan langsung di folder public)
+    $publicFile = public_path('storage/' . $cleanPath);
+    if (file_exists($publicFile) && is_file($publicFile)) {
+        return response()->file($publicFile, [
+            'Cache-Control' => 'public, max-age=31536000, immutable',
+        ]);
+    }
+
+    abort(404, 'File not found');
+})->where('path', '.*')->name('storage.local');
+

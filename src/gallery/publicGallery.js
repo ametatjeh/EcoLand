@@ -251,7 +251,13 @@ function renderPhotoGrid() {
       ${filteredPhotos.map((photo, index) => {
         const zoneName = photo.zone ? photo.zone.name : 'Kawasan Penanaman';
         const docDate = formatDateDisplay(photo.documented_at);
-        const imgUrl = photo.file_url || photo.file_path;
+        let rawUrl = photo.thumbnail_url || photo.file_url || photo.file_path || '';
+        let imgUrl = rawUrl;
+        if (imgUrl && !imgUrl.startsWith('http://') && !imgUrl.startsWith('https://')) {
+          if (!imgUrl.startsWith('/')) {
+            imgUrl = '/' + imgUrl;
+          }
+        }
 
         return `
           <div
@@ -259,14 +265,18 @@ function renderPhotoGrid() {
             data-index="${index}"
           >
             <!-- Thumbnail Box -->
-            <div class="relative aspect-4/3 bg-slate-950 overflow-hidden">
+            <div class="relative aspect-4/3 bg-slate-950 overflow-hidden flex items-center justify-center">
               <img
                 src="${imgUrl}"
                 alt="${escapeHtml(photo.alt_text || photo.title || 'Foto Kawasan')}"
                 loading="lazy"
                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                onerror="this.src='/favicon.svg'"
+                onerror="this.onerror=null; this.parentElement.classList.add('bg-slate-900'); this.style.display='none'; this.nextElementSibling.classList.remove('hidden');"
               />
+              <div class="hidden flex flex-col items-center justify-center p-4 text-center text-slate-500">
+                <span class="text-3xl mb-1">🖼️</span>
+                <span class="text-[11px] font-medium text-slate-400">Pratinjau tidak tersedia</span>
+              </div>
               <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-3.5">
                 <span class="text-xs font-semibold text-white flex items-center gap-1.5 bg-black/75 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/10 shadow-lg">
                   <span>🔍</span> Perbesar Foto
@@ -433,7 +443,14 @@ function updateLightboxContent() {
       img.classList.add('hidden');
       if (errorMsg) errorMsg.classList.remove('hidden');
     };
-    img.src = photo.file_url || photo.file_path;
+    let rawFullUrl = photo.file_url || photo.file_path || '';
+    let fullImgUrl = rawFullUrl;
+    if (fullImgUrl && !fullImgUrl.startsWith('http://') && !fullImgUrl.startsWith('https://')) {
+      if (!fullImgUrl.startsWith('/')) {
+        fullImgUrl = '/' + fullImgUrl;
+      }
+    }
+    img.src = fullImgUrl;
     img.alt = photo.alt_text || photo.title || 'Foto Kawasan';
   }
   if (title) title.textContent = photo.title || 'Dokumentasi Kawasan';

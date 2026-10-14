@@ -58,19 +58,27 @@ class PlantingZonePhoto extends Model
         if (empty($this->file_path)) {
             return '';
         }
-        if (str_starts_with($this->file_path, 'http://') || str_starts_with($this->file_path, 'https://') || str_starts_with($this->file_path, '/')) {
+        if (str_starts_with($this->file_path, 'http://') || str_starts_with($this->file_path, 'https://')) {
             return $this->file_path;
         }
-        return '/storage/' . ltrim($this->file_path, '/');
+        $clean = ltrim($this->file_path, '/');
+        if (str_starts_with($clean, 'storage/')) {
+            return '/' . $clean;
+        }
+        return '/storage/' . $clean;
     }
 
     public function getThumbnailUrlAttribute(): string
     {
         if (!empty($this->thumbnail_path)) {
-            if (str_starts_with($this->thumbnail_path, 'http://') || str_starts_with($this->thumbnail_path, 'https://') || str_starts_with($this->thumbnail_path, '/')) {
+            if (str_starts_with($this->thumbnail_path, 'http://') || str_starts_with($this->thumbnail_path, 'https://')) {
                 return $this->thumbnail_path;
             }
-            return '/storage/' . ltrim($this->thumbnail_path, '/');
+            $clean = ltrim($this->thumbnail_path, '/');
+            if (str_starts_with($clean, 'storage/')) {
+                return '/' . $clean;
+            }
+            return '/storage/' . $clean;
         }
         return $this->file_url;
     }
