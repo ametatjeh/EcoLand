@@ -26,9 +26,7 @@
     $isLoggedInAdmin = \Illuminate\Support\Facades\Auth::check() && \Illuminate\Support\Facades\Auth::user()->isAdmin();
     $adminTargetUrl = $isLoggedInAdmin ? url('/#admin/dashboard') : route('login');
   @endphp
-  <script>
-    window.ECO_SERVER_AUTH = {{ $isLoggedInAdmin ? 'true' : 'false' }};
-  </script>
+  <meta name="eco-server-auth" content="{{ $isLoggedInAdmin ? 'true' : 'false' }}" />
   @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 

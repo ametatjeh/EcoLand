@@ -444,6 +444,21 @@ export function isUserAuthenticated() {
     }
     return true;
   }
+
+  if (typeof document !== 'undefined') {
+    const metaAuth = document.querySelector('meta[name="eco-server-auth"]');
+    if (metaAuth) {
+      const isServerAuth = metaAuth.getAttribute('content') === 'true';
+      if (!isServerAuth) {
+        if (ApiService.isAuthenticated()) {
+          ApiService.clearSession();
+        }
+        return false;
+      }
+      return true;
+    }
+  }
+
   return checkAdminAuth();
 }
 
