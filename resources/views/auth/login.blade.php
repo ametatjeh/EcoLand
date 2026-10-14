@@ -32,6 +32,7 @@
 
         body {
             font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: radial-gradient(circle at 50% 50%, #061910 0%, #030805 100%);
             background-color: var(--bg-deep);
             color: #ffffff;
             min-height: 100vh;
@@ -74,6 +75,9 @@
         }
 
         @media (max-width: 767.98px) {
+            #medusa-bg-wrapper {
+                display: none !important;
+            }
             .ambient-glow-1, .ambient-glow-2 {
                 display: none !important;
             }
@@ -89,7 +93,7 @@
             align-items: center;
             justify-content: center;
             padding: 32px 16px;
-            background: radial-gradient(circle at 50% 50%, #061910 0%, #030805 100%);
+            background: transparent;
         }
 
         /* Glassmorphism Card Container */
@@ -335,8 +339,16 @@
             color: #a7f3d0;
         }
     </style>
+
+    <!-- Three.js Library for Interactive Particle & Breath Mesh Animation (Offline Local First + CDN Fallback) -->
+    <script src="{{ asset('vendor/three/three.min.js') }}" onerror="this.onerror=null;this.src='https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';"></script>
 </head>
 <body>
+    <!-- Interactive WebGL Particle Breath Mesh (PMB UNIDA Inspired Halo Effect) -->
+    <div id="medusa-bg-wrapper" style="position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 2; pointer-events: none; overflow: hidden;">
+        <canvas id="medusa-canvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: block;"></canvas>
+    </div>
+
     <!-- Ambient Glow Blobs -->
     <div class="ambient-glow-1"></div>
     <div class="ambient-glow-2"></div>
@@ -563,6 +575,393 @@
                 btnGoogleText.textContent = 'Mengarahkan ke Google...';
             });
         }
+
+        // =========================================================================
+        // ANIMASI BACKGROUND INTERAKTIF: BREATH DEAR MEDUSA (PMB UNIDA STYLE)
+        // Bioluminescent Interactive Organic Particle Halo & Wave Mesh
+        // =========================================================================
+        (function initMedusaBackground() {
+            function isMobileDevice() {
+                return window.innerWidth < 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            }
+
+            let initialized = false;
+            let isRunning = false;
+            let animationFrameId = null;
+            let renderer = null, scene = null, camera = null, uniforms = null, config = null, clock = null;
+            let mouseX = 0, mouseY = 0, targetMouseX = 0, targetMouseY = 0, hasPointerMoved = false;
+
+            function computeVisiblePlaneSize() {
+                if (!camera) return { width: 1, height: 1 };
+                const vFOV = (camera.fov * Math.PI) / 180;
+                const h = 2 * Math.tan(vFOV / 2) * camera.position.z;
+                const w = h * camera.aspect;
+                return { width: w, height: h };
+            }
+
+            function animate() {
+                if (!isRunning) return;
+                animationFrameId = requestAnimationFrame(animate);
+
+                const elapsedTime = clock.getElapsedTime();
+                uniforms.uTime.value = elapsedTime;
+
+                // Jika pengguna belum menggerakkan mouse, lakukan pergerakan ambien mengambang alami
+                if (!hasPointerMoved) {
+                    const plane = computeVisiblePlaneSize();
+                    const naturalX = Math.sin(elapsedTime * 0.45) * (plane.width * 0.22);
+                    const naturalY = Math.cos(elapsedTime * 0.55) * (plane.height * 0.18);
+                    targetMouseX = naturalX;
+                    targetMouseY = naturalY;
+                }
+
+                // Redaman inersia kursor halus
+                mouseX += (targetMouseX - mouseX) * config.cursor.dragFactor;
+                mouseY += (targetMouseY - mouseY) * config.cursor.dragFactor;
+                uniforms.uMouse.value.set(mouseX, mouseY);
+
+                renderer.render(scene, camera);
+            }
+
+            function stopAnimation() {
+                if (isRunning) {
+                    isRunning = false;
+                    if (animationFrameId) {
+                        cancelAnimationFrame(animationFrameId);
+                        animationFrameId = null;
+                    }
+                }
+            }
+
+            function startAnimation() {
+                if (!isRunning && renderer && scene && camera) {
+                    isRunning = true;
+                    animate();
+                }
+            }
+
+            function startThreeAnimation() {
+                if (typeof THREE === 'undefined') {
+                    setTimeout(startThreeAnimation, 50);
+                    return;
+                }
+
+                // Jangan inisialisasi pada perangkat mobile demi menghemat GPU, baterai & memori
+                if (isMobileDevice()) return;
+                if (initialized) {
+                    startAnimation();
+                    return;
+                }
+
+                const canvas = document.getElementById('medusa-canvas');
+                if (!canvas) return;
+
+                initialized = true;
+
+                // 1. Scene, Camera, & WebGL Renderer
+                scene = new THREE.Scene();
+                camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+                camera.position.set(0, 0, 5);
+
+                renderer = new THREE.WebGLRenderer({
+                    canvas: canvas,
+                    alpha: true,
+                    antialias: true,
+                    powerPreference: 'high-performance'
+                });
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+
+                // 2. Konfigurasi Parameter (BreathDearMedusa Organik Eco Land)
+                const config = {
+                    cursor: { radius: 0.065, strength: 3.0, dragFactor: 0.02 },
+                    halo: {
+                        outerOscFrequency: 2.6,
+                        outerOscAmplitude: 0.76,
+                        radiusBase: 2.4,
+                        radiusAmplitude: 0.5,
+                        shapeAmplitude: 0.75,
+                        rimWidth: 1.8,
+                        outerStartOffset: 0.4,
+                        outerEndOffset: 2.2,
+                        scaleX: 1.3,
+                        scaleY: 1.0
+                    },
+                    particles: {
+                        baseSize: 0.024,
+                        activeSize: 0.064,
+                        blobScaleX: 1.0,
+                        blobScaleY: 0.65,
+                        rotationSpeed: 0.12,
+                        rotationJitter: 0.22,
+                        cursorFollowStrength: 1.0,
+                        oscillationFactor: 1.0,
+                        colorBase: '#0a3d28',    // Deep luminous emerald forest
+                        colorOne: '#10b981',     // Vibrant emerald
+                        colorTwo: '#34d399',     // Radiant mint green
+                        colorThree: '#a7f3d0'    // Sparkling jade spores
+                    }
+                };
+
+                // 3. Grid Partikel (90 x 50 = 4.500 Partikel Instanced Mesh)
+                const cols = 90;
+                const rows = 50;
+                const count = cols * rows;
+
+                const baseGeometry = new THREE.PlaneGeometry(1, 1);
+                const instancedGeometry = new THREE.InstancedBufferGeometry();
+                instancedGeometry.index = baseGeometry.index;
+                instancedGeometry.attributes.position = baseGeometry.attributes.position;
+                instancedGeometry.attributes.uv = baseGeometry.attributes.uv;
+
+                const offsets = new Float32Array(count * 3);
+                const randoms = new Float32Array(count);
+                const spreadX = 42;
+                const spreadY = 24;
+                const jitter = 0.28;
+
+                let ptr = 0;
+                for (let r = 0; r < rows; r++) {
+                    for (let c = 0; c < cols; c++) {
+                        const u = c / (cols - 1);
+                        const v = r / (rows - 1);
+                        let px = (u - 0.5) * spreadX + (Math.random() - 0.5) * jitter;
+                        let py = (v - 0.5) * spreadY + (Math.random() - 0.5) * jitter;
+                        offsets[ptr * 3] = px;
+                        offsets[ptr * 3 + 1] = py;
+                        offsets[ptr * 3 + 2] = 0;
+                        randoms[ptr] = Math.random();
+                        ptr++;
+                    }
+                }
+
+                instancedGeometry.setAttribute('aOffset', new THREE.InstancedBufferAttribute(offsets, 3));
+                instancedGeometry.setAttribute('aRandom', new THREE.InstancedBufferAttribute(randoms, 1));
+
+                // 4. Uniforms & Shader Material
+                const uniforms = {
+                    uTime: { value: 0 },
+                    uMouse: { value: new THREE.Vector2(0, 0) },
+                    uResolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
+                    uOuterOscFrequency: { value: config.halo.outerOscFrequency },
+                    uOuterOscAmplitude: { value: config.halo.outerOscAmplitude },
+                    uHaloRadiusBase: { value: config.halo.radiusBase },
+                    uHaloRadiusAmplitude: { value: config.halo.radiusAmplitude },
+                    uHaloShapeAmplitude: { value: config.halo.shapeAmplitude },
+                    uHaloRimWidth: { value: config.halo.rimWidth },
+                    uHaloOuterStartOffset: { value: config.halo.outerStartOffset },
+                    uHaloOuterEndOffset: { value: config.halo.outerEndOffset },
+                    uHaloScaleX: { value: config.halo.scaleX },
+                    uHaloScaleY: { value: config.halo.scaleY },
+                    uParticleBaseSize: { value: config.particles.baseSize },
+                    uParticleActiveSize: { value: config.particles.activeSize },
+                    uBlobScaleX: { value: config.particles.blobScaleX },
+                    uBlobScaleY: { value: config.particles.blobScaleY },
+                    uParticleRotationSpeed: { value: config.particles.rotationSpeed },
+                    uParticleRotationJitter: { value: config.particles.rotationJitter },
+                    uParticleOscillationFactor: { value: config.particles.oscillationFactor },
+                    uParticleColorBase: { value: new THREE.Color(config.particles.colorBase) },
+                    uParticleColorOne: { value: new THREE.Color(config.particles.colorOne) },
+                    uParticleColorTwo: { value: new THREE.Color(config.particles.colorTwo) },
+                    uParticleColorThree: { value: new THREE.Color(config.particles.colorThree) }
+                };
+
+                const vertexShader = `
+                    uniform float uTime;
+                    uniform vec2 uMouse;
+                    uniform float uOuterOscFrequency;
+                    uniform float uOuterOscAmplitude;
+                    uniform float uHaloRadiusBase;
+                    uniform float uHaloRadiusAmplitude;
+                    uniform float uHaloShapeAmplitude;
+                    uniform float uHaloRimWidth;
+                    uniform float uHaloOuterStartOffset;
+                    uniform float uHaloOuterEndOffset;
+                    uniform float uHaloScaleX;
+                    uniform float uHaloScaleY;
+                    uniform float uParticleBaseSize;
+                    uniform float uParticleActiveSize;
+                    uniform float uBlobScaleX;
+                    uniform float uBlobScaleY;
+                    uniform float uParticleRotationSpeed;
+                    uniform float uParticleRotationJitter;
+                    uniform float uParticleOscillationFactor;
+                    varying vec2 vUv;
+                    varying float vSize;
+                    varying vec2 vPos;
+
+                    attribute vec3 aOffset;
+                    attribute float aRandom;
+
+                    #define PI 3.14159265359
+
+                    float hash(vec2 p) {
+                        return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
+                    }
+                    float noise(vec2 p) {
+                        vec2 i = floor(p);
+                        vec2 f = fract(p);
+                        f = f * f * (3.0 - 2.0 * f);
+                        float a = hash(i);
+                        float b = hash(i + vec2(1.0, 0.0));
+                        float c = hash(i + vec2(0.0, 1.0));
+                        float d = hash(i + vec2(1.0, 1.0));
+                        return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+                    }
+
+                    void main() {
+                        vUv = uv;
+                        vec3 pos = aOffset;
+                        float driftSpeed = uTime * 0.16;
+
+                        float dx = sin(driftSpeed + pos.y * 0.45) + sin(driftSpeed * 0.5 + pos.y * 1.8);
+                        float dy = cos(driftSpeed + pos.x * 0.45) + cos(driftSpeed * 0.5 + pos.x * 1.8);
+                        pos.x += dx * 0.25;
+                        pos.y += dy * 0.25;
+
+                        vec2 relToMouse = pos.xy - uMouse;
+                        vec2 haloScale = max(vec2(uHaloScaleX, uHaloScaleY), vec2(0.0001));
+                        float distFromMouse = length(relToMouse / haloScale);
+                        vec2 dirToMouse = normalize(relToMouse + vec2(0.0001, 0.0));
+
+                        float shapeFactor = noise(dirToMouse * 2.0 + vec2(0.0, uTime * 0.1));
+                        float breathCycle = sin(uTime * 0.85);
+                        float baseRadius = uHaloRadiusBase + breathCycle * uHaloRadiusAmplitude;
+                        float currentRadius = baseRadius + (shapeFactor * uHaloShapeAmplitude);
+
+                        float dist = distFromMouse;
+                        float rimInfluence = smoothstep(uHaloRimWidth, 0.0, abs(dist - currentRadius));
+
+                        vec2 pushDir = normalize(relToMouse + vec2(0.0001, 0.0));
+                        float pushAmt = (breathCycle * 0.5 + 0.5) * 0.55;
+                        pos.xy += pushDir * pushAmt * rimInfluence;
+                        pos.z += rimInfluence * 0.35 * sin(uTime);
+
+                        float outerInfluence = smoothstep(baseRadius + uHaloOuterStartOffset, baseRadius + uHaloOuterEndOffset, dist);
+                        float outerOsc = sin(uTime * uOuterOscFrequency + pos.x * 0.6 + pos.y * 0.6);
+                        pos.xy += normalize(relToMouse + vec2(0.0001, 0.0)) * outerOsc * uOuterOscAmplitude * outerInfluence;
+
+                        float baseSize = uParticleBaseSize + (sin(uTime + pos.x) * 0.003);
+                        float currentScale = baseSize + (rimInfluence * uParticleActiveSize);
+                        float stretch = rimInfluence * 0.02;
+
+                        vec3 transformed = position;
+                        transformed.x *= (currentScale + stretch) * uBlobScaleX;
+                        transformed.y *= currentScale * uBlobScaleY;
+
+                        vSize = rimInfluence;
+                        vPos = pos.xy;
+
+                        float dirLen = max(length(relToMouse), 0.0001);
+                        vec2 dir = relToMouse / dirLen;
+                        float oscPhase = aRandom * 6.28318530718;
+                        float osc = 0.5 + 0.5 * sin(uTime * (0.25 + uParticleOscillationFactor * 0.35) + oscPhase);
+                        float speedScale = mix(0.55, 1.35, osc) * (0.8 + uParticleOscillationFactor * 0.2);
+                        float jitterScale = mix(0.7, 1.45, osc) * (0.85 + uParticleOscillationFactor * 0.15);
+                        float jitter = sin(uTime * uParticleRotationSpeed * speedScale + pos.x * 0.35 + pos.y * 0.35) * (uParticleRotationJitter * jitterScale);
+                        vec2 perp = vec2(-dir.y, dir.x);
+                        vec2 jitteredDir = normalize(dir + perp * jitter);
+                        mat2 rot = mat2(jitteredDir.x, jitteredDir.y, -jitteredDir.y, jitteredDir.x);
+                        transformed.xy = rot * transformed.xy;
+
+                        gl_Position = projectionMatrix * modelViewMatrix * vec4(pos + transformed, 1.0);
+                    }
+                `;
+
+                const fragmentShader = `
+                    uniform float uTime;
+                    uniform vec3 uParticleColorBase;
+                    uniform vec3 uParticleColorOne;
+                    uniform vec3 uParticleColorTwo;
+                    uniform vec3 uParticleColorThree;
+                    varying vec2 vUv;
+                    varying float vSize;
+                    varying vec2 vPos;
+
+                    void main() {
+                        vec2 center = vec2(0.5);
+                        vec2 pos = abs(vUv - center) * 2.0;
+
+                        float d = pow(pow(pos.x, 2.6) + pow(pos.y, 2.6), 1.0 / 2.6);
+                        float alpha = 1.0 - smoothstep(0.8, 1.0, d);
+
+                        if (alpha < 0.01) discard;
+
+                        vec3 cBase = uParticleColorBase;
+                        vec3 cOne = uParticleColorOne;
+                        vec3 cTwo = uParticleColorTwo;
+                        vec3 cThree = uParticleColorThree;
+
+                        float t = uTime * 1.25;
+                        float p1 = sin(vPos.x * 0.8 + t);
+                        float p2 = sin(vPos.y * 0.8 + t * 0.8 + p1);
+
+                        vec3 activeColor = mix(cOne, cTwo, p1 * 0.5 + 0.5);
+                        activeColor = mix(activeColor, cThree, p2 * 0.5 + 0.5);
+
+                        vec3 finalColor = mix(cBase, activeColor, smoothstep(0.05, 0.75, vSize));
+                        float finalAlpha = alpha * mix(0.52, 0.98, vSize);
+
+                        gl_FragColor = vec4(finalColor, finalAlpha);
+                    }
+                `;
+
+                const material = new THREE.ShaderMaterial({
+                    uniforms: uniforms,
+                    vertexShader: vertexShader,
+                    fragmentShader: fragmentShader,
+                    transparent: true,
+                    depthWrite: false
+                });
+
+                const mesh = new THREE.InstancedMesh(instancedGeometry, material, count);
+                scene.add(mesh);
+
+                // 5. Interaksi Mouse & Kursor Dinamis
+                window.addEventListener('pointermove', (e) => {
+                    if (isMobileDevice()) return;
+                    hasPointerMoved = true;
+                    const normX = (e.clientX / window.innerWidth) * 2 - 1;
+                    const normY = -(e.clientY / window.innerHeight) * 2 + 1;
+                    const plane = computeVisiblePlaneSize();
+                    targetMouseX = (normX * plane.width) / 2;
+                    targetMouseY = (normY * plane.height) / 2;
+                }, { passive: true });
+
+                // 6. Inisialisasi Clock & Render Loop
+                clock = new THREE.Clock();
+                startAnimation();
+            }
+
+            // 7. Responsive Window Resize & Mobile Toggle
+            window.addEventListener('resize', () => {
+                const wrapper = document.getElementById('medusa-bg-wrapper');
+                if (isMobileDevice()) {
+                    stopAnimation();
+                    if (wrapper) wrapper.style.display = 'none';
+                } else {
+                    if (wrapper) wrapper.style.display = 'block';
+                    if (!initialized) {
+                        startThreeAnimation();
+                    } else if (renderer && camera && uniforms) {
+                        camera.aspect = window.innerWidth / window.innerHeight;
+                        camera.updateProjectionMatrix();
+                        renderer.setSize(window.innerWidth, window.innerHeight);
+                        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+                        uniforms.uResolution.value.set(window.innerWidth, window.innerHeight);
+                        startAnimation();
+                    }
+                }
+            }, { passive: true });
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', () => {
+                    if (!isMobileDevice()) startThreeAnimation();
+                });
+            } else {
+                if (!isMobileDevice()) startThreeAnimation();
+            }
+        })();
     </script>
 </body>
 </html>
