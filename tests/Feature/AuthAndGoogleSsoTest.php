@@ -113,6 +113,7 @@ class AuthAndGoogleSsoTest extends TestCase
         $socialiteUser->shouldReceive('getAvatar')->andReturn(null);
 
         $provider = Mockery::mock(\Laravel\Socialite\Two\GoogleProvider::class);
+        $provider->shouldReceive('redirectUrl')->andReturnSelf();
         $provider->shouldReceive('user')->andReturn($socialiteUser);
 
         Socialite::shouldReceive('driver')->with('google')->andReturn($provider);
@@ -152,6 +153,7 @@ class AuthAndGoogleSsoTest extends TestCase
         $socialiteUser->shouldReceive('getAvatar')->andReturn('https://google.com/avatar.jpg');
 
         $provider = Mockery::mock(\Laravel\Socialite\Two\GoogleProvider::class);
+        $provider->shouldReceive('redirectUrl')->andReturnSelf();
         $provider->shouldReceive('user')->andReturn($socialiteUser);
 
         Socialite::shouldReceive('driver')->with('google')->andReturn($provider);
@@ -187,5 +189,81 @@ class AuthAndGoogleSsoTest extends TestCase
 
         $response->assertRedirect('/login');
         $this->assertGuest();
+    }
+
+    /**
+     * Pengguna dengan peran petugas_penanaman dapat masuk melalui Google SSO.
+     */
+    public function test_google_callback_authenticates_registered_staff_with_petugas_role(): void
+    {
+        config(['services.google.client_id' => 'dummy-id']);
+        config(['services.google.client_secret' => 'dummy-secret']);
+
+        $staff = User::create([
+            'name' => 'Petugas Lapangan',
+            'username' => 'petugaslapangan',
+            'email' => 'petugas@ecoland.local',
+            'password' => Hash::make('securepass'),
+            'role' => 'petugas_penanaman',
+        ]);
+
+        $socialiteUser = Mockery::mock(SocialiteUser::class);
+        $socialiteUser->shouldReceive('getId')->andReturn('google-id-staff-555');
+        $socialiteUser->shouldReceive('getEmail')->andReturn('Petugas@Ecoland.local'); // mixed case email
+        $socialiteUser->shouldReceive('getName')->andReturn('Petugas Lapangan');
+        $socialiteUser->shouldReceive('getAvatar')->andReturn(null);
+
+        $provider = Mockery::mock(\Laravel\Socialite\Two\GoogleProvider::class);
+        $provider->shouldReceive('redirectUrl')->andReturnSelf();
+        $provider->shouldReceive('user')->andReturn($socialiteUser);
+
+        Socialite::shouldReceive('driver')->with('google')->andReturn($provider);
+
+        $response = $this->get('/auth/google/callback');
+
+        $response->assertStatus(200);
+        $response->assertSee('Menghubungkan Sesi Eco Land');
+        $this->assertAuthenticatedAs($staff);
+    }
+
+    /**
+     * Google SSO menangani sesi state terputus dengan stateless fallback.
+     */
+    public function test_google_callback_handles_invalid_state_with_stateless_fallback(): void
+    {
+        config(['services.google.client_id' => 'dummy-id']);
+        config(['services.google.client_secret' => 'dummy-secret']);
+
+        $admin = User::create([
+            'name' => 'State Test Admin',
+            'username' => 'statetestadmin',
+            'email' => 'state.admin@ecoland.local',
+            'password' => Hash::make('securepass'),
+            'role' => 'administrator',
+        ]);
+
+        $socialiteUser = Mockery::mock(SocialiteUser::class);
+        $socialiteUser->shouldReceive('getId')->andReturn('google-id-state-777');
+        $socialiteUser->shouldReceive('getEmail')->andReturn('state.admin@ecoland.local');
+        $socialiteUser->shouldReceive('getName')->andReturn('State Test Admin');
+        $socialiteUser->shouldReceive('getAvatar')->andReturn(null);
+
+        $provider = Mockery::mock(\Laravel\Socialite\Two\GoogleProvider::class);
+        $provider->shouldReceive('redirectUrl')->andReturnSelf();
+        $provider->shouldReceive('stateless')->andReturnSelf();
+        $provider->shouldReceive('user')
+            ->andThrow(new \Laravel\Socialite\Two\InvalidStateException('State mismatch'))
+            ->once();
+        $provider->shouldReceive('user')
+            ->andReturn($socialiteUser)
+            ->once();
+
+        Socialite::shouldReceive('driver')->with('google')->andReturn($provider);
+
+        $response = $this->get('/auth/google/callback');
+
+        $response->assertStatus(200);
+        $response->assertSee('Menghubungkan Sesi Eco Land');
+        $this->assertAuthenticatedAs($admin);
     }
 }

@@ -191,8 +191,10 @@ function renderUsersTable(container, users) {
 
   const roleLabels = {
     administrator: '<span class="badge-status-published" style="font-size: 11px;">Administrator</span>',
-    petugas_penanaman: '<span class="badge-status-draft" style="color:#38bdf8;border-color:rgba(56,189,248,0.3);font-size: 11px;">Petugas Penanaman</span>',
-    editor_konten: '<span class="badge-status-draft" style="font-size: 11px;">Editor Konten</span>',
+    admin: '<span class="badge-status-published" style="font-size: 11px;">Administrator</span>',
+    superadmin: '<span class="badge-status-published" style="font-size: 11px;">Super Admin</span>',
+    petugas_penanaman: '<span class="badge-status-draft" style="color:#38bdf8;background:rgba(56,189,248,0.12);border:1px solid rgba(56,189,248,0.35);font-size: 11px;font-weight:600;padding:2px 8px;border-radius:9999px;">🌱 Petugas Penanaman</span>',
+    editor_konten: '<span class="badge-status-draft" style="color:#fbbf24;background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.35);font-size: 11px;font-weight:600;padding:2px 8px;border-radius:9999px;">✏️ Editor Konten</span>',
   };
 
   const rows = users.map((u) => `

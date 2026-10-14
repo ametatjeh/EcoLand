@@ -196,13 +196,22 @@ export function updateAdminProfileUI() {
     name: 'Administrator',
     username: 'admin',
     email: 'admin@ikhw.org',
-    role: 'admin',
+    role: 'administrator',
   };
 
   const displayName = user.name || user.username || 'Administrator';
   const displayEmail = user.email || 'admin@ikhw.org';
-  const isSuperOrAdmin = user.role === 'admin' || user.role === 'superadmin';
-  const roleText = isSuperOrAdmin ? 'Admin Sistem' : (user.role || 'Petugas');
+
+  const roleLabels = {
+    administrator: 'Administrator',
+    admin: 'Admin Sistem',
+    superadmin: 'Super Admin',
+    petugas_penanaman: 'Petugas Penanaman',
+    editor_konten: 'Editor Konten',
+  };
+
+  const roleText = roleLabels[user.role] || user.role || 'Petugas Penanaman';
+  const isSuperOrAdmin = user.role === 'admin' || user.role === 'superadmin' || user.role === 'administrator';
 
   // Derive up to 2 uppercase initials from user's full name
   const nameParts = displayName.trim().split(/\s+/).filter(Boolean);
@@ -227,12 +236,42 @@ export function updateAdminProfileUI() {
   if (nameEl) nameEl.textContent = displayName;
   if (fullnameEl) fullnameEl.textContent = displayName;
   if (emailEl) emailEl.textContent = displayEmail;
-  if (roleEl) roleEl.textContent = roleText;
-  if (roleBadgeEl) roleBadgeEl.textContent = isSuperOrAdmin ? 'Administrator' : roleText;
+  if (roleEl) {
+    roleEl.textContent = roleText;
+    if (user.role === 'petugas_penanaman') {
+      roleEl.className = 'text-[10px] text-sky-400 font-medium leading-none mt-0.5';
+    } else if (user.role === 'editor_konten') {
+      roleEl.className = 'text-[10px] text-amber-400 font-medium leading-none mt-0.5';
+    } else {
+      roleEl.className = 'text-[10px] text-emerald-400 font-medium leading-none mt-0.5';
+    }
+  }
+
+  if (roleBadgeEl) {
+    roleBadgeEl.textContent = roleText;
+    if (user.role === 'petugas_penanaman') {
+      roleBadgeEl.className = 'inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-sky-500/10 text-sky-400 border border-sky-500/20';
+    } else if (user.role === 'editor_konten') {
+      roleBadgeEl.className = 'inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20';
+    } else {
+      roleBadgeEl.className = 'inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+    }
+  }
 
   if (sidebarAvatarEl) sidebarAvatarEl.textContent = initials || 'AD';
   if (sidebarNameEl) sidebarNameEl.textContent = displayName;
   if (sidebarEmailEl) sidebarEmailEl.textContent = displayEmail;
+
+  // Sesuaikan visibilitas menu sensitif untuk peran non-administrator
+  const isSuper = isSuperOrAdmin;
+  document.querySelectorAll('[data-admin-tab="users"], [data-admin-tab="settings"]').forEach((el) => {
+    if (!isSuper) {
+      el.style.opacity = '0.45';
+      el.setAttribute('title', 'Menu ini hanya dapat dikelola oleh Administrator Sistem');
+    } else {
+      el.style.opacity = '1';
+    }
+  });
 }
 
 export function setupAdminProfileDropdown() {
