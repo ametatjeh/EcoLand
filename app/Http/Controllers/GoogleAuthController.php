@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\InvalidStateException;
 
@@ -122,19 +124,31 @@ class GoogleAuthController extends Controller
             return redirect()->route('login')->with('error', 'Akun Google Anda tidak menyediakan alamat email yang valid.');
         }
 
-        // Cari akun pengguna yang sudah terdaftar
-        // 1. Cari berdasarkan google_id yang sudah pernah ditautkan
-        $user = User::where('google_id', $googleId)->first();
+        // Pastikan kolom google_id dan avatar tersedia pada database secara aman dan idempotent
+        $hasGoogleId = $this->ensureGoogleColumnsExist();
 
-        // 2. Jika belum ditautkan dengan google_id, cari berdasarkan email terdaftar (case-insensitive)
+        // Cari akun pengguna yang sudah terdaftar
+        $user = null;
+
+        // 1. Cari berdasarkan google_id yang sudah pernah ditautkan (hanya jika kolom tersedia di schema)
+        if ($hasGoogleId && !empty($googleId)) {
+            try {
+                $user = User::where('google_id', $googleId)->first();
+            } catch (\Throwable $e) {
+                Log::warning('Error querying user by google_id: ' . $e->getMessage());
+                $user = null;
+            }
+        }
+
+        // 2. Jika belum ditemukan dengan google_id, cari berdasarkan email terdaftar (case-insensitive)
         if (!$user) {
             $user = User::whereRaw('LOWER(email) = ?', [$email])->first();
         }
 
-        // KEAMANAN: Jangan izinkan pendaftaran otomatis akun baru
+        // KEAMANAN: Jangan izinkan pendaftaran otomatis akun baru untuk akun asing
         if (!$user) {
             Log::info("Google SSO rejected: Akun Google {$email} belum terdaftar di sistem Eco Land.");
-            return redirect()->route('login')->with('error', "Akun Google ({$email}) belum diizinkan mengakses Eco Land. Silakan hubungi pengelola untuk mendaftarkan akun Anda.");
+            return redirect()->route('login')->with('error', "Akun Google ({$email}) belum terdaftar sebagai administrator atau staf Eco Land. Silakan hubungi pengelola sistem untuk mendaftarkan akun Anda.");
         }
 
         // Pastikan akun memiliki hak akses panel
@@ -143,22 +157,25 @@ class GoogleAuthController extends Controller
             return redirect()->route('login')->with('error', 'Akses ditolak: Akun Anda tidak memiliki hak akses administrator Eco Land.');
         }
 
-        // Tautkan google_id ke akun yang sah jika belum terhubung
-        if (empty($user->google_id) || $user->google_id !== $googleId) {
-            // Cegah duplikasi google_id pada akun lain
-            $existingWithSameGoogleId = User::where('google_id', $googleId)->where('id', '!=', $user->id)->first();
-            if ($existingWithSameGoogleId) {
-                return redirect()->route('login')->with('error', 'Akun Google ini telah terhubung dengan akun lain di Eco Land.');
+        // Tautkan google_id ke akun yang sah jika kolom tersedia pada tabel users
+        if ($hasGoogleId && !empty($googleId)) {
+            if (empty($user->google_id) || $user->google_id !== $googleId) {
+                // Cegah duplikasi google_id pada akun lain
+                $existingWithSameGoogleId = User::where('google_id', $googleId)->where('id', '!=', $user->id)->first();
+                if ($existingWithSameGoogleId) {
+                    return redirect()->route('login')->with('error', 'Akun Google ini telah terhubung dengan akun lain di Eco Land.');
+                }
+                $user->google_id = $googleId;
             }
-            $user->google_id = $googleId;
-        }
 
-        // Update foto avatar jika tersedia dan pengguna belum punya avatar lokal
-        if ($googleUser->getAvatar() && empty($user->avatar)) {
-            $user->avatar = $googleUser->getAvatar();
-        }
+            // Update foto avatar jika tersedia dan pengguna belum punya avatar lokal
+            if (Schema::hasColumn('users', 'avatar') && $googleUser->getAvatar() && empty($user->avatar)) {
+                $user->avatar = $googleUser->getAvatar();
+            }
 
-        $user->save();
+            // Simpan perubahan tautan google_id tanpa menyentuh password lokal existing
+            $user->save();
+        }
 
         // Login ke Web Session
         Auth::login($user, true);
@@ -179,5 +196,31 @@ class GoogleAuthController extends Controller
                 'avatar' => $user->avatar,
             ],
         ]);
+    }
+
+    /**
+     * Pastikan kolom google_id dan avatar tersedia pada tabel users secara aman dan idempotent.
+     */
+    protected function ensureGoogleColumnsExist(): bool
+    {
+        try {
+            if (Schema::hasTable('users')) {
+                if (!Schema::hasColumn('users', 'google_id')) {
+                    Schema::table('users', function (Blueprint $table) {
+                        $table->string('google_id')->nullable()->unique();
+                    });
+                }
+                if (!Schema::hasColumn('users', 'avatar')) {
+                    Schema::table('users', function (Blueprint $table) {
+                        $table->string('avatar')->nullable();
+                    });
+                }
+                return Schema::hasColumn('users', 'google_id');
+            }
+            return false;
+        } catch (\Throwable $e) {
+            Log::warning('Notice: Could not automatically ensure google_id/avatar columns in users table: ' . $e->getMessage());
+            return Schema::hasColumn('users', 'google_id');
+        }
     }
 }

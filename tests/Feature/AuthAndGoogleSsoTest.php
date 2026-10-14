@@ -264,4 +264,59 @@ class AuthAndGoogleSsoTest extends TestCase
         $response->assertSee('Menghubungkan Sesi Eco Land');
         $this->assertAuthenticatedAs($admin);
     }
+
+    /**
+     * Google SSO menangani skenario tabel users yang belum memiliki kolom google_id secara self-healing.
+     */
+    public function test_google_callback_recovers_gracefully_when_google_id_column_is_initially_missing(): void
+    {
+        config(['services.google.client_id' => 'dummy-id']);
+        config(['services.google.client_secret' => 'dummy-secret']);
+
+        // Simulasikan kondisi database lama di mana kolom google_id belum dimigrasikan
+        if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'google_id')) {
+            \Illuminate\Support\Facades\Schema::table('users', function (\Illuminate\Database\Schema\Blueprint $table) {
+                try {
+                    $table->dropUnique('users_google_id_unique');
+                } catch (\Throwable $e) {}
+                $table->dropColumn('google_id');
+            });
+        }
+        if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'avatar')) {
+            \Illuminate\Support\Facades\Schema::table('users', function (\Illuminate\Database\Schema\Blueprint $table) {
+                $table->dropColumn('avatar');
+            });
+        }
+
+        $admin = User::create([
+            'name' => 'Legacy Admin',
+            'username' => 'legacyadmin',
+            'email' => 'legacy.admin@ecoland.local',
+            'password' => Hash::make('securepass'),
+            'role' => 'administrator',
+        ]);
+
+        $socialiteUser = Mockery::mock(SocialiteUser::class);
+        $socialiteUser->shouldReceive('getId')->andReturn('google-id-legacy-999');
+        $socialiteUser->shouldReceive('getEmail')->andReturn('legacy.admin@ecoland.local');
+        $socialiteUser->shouldReceive('getName')->andReturn('Legacy Admin');
+        $socialiteUser->shouldReceive('getAvatar')->andReturn(null);
+
+        $provider = Mockery::mock(\Laravel\Socialite\Two\GoogleProvider::class);
+        $provider->shouldReceive('stateless')->andReturnSelf();
+        $provider->shouldReceive('redirectUrl')->andReturnSelf();
+        $provider->shouldReceive('user')->andReturn($socialiteUser);
+
+        Socialite::shouldReceive('driver')->with('google')->andReturn($provider);
+
+        $response = $this->get('/auth/google/callback');
+
+        // Pastikan tidak melempar QueryException 1054 dan login berhasil
+        $response->assertStatus(200);
+        $response->assertSee('Menghubungkan Sesi Eco Land');
+        $this->assertAuthenticatedAs($admin);
+
+        // Pastikan kolom google_id berhasil dibuat secara otomatis
+        $this->assertTrue(\Illuminate\Support\Facades\Schema::hasColumn('users', 'google_id'));
+    }
 }

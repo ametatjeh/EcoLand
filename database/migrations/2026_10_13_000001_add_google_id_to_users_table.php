@@ -11,14 +11,19 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
+        if (Schema::hasTable('users')) {
             if (!Schema::hasColumn('users', 'google_id')) {
-                $table->string('google_id')->nullable()->unique()->after('email');
+                Schema::table('users', function (Blueprint $table) {
+                    $table->string('google_id')->nullable()->unique();
+                });
             }
+
             if (!Schema::hasColumn('users', 'avatar')) {
-                $table->string('avatar')->nullable()->after('google_id');
+                Schema::table('users', function (Blueprint $table) {
+                    $table->string('avatar')->nullable();
+                });
             }
-        });
+        }
     }
 
     /**
@@ -26,13 +31,15 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            if (Schema::hasColumn('users', 'avatar')) {
-                $table->dropColumn('avatar');
-            }
-            if (Schema::hasColumn('users', 'google_id')) {
-                $table->dropColumn('google_id');
-            }
-        });
+        if (Schema::hasTable('users')) {
+            Schema::table('users', function (Blueprint $table) {
+                if (Schema::hasColumn('users', 'avatar')) {
+                    $table->dropColumn('avatar');
+                }
+                if (Schema::hasColumn('users', 'google_id')) {
+                    $table->dropColumn('google_id');
+                }
+            });
+        }
     }
 };
