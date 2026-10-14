@@ -16,6 +16,7 @@ use App\Http\Controllers\TreeImportExportController;
 use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\AppSettingController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\PublicCarbonController;
 
 // ─── Public Routes ──────────────────────────────────────────────
 Route::get('/scenes', [SceneController::class, 'index']);
@@ -34,6 +35,9 @@ Route::get('/photos', [PlantingZoneController::class, 'allPublicPhotos']);
 Route::get('/tree-species', [TreeSpeciesController::class, 'publicIndex']);
 Route::get('/tree-species/{id}', [TreeSpeciesController::class, 'publicShow']);
 Route::get('/settings/public', [AppSettingController::class, 'index']);
+
+// Public Monitoring Karbon
+Route::get('/carbon/public-summary', [PublicCarbonController::class, 'summary']);
 
 // Ekspor Laporan CSV & Unduhan Template (Dapat diakses langsung via link browser maupun terautentikasi)
 Route::get('/admin/trees/reports/summary/csv', [TreeReportController::class, 'exportPlantingSummaryCsv']);

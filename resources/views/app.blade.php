@@ -64,6 +64,9 @@
           <button class="nav-tab-btn" data-tab="tree-qr">
             <span class="nav-icon">📱</span> <span>Tree QR</span>
           </button>
+          <button class="nav-tab-btn" data-tab="karbon">
+            <span class="nav-icon">🍃</span> <span>Monitoring Karbon</span>
+          </button>
           <!-- Mobile-only login item inside nav-tabs -->
           <button class="nav-tab-btn mobile-only-nav-item btn-nav-login" data-tab="admin" title="Login Eco Land">
             <span class="nav-icon">🔐</span> <span>Login</span>
@@ -463,6 +466,15 @@
       <section id="view-tree-qr" class="view-pane">
         <div id="public-tree-qr-container">
           <!-- Dynamically populated via treeQr.js -->
+        </div>
+      </section>
+
+      <!-- ==========================================
+           VIEW: MONITORING KARBON (PUBLIK)
+           ========================================== -->
+      <section id="view-karbon" class="view-pane">
+        <div id="public-carbon-container">
+          <!-- Dynamically populated via carbon.js -->
         </div>
       </section>
     </main>

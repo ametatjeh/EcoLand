@@ -32,6 +32,7 @@ import { initPublicTreeCatalog } from './katalog.js';
 import { initPublicZones, refreshPublicTotalArea } from './public_zones.js';
 import { initPublicGallery } from './gallery/publicGallery.js';
 import { initPublicTreeQr } from './treeQr.js';
+import { initPublicCarbon } from './carbon.js';
 
 // ─── State ──────────────────────────────────────────────
 let viewer = null;
@@ -346,10 +347,10 @@ function switchTab(tabId) {
     viewsContainer.style.display = tabId === 'admin' ? 'none' : '';
   }
 
-  // Toggle public global footer visibility (visible on beranda, info, galeri, katalog, tree-qr; hidden on tour, admin)
+  // Toggle public global footer visibility (visible on beranda, info, galeri, katalog, tree-qr, karbon; hidden on tour, admin)
   const globalFooter = document.getElementById('public-global-footer');
   if (globalFooter) {
-    globalFooter.style.display = ['beranda', 'info', 'galeri', 'katalog', 'tree-qr'].includes(tabId) ? 'block' : 'none';
+    globalFooter.style.display = ['beranda', 'info', 'galeri', 'katalog', 'tree-qr', 'karbon'].includes(tabId) ? 'block' : 'none';
   }
 
   // Update navbar active tab
@@ -390,6 +391,8 @@ function switchTab(tabId) {
     });
   } else if (tabId === 'tree-qr') {
     initPublicTreeQr('public-tree-qr-container');
+  } else if (tabId === 'karbon') {
+    initPublicCarbon('public-carbon-container');
   } else if (tabId === 'tour') {
     window.dispatchEvent(new Event('resize'));
     setTimeout(() => invalidateMinimapSize(), 200);
@@ -400,8 +403,11 @@ function switchTab(tabId) {
 
 function handleHashRouting() {
   const fullHash = window.location.hash || '#beranda';
-  const hash = fullHash.replace(/^#\/?/, '').split('?')[0] || 'beranda';
-  const validTabs = ['beranda', 'tour', 'info', 'galeri', 'katalog', 'tree-qr', 'admin'];
+  let hash = fullHash.replace(/^#\/?/, '').split('?')[0] || 'beranda';
+  if (hash === 'monitoring-karbon') {
+    hash = 'karbon';
+  }
+  const validTabs = ['beranda', 'tour', 'info', 'galeri', 'katalog', 'tree-qr', 'karbon', 'admin'];
 
   if (hash === 'titik') {
     window.location.replace('#beranda');

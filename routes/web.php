@@ -78,6 +78,10 @@ Route::get('/health', function () {
     ]);
 });
 
+Route::get('/monitoring-karbon', function () {
+    return redirect('/#karbon');
+});
+
 // ─────────────────────────────────────────────────────────────
 // Eco Land Authentication & Google OAuth Routes
 // ─────────────────────────────────────────────────────────────
