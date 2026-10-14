@@ -4,10 +4,22 @@
 import { ApiService } from '../services/api.js';
 import { EcoToast } from '../utils/toast.js';
 
-let onAuthChangeCallback = null;
+const authChangeListeners = [];
 
 export function onAuthChange(fn) {
-  onAuthChangeCallback = fn;
+  if (typeof fn === 'function') {
+    authChangeListeners.push(fn);
+  }
+}
+
+function notifyAuthChange(isLoggedIn) {
+  authChangeListeners.forEach((fn) => {
+    try {
+      fn(isLoggedIn);
+    } catch (err) {
+      console.warn('Error in auth change listener:', err);
+    }
+  });
 }
 
 export function initAuth() {
@@ -40,7 +52,7 @@ export function initAuth() {
         usernameInput.value = '';
         passwordInput.value = '';
         EcoToast.success('✓ Berhasil Masuk', `Selamat datang kembali, ${result.user?.name || result.user?.username || 'Administrator'}!`);
-        if (onAuthChangeCallback) onAuthChangeCallback(true);
+        notifyAuthChange(true);
       } else {
         if (errorEl) {
           errorEl.textContent = result.message || 'Kredensial tidak valid';
@@ -60,7 +72,7 @@ export function initAuth() {
       if (confirm('Apakah Anda yakin ingin keluar dari sesi administrator?')) {
         await ApiService.logout();
         EcoToast.info('Sesi Berakhir', 'Anda telah keluar dari sesi administrator.');
-        if (onAuthChangeCallback) onAuthChangeCallback(false);
+        notifyAuthChange(false);
       }
     });
   }

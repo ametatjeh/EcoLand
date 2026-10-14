@@ -27,7 +27,7 @@ import {
 } from './utils.js';
 import { ApiService } from './services/api.js';
 import { initAdminPanel, openAdminView, handleAdminHashRoute } from './admin/admin.js';
-import { checkAdminAuth } from './admin/auth.js';
+import { checkAdminAuth, onAuthChange } from './admin/auth.js';
 import { initPublicTreeCatalog } from './katalog.js';
 import { initPublicZones, refreshPublicTotalArea } from './public_zones.js';
 import { initPublicGallery } from './gallery/publicGallery.js';
@@ -389,10 +389,65 @@ function setupNavigation() {
   if (btnHeroPoints) {
     btnHeroPoints.addEventListener('click', () => (window.location.hash = 'info'));
   }
+
+  // Initial header auth state and listener
+  updateHeaderAuthUI();
+  onAuthChange(() => {
+    updateHeaderAuthUI();
+  });
+}
+
+export function updateHeaderAuthUI() {
+  const isLoggedIn = checkAdminAuth();
+  const desktopLoginBtn = document.getElementById('nav-btn-admin-desktop');
+  const mobileLoginBtns = document.querySelectorAll('.btn-nav-login');
+
+  if (desktopLoginBtn) {
+    if (isLoggedIn) {
+      desktopLoginBtn.setAttribute('title', 'Dashboard Eco Land');
+      desktopLoginBtn.classList.add('is-authenticated');
+      desktopLoginBtn.innerHTML = `
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="7" height="7"></rect>
+          <rect x="14" y="3" width="7" height="7"></rect>
+          <rect x="14" y="14" width="7" height="7"></rect>
+          <rect x="3" y="14" width="7" height="7"></rect>
+        </svg>
+        <span class="header-login-text">Dashboard</span>
+      `;
+    } else {
+      desktopLoginBtn.setAttribute('title', 'Login Eco Land');
+      desktopLoginBtn.classList.remove('is-authenticated');
+      desktopLoginBtn.innerHTML = `
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+        </svg>
+        <span class="header-login-text">Login</span>
+      `;
+    }
+  }
+
+  mobileLoginBtns.forEach((btn) => {
+    const iconEl = btn.querySelector('.nav-icon');
+    const textEl = btn.querySelector('.nav-text') || btn.querySelector('span:last-child');
+    if (isLoggedIn) {
+      btn.setAttribute('title', 'Dashboard Eco Land');
+      if (iconEl) iconEl.textContent = '📊';
+      if (textEl) textEl.textContent = 'Dashboard';
+    } else {
+      btn.setAttribute('title', 'Login Eco Land');
+      if (iconEl) iconEl.textContent = '🔐';
+      if (textEl) textEl.textContent = 'Login';
+    }
+  });
 }
 
 function switchTab(tabId) {
   currentTab = tabId;
+
+  // Sync header auth label on every tab switch
+  updateHeaderAuthUI();
 
   // Toggle main navbar visibility (hidden on admin dashboard, visible on public views)
   const mainNavbar = document.getElementById('main-navbar');

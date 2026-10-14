@@ -93,20 +93,33 @@
           <button class="nav-tab-btn" data-tab="karbon">
             <span class="nav-icon">🍃</span> <span>Monitoring Karbon</span>
           </button>
+          @php
+            $isLoggedInAdmin = \Illuminate\Support\Facades\Auth::check() && \Illuminate\Support\Facades\Auth::user()->isAdmin();
+          @endphp
           <!-- Mobile-only login item inside nav-tabs -->
-          <button class="nav-tab-btn mobile-only-nav-item btn-nav-login" data-tab="admin" title="Login Eco Land">
-            <span class="nav-icon">🔐</span> <span>Login</span>
+          <button class="nav-tab-btn mobile-only-nav-item btn-nav-login" data-tab="admin" title="{{ $isLoggedInAdmin ? 'Dashboard Eco Land' : 'Login Eco Land' }}">
+            <span class="nav-icon">{{ $isLoggedInAdmin ? '📊' : '🔐' }}</span> <span class="nav-text">{{ $isLoggedInAdmin ? 'Dashboard' : 'Login' }}</span>
           </button>
         </nav>
 
         <!-- Right Action: Desktop Login Button + Mobile Hamburger Button -->
         <div class="header-right-actions flex items-center gap-3 shrink-0">
-          <button class="header-login-btn desktop-only-login" id="nav-btn-admin-desktop" data-tab="admin" title="Login Eco Land">
+          <button class="header-login-btn desktop-only-login {{ $isLoggedInAdmin ? 'is-authenticated' : '' }}" id="nav-btn-admin-desktop" data-tab="admin" title="{{ $isLoggedInAdmin ? 'Dashboard Eco Land' : 'Login Eco Land' }}">
+            @if($isLoggedInAdmin)
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="7" height="7"></rect>
+              <rect x="14" y="3" width="7" height="7"></rect>
+              <rect x="14" y="14" width="7" height="7"></rect>
+              <rect x="3" y="14" width="7" height="7"></rect>
+            </svg>
+            <span class="header-login-text">Dashboard</span>
+            @else
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
               <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
             </svg>
-            <span>Login</span>
+            <span class="header-login-text">Login</span>
+            @endif
           </button>
           <button id="btn-mobile-menu" class="btn-mobile-toggle" aria-label="Buka Menu Navigasi" aria-expanded="false" aria-controls="nav-tabs">
             <svg class="hamburger-icon-open" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">

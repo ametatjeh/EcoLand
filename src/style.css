@@ -393,6 +393,19 @@ body {
   transform: translateY(-1px);
 }
 
+.header-login-btn.is-authenticated {
+  background: rgba(16, 185, 129, 0.16);
+  border-color: rgba(16, 185, 129, 0.45);
+  color: #6ee7b7;
+}
+
+.header-login-btn.is-authenticated:hover {
+  background: rgba(16, 185, 129, 0.28);
+  border-color: rgba(16, 185, 129, 0.65);
+  color: #ffffff;
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.35);
+}
+
 /* Hamburger Menu Button */
 #btn-mobile-menu,
 .btn-mobile-toggle {
