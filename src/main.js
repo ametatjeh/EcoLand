@@ -169,12 +169,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 // ─── Configurable UI Population ─────────────────────────
 async function populateProjectIdentity() {
   const brandTitle = document.getElementById('nav-brand-title');
-  const brandSub = document.getElementById('nav-brand-sub');
   const heroTitle = document.getElementById('hero-title');
   const heroDesc = document.getElementById('hero-desc');
   const infoGeneralDesc = document.getElementById('info-general-desc');
   if (brandTitle) brandTitle.textContent = projectConfig.namaAplikasi || 'Eco Land';
-  if (brandSub) brandSub.textContent = 'IKHW Aceh — Inisiatif Konservasi & Hutan Wakaf';
+  
+  const updateBrandSubtitles = (text) => {
+    document.querySelectorAll('.brand-subtitle').forEach((el) => {
+      el.textContent = text;
+    });
+  };
+
+  updateBrandSubtitles(projectConfig.organisasi || 'IKHW - Inisiatif Konservasi Hutan Wakaf');
+
   if (heroTitle) {
     heroTitle.innerHTML = `Eco Land<br /><span style="display: block; font-size: 24px; font-weight: 600; opacity: 0.92; margin-top: 6px;">Kawasan Penanaman Pohon</span>`;
   }
@@ -193,8 +200,8 @@ async function populateProjectIdentity() {
         if (heroDesc) heroDesc.textContent = flat.program_description;
         if (infoGeneralDesc) infoGeneralDesc.textContent = flat.program_description;
       }
-      if (flat.org_name && brandSub) {
-        brandSub.textContent = flat.org_name;
+      if (flat.org_name) {
+        updateBrandSubtitles(flat.org_name);
       }
       if (flat.app_logo) {
         document.querySelectorAll('.brand-logo-icon').forEach((box) => {

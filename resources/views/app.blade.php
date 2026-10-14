@@ -40,7 +40,7 @@
           </div>
           <div class="brand-info flex flex-col">
             <span class="brand-title" id="nav-brand-title">Eco Land</span>
-            <span class="brand-subtitle" id="nav-brand-sub">IKHW Aceh &bull; Konservasi &plusmn;2 Hektare</span>
+            <span class="brand-subtitle" id="nav-brand-sub">IKHW - Inisiatif Konservasi Hutan Wakaf</span>
           </div>
         </div>
 
@@ -965,7 +965,7 @@
           </div>
           <div class="brand-info flex flex-col">
             <span class="brand-title">Eco Land</span>
-            <span class="brand-subtitle">IKHW Aceh &bull; Konservasi &plusmn;2 Hektare</span>
+            <span class="brand-subtitle" id="footer-brand-sub">IKHW - Inisiatif Konservasi Hutan Wakaf</span>
           </div>
         </a>
         <div class="footer-right-copyright text-slate-400 text-center sm:text-right text-[12px]">
