@@ -12,7 +12,7 @@
     "src": "node_modules/leaflet/dist/images/marker-icon.png"
   },
   "resources/css/app.css": {
-    "file": "assets/app-CzHBGsya.css",
+    "file": "assets/app-DtABhjIF.css",
     "name": "app",
     "names": [
       "app.css"
@@ -21,7 +21,7 @@
     "isEntry": true
   },
   "resources/js/app.js": {
-    "file": "assets/app-D-LmIl2Q.js",
+    "file": "assets/app-Dy5AWO5V.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true,

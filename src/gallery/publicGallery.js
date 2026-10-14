@@ -34,22 +34,22 @@ export async function initPublicGallery(containerId = 'public-gallery-container'
       </div>
 
       <!-- Filters & Search Toolbar -->
-      <div class="gallery-filter-toolbar w-full backdrop-blur-xl border border-white/10 rounded-xl flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between" style="padding: 12px 16px; margin-bottom: 28px; background: rgba(0, 0, 0, 0.28); border: 1px solid var(--clr-border);">
-        <div class="flex flex-wrap items-center gap-3">
+      <div class="gallery-filter-toolbar bg-slate-900/80 backdrop-blur-xl border border-white/15 rounded-2xl p-5 sm:p-6 shadow-2xl flex flex-col md:flex-row gap-4 sm:gap-5 items-stretch md:items-center justify-between" style="margin-bottom: 36px;">
+        <div class="flex flex-wrap items-center gap-4 sm:gap-5">
           <div class="flex items-center gap-2.5">
-            <label for="gallery-filter-zone" style="font-size: 12px; color: var(--clr-text-muted); font-weight: 600; white-space: nowrap;">
-              <span>🏞️</span> Kawasan:
+            <label for="gallery-filter-zone" class="text-xs sm:text-sm text-slate-300 font-semibold uppercase tracking-wider flex items-center gap-2 shrink-0">
+              <span class="text-base">🏞️</span> Kawasan:
             </label>
-            <select id="gallery-filter-zone" class="form-select form-select-sm" style="width: auto; min-width: 170px; padding: 7px 28px 7px 10px; font-size: 12px; background-color: #142018; border: 1px solid var(--clr-border); border-radius: 6px; color: #ffffff;">
+            <select id="gallery-filter-zone" class="h-11 sm:h-12 bg-slate-950/90 hover:bg-slate-950 border border-white/15 hover:border-emerald-500/60 text-slate-100 text-sm font-medium rounded-xl px-4 py-2.5 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30 transition shadow-md cursor-pointer min-w-[190px]">
               <option value="all">Semua Kawasan</option>
             </select>
           </div>
 
           <div class="flex items-center gap-2.5">
-            <label for="gallery-filter-category" style="font-size: 12px; color: var(--clr-text-muted); font-weight: 600; white-space: nowrap;">
-              <span>🏷️</span> Kategori:
+            <label for="gallery-filter-category" class="text-xs sm:text-sm text-slate-300 font-semibold uppercase tracking-wider flex items-center gap-2 shrink-0">
+              <span class="text-base">🏷️</span> Kategori:
             </label>
-            <select id="gallery-filter-category" class="form-select form-select-sm" style="width: auto; min-width: 170px; padding: 7px 28px 7px 10px; font-size: 12px; background-color: #142018; border: 1px solid var(--clr-border); border-radius: 6px; color: #ffffff;">
+            <select id="gallery-filter-category" class="h-11 sm:h-12 bg-slate-950/90 hover:bg-slate-950 border border-white/15 hover:border-emerald-500/60 text-slate-100 text-sm font-medium rounded-xl pl-4 pr-10 py-2.5 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30 transition shadow-md cursor-pointer min-w-[200px]">
               <option value="all">Semua Kategori</option>
               <option value="Kondisi Kawasan">Kondisi Kawasan</option>
               <option value="Kegiatan Penanaman">Kegiatan Penanaman</option>
@@ -62,16 +62,19 @@ export async function initPublicGallery(containerId = 'public-gallery-container'
           </div>
         </div>
 
-        <div class="flex items-center gap-3 w-full md:w-auto flex-1 md:justify-end">
-          <div style="flex: 1; max-width: 320px; min-width: 200px;">
-            <input
-              type="text"
-              id="gallery-search-input"
-              class="form-input form-input-sm"
-              placeholder="🔍 Cari foto, judul, keterangan..."
-              style="width: 100%; padding: 7px 12px; font-size: 12px; background-color: #142018; border: 1px solid var(--clr-border); border-radius: 6px; color: #ffffff;"
-            />
-          </div>
+        <div class="relative min-w-[260px] md:max-w-sm w-full">
+          <span class="absolute left-4 top-1/2 -translate-y-1/2 flex items-center justify-center text-slate-400 pointer-events-none">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </span>
+          <input
+            type="text"
+            id="gallery-search-input"
+            placeholder="Cari foto, judul, keterangan..."
+            class="h-11 sm:h-12 w-full bg-slate-950/90 hover:bg-slate-950 border border-white/15 hover:border-emerald-500/60 text-slate-100 text-sm font-medium rounded-xl pl-12 pr-4 py-2.5 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30 placeholder-slate-500 transition shadow-md"
+          />
         </div>
       </div>
 
@@ -249,34 +252,28 @@ function renderPhotoGrid() {
   gridContainer.innerHTML = `
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
       ${filteredPhotos.map((photo, index) => {
-        const zoneName = photo.zone ? photo.zone.name : 'Kawasan Penanaman';
-        const docDate = formatDateDisplay(photo.documented_at);
-        let rawUrl = photo.thumbnail_url || photo.file_url || photo.file_path || '';
-        let imgUrl = rawUrl;
-        if (imgUrl && !imgUrl.startsWith('http://') && !imgUrl.startsWith('https://')) {
-          if (!imgUrl.startsWith('/')) {
-            imgUrl = '/' + imgUrl;
-          }
-        }
+    const zoneName = photo.zone ? photo.zone.name : 'Kawasan Penanaman';
+    const docDate = formatDateDisplay(photo.documented_at);
+    let rawUrl = photo.thumbnail_url || photo.file_url || photo.file_path || '';
+    let imgUrl = rawUrl;
+    if (imgUrl && !imgUrl.startsWith('http://') && !imgUrl.startsWith('https://') && !imgUrl.startsWith('/')) {
+      imgUrl = '/' + imgUrl;
+    }
 
-        return `
+    return `
           <div
             class="gallery-card group bg-slate-900/60 backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl hover:border-emerald-500/40 hover:shadow-emerald-500/10 transition-all duration-300 flex flex-col cursor-pointer hover:-translate-y-1.5"
             data-index="${index}"
           >
             <!-- Thumbnail Box -->
-            <div class="relative aspect-4/3 bg-slate-950 overflow-hidden flex items-center justify-center">
+            <div class="relative aspect-4/3 bg-slate-950 overflow-hidden">
               <img
                 src="${imgUrl}"
                 alt="${escapeHtml(photo.alt_text || photo.title || 'Foto Kawasan')}"
                 loading="lazy"
                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                onerror="this.onerror=null; this.parentElement.classList.add('bg-slate-900'); this.style.display='none'; this.nextElementSibling.classList.remove('hidden');"
+                onerror="this.src='/favicon.svg'"
               />
-              <div class="hidden flex flex-col items-center justify-center p-4 text-center text-slate-500">
-                <span class="text-3xl mb-1">🖼️</span>
-                <span class="text-[11px] font-medium text-slate-400">Pratinjau tidak tersedia</span>
-              </div>
               <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-3.5">
                 <span class="text-xs font-semibold text-white flex items-center gap-1.5 bg-black/75 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/10 shadow-lg">
                   <span>🔍</span> Perbesar Foto
@@ -321,7 +318,7 @@ function renderPhotoGrid() {
             </div>
           </div>
         `;
-      }).join('')}
+  }).join('')}
     </div>
   `;
 
@@ -443,14 +440,7 @@ function updateLightboxContent() {
       img.classList.add('hidden');
       if (errorMsg) errorMsg.classList.remove('hidden');
     };
-    let rawFullUrl = photo.file_url || photo.file_path || '';
-    let fullImgUrl = rawFullUrl;
-    if (fullImgUrl && !fullImgUrl.startsWith('http://') && !fullImgUrl.startsWith('https://')) {
-      if (!fullImgUrl.startsWith('/')) {
-        fullImgUrl = '/' + fullImgUrl;
-      }
-    }
-    img.src = fullImgUrl;
+    img.src = photo.file_url || photo.file_path;
     img.alt = photo.alt_text || photo.title || 'Foto Kawasan';
   }
   if (title) title.textContent = photo.title || 'Dokumentasi Kawasan';
