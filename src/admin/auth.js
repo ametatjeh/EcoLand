@@ -68,13 +68,31 @@ export function initAuth() {
   }
 
   if (btnLogout) {
-    btnLogout.addEventListener('click', async () => {
-      if (confirm('Apakah Anda yakin ingin keluar dari sesi administrator?')) {
-        await ApiService.logout();
-        EcoToast.info('Sesi Berakhir', 'Anda telah keluar dari sesi administrator.');
-        notifyAuthChange(false);
-      }
+    btnLogout.addEventListener('click', (e) => {
+      e.preventDefault();
+      performLogout();
     });
+  }
+
+  document.querySelectorAll('.btn-sidebar-quick-logout').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      performLogout();
+    });
+  });
+}
+
+export async function performLogout() {
+  if (confirm('Apakah Anda yakin ingin keluar dari sesi administrator?')) {
+    try {
+      await ApiService.logout();
+    } catch (e) {
+      console.warn('API logout error:', e);
+    }
+    ApiService.clearSession();
+    sessionStorage.removeItem('admin_redirect_hash');
+    notifyAuthChange(false);
+    window.location.href = '/logout';
   }
 }
 

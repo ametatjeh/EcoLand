@@ -750,7 +750,11 @@
                 <p id="sidebar-user-name" class="text-xs font-semibold text-white truncate">Administrator</p>
                 <p id="sidebar-user-email" class="text-[11px] text-slate-400 truncate">admin@ikhw.org</p>
               </div>
-              <div class="w-2 h-2 rounded-full bg-emerald-400 shrink-0" title="Online"></div>
+              <a href="{{ route('logout') }}" class="btn-sidebar-quick-logout p-1.5 rounded-lg text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition shrink-0" title="Keluar Sesi Administrator" aria-label="Keluar Sesi Administrator">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />
+                </svg>
+              </a>
             </div>
           </div>
         </aside>
@@ -888,12 +892,12 @@
                   <div class="my-1 border-t border-slate-800/80"></div>
 
                   <!-- Logout Action Button -->
-                  <button id="btn-admin-logout" type="button" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-red-400 hover:text-red-300 hover:bg-red-500/10 active:bg-red-500/20 transition text-left cursor-pointer font-medium">
+                  <a href="{{ route('logout') }}" id="btn-admin-logout" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-red-400 hover:text-red-300 hover:bg-red-500/10 active:bg-red-500/20 transition text-left cursor-pointer font-medium no-underline" title="Keluar dari sesi administrator">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                       <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />
                     </svg>
                     <span>Keluar Sesi Administrator</span>
-                  </button>
+                  </a>
                 </div>
               </div>
             </div>
