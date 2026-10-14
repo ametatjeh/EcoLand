@@ -225,8 +225,18 @@ function setupNavigation() {
   const mobileBackdrop = document.getElementById('mobile-nav-backdrop');
   const desktopAdminBtn = document.getElementById('nav-btn-admin-desktop');
   const footerAdminBtn = document.getElementById('footer-btn-admin');
+  const dropdownContainers = document.querySelectorAll('.nav-dropdown');
+
+  function closeAllDropdowns() {
+    dropdownContainers.forEach((dd) => {
+      dd.classList.remove('is-open');
+      const trigger = dd.querySelector('.nav-dropdown-trigger');
+      if (trigger) trigger.setAttribute('aria-expanded', 'false');
+    });
+  }
 
   function closeMobileMenu() {
+    closeAllDropdowns();
     if (navTabsContainer) navTabsContainer.classList.remove('mobile-open');
     if (mobileBackdrop) mobileBackdrop.classList.remove('show');
     if (mobileToggle) {
@@ -242,6 +252,7 @@ function setupNavigation() {
     if (!navTabsContainer) return;
     const isOpen = navTabsContainer.classList.toggle('mobile-open');
     if (mobileBackdrop) mobileBackdrop.classList.toggle('show', isOpen);
+    if (!isOpen) closeAllDropdowns();
     if (mobileToggle) {
       mobileToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
       const openIcon = mobileToggle.querySelector('.hamburger-icon-open');
@@ -251,7 +262,48 @@ function setupNavigation() {
     }
   }
 
+  // Setup Dropdown Interactive Toggles (Informasi)
+  dropdownContainers.forEach((dd) => {
+    const trigger = dd.querySelector('.nav-dropdown-trigger');
+    if (trigger) {
+      trigger.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const isOpen = dd.classList.contains('is-open');
+
+        // Close other dropdowns if any
+        dropdownContainers.forEach((other) => {
+          if (other !== dd) {
+            other.classList.remove('is-open');
+            const otherTrigger = other.querySelector('.nav-dropdown-trigger');
+            if (otherTrigger) otherTrigger.setAttribute('aria-expanded', 'false');
+          }
+        });
+
+        // Toggle current dropdown
+        if (isOpen) {
+          dd.classList.remove('is-open');
+          trigger.setAttribute('aria-expanded', 'false');
+        } else {
+          dd.classList.add('is-open');
+          trigger.setAttribute('aria-expanded', 'true');
+        }
+      });
+    }
+
+    // Submenu links click (Galeri, Data Pohon, Tree QR)
+    dd.querySelectorAll('.nav-dropdown-item').forEach((item) => {
+      item.addEventListener('click', () => {
+        closeAllDropdowns();
+        closeMobileMenu();
+      });
+    });
+  });
+
+  // Non-dropdown tab buttons click
   tabs.forEach((tab) => {
+    if (tab.classList.contains('nav-dropdown-trigger')) return;
     tab.addEventListener('click', () => {
       const target = tab.getAttribute('data-tab');
       if (target === 'admin') {
@@ -259,6 +311,7 @@ function setupNavigation() {
       } else {
         window.location.hash = target;
       }
+      closeAllDropdowns();
       closeMobileMenu();
     });
   });
@@ -295,12 +348,18 @@ function setupNavigation() {
     mobileBackdrop.addEventListener('click', closeMobileMenu);
   }
 
-  // Close mobile drawer on Escape key or click outside
+  // Close mobile drawer & dropdowns on Escape key or click outside
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeMobileMenu();
+    if (e.key === 'Escape') {
+      closeAllDropdowns();
+      closeMobileMenu();
+    }
   });
 
   document.addEventListener('click', (e) => {
+    if (!e.target.closest('.nav-dropdown')) {
+      closeAllDropdowns();
+    }
     if (navTabsContainer && navTabsContainer.classList.contains('mobile-open')) {
       if (!navTabsContainer.contains(e.target) && !mobileToggle.contains(e.target)) {
         closeMobileMenu();
@@ -353,9 +412,20 @@ function switchTab(tabId) {
     globalFooter.style.display = ['beranda', 'info', 'galeri', 'katalog', 'tree-qr', 'karbon'].includes(tabId) ? 'block' : 'none';
   }
 
-  // Update navbar active tab
+  // Update navbar active tab (highlight parent 'informasi' when on galeri, katalog, or tree-qr)
+  const infoSubtabs = ['galeri', 'katalog', 'tree-qr'];
   document.querySelectorAll('.nav-tab-btn').forEach((btn) => {
-    btn.classList.toggle('active', btn.getAttribute('data-tab') === tabId);
+    const tabAttr = btn.getAttribute('data-tab');
+    if (tabAttr === 'informasi') {
+      btn.classList.toggle('active', infoSubtabs.includes(tabId));
+    } else {
+      btn.classList.toggle('active', tabAttr === tabId);
+    }
+  });
+
+  // Update dropdown items active state
+  document.querySelectorAll('.nav-dropdown-item').forEach((item) => {
+    item.classList.toggle('active', item.getAttribute('data-tab') === tabId);
   });
 
   // Update view panes

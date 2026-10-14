@@ -53,14 +53,6 @@ export async function renderDashboard({
     console.warn('Could not load tree dashboard stats:', err);
   }
 
-  // Fetch Recent Activity Logs
-  let recentLogs = [];
-  try {
-    const logsRes = await ApiService.getActivityLogs({ per_page: 5 });
-    recentLogs = logsRes.logs?.data || logsRes.logs || [];
-  } catch (err) {
-    console.warn('Could not load recent logs for dashboard:', err);
-  }
 
   const indicators = treeData?.indicators || {
     total_zones: 0,
@@ -439,122 +431,6 @@ export async function renderDashboard({
       </div>
     </div>
 
-    <!-- E.4. AKTIVITAS TERBARU & JEJAK AUDIT SISTEM -->
-    <div style="margin-bottom: 24px;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-        <h3 style="font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--clr-primary-light); font-weight: 700;">
-          🕒 Aktivitas Terbaru (Audit Trail Nyata)
-        </h3>
-        <button id="dash-btn-view-all-logs" class="btn-secondary-action btn-sm" style="font-size: 11px; padding: 3px 10px;">
-          Lihat Seluruh Log ➔
-        </button>
-      </div>
-
-      <div class="admin-stat-card" style="padding: 16px;">
-        ${
-          recentLogs.length > 0
-            ? `<div class="space-y-3">
-                ${recentLogs
-                  .map(
-                    (log) => `
-                  <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 10px; font-size: 12px;">
-                    <div>
-                      <div style="display: flex; align-items: center; gap: 8px;">
-                        <span class="pill-info" style="font-size: 10px; text-transform: uppercase;">${log.module || 'SISTEM'}</span>
-                        <strong style="color: #fff;">${log.action || 'Aktivitas'}</strong>
-                        <span style="color: var(--clr-text-muted);">oleh ${log.user_name || log.user?.name || 'Administrator'}</span>
-                      </div>
-                      <p style="color: var(--clr-text-dim); margin-top: 3px; font-size: 11px;">
-                        ${log.details || log.description || 'Tindakan berhasil diproses sistem.'}
-                      </p>
-                    </div>
-                    <span style="color: var(--clr-text-muted); font-size: 11px; white-space: nowrap; margin-left: 12px;">
-                      ${formatTimeAgo(log.created_at)}
-                    </span>
-                  </div>
-                `
-                  )
-                  .join('')}
-              </div>`
-            : `<div style="text-align: center; padding: 24px 12px; color: var(--clr-text-muted); font-size: 13px;">
-                <p>Belum ada aktivitas yang tercatat</p>
-                <p style="font-size: 11px; color: var(--clr-text-dim); margin-top: 4px;">Setiap penambahan kawasan, pencatatan bibit, survei, dan pembaruan hotspot akan otomatis terekam di sini.</p>
-              </div>`
-        }
-      </div>
-    </div>
-
-    <!-- Diagnostic & Integrity Health Checks Marzipano -->
-    <div class="admin-diagnostics-section" style="margin-bottom: 24px;">
-      <h3 class="diagnostics-title">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
-        </svg>
-        Pemeriksaan Integritas & Kesehatan Virtual Tour 360° Eco Land
-      </h3>
-
-      <div class="diagnostics-list">
-        <!-- Check 1: Broken Links -->
-        <div class="diagnostic-item ${brokenLinkHotspots.length === 0 ? 'status-ok' : 'status-danger'}">
-          <div class="diag-status-indicator"></div>
-          <div class="diag-details">
-            <div class="diag-header">
-              <strong>Hotspot Tujuan Rusak / Tidak Valid:</strong>
-              <span class="diag-badge ${brokenLinkHotspots.length === 0 ? 'badge-ok' : 'badge-danger'}">
-                ${brokenLinkHotspots.length} Masalah
-              </span>
-            </div>
-            <p class="diag-desc">
-              ${
-                brokenLinkHotspots.length === 0
-                  ? 'Semua hotspot navigasi terhubung ke ID scene yang valid dan tersedia.'
-                  : `Ditemukan ${brokenLinkHotspots.length} hotspot navigasi yang mengarah ke scene tidak dikenal!`
-              }
-            </p>
-          </div>
-        </div>
-
-        <!-- Check 2: Dead-End Scenes -->
-        <div class="diagnostic-item ${scenesWithoutLinks.length === 0 ? 'status-ok' : 'status-warning'}">
-          <div class="diag-status-indicator"></div>
-          <div class="diag-details">
-            <div class="diag-header">
-              <strong>Panorama Tanpa Titik Keluar (Dead-End Scenes):</strong>
-              <span class="diag-badge ${scenesWithoutLinks.length === 0 ? 'badge-ok' : 'badge-warning'}">
-                ${scenesWithoutLinks.length} Scene
-              </span>
-            </div>
-            <p class="diag-desc">
-              ${
-                scenesWithoutLinks.length === 0
-                  ? 'Setiap panorama memiliki setidaknya satu hotspot navigasi untuk melanjutkan tour.'
-                  : `Terdapat ${scenesWithoutLinks.length} panorama tanpa hotspot navigasi keluar.`
-              }
-            </p>
-          </div>
-        </div>
-
-        <!-- Check 3: Tile Assets Availability -->
-        <div class="diagnostic-item ${missingAssetScenes.length === 0 ? 'status-ok' : 'status-danger'}">
-          <div class="diag-status-indicator"></div>
-          <div class="diag-details">
-            <div class="diag-header">
-              <strong>Ketersediaan Aset Tile Panorama:</strong>
-              <span class="diag-badge ${missingAssetScenes.length === 0 ? 'badge-ok' : 'badge-danger'}">
-                ${missingAssetScenes.length === 0 ? 'Semua Tersedia' : `${missingAssetScenes.length} Tertunda`}
-              </span>
-            </div>
-            <p class="diag-desc">
-              ${
-                missingAssetScenes.length === 0
-                  ? 'Semua 6 panorama multiresolution tile Marzipano siap ditampilkan tanpa kendala.'
-                  : `${missingAssetScenes.length} panorama belum memiliki foto bola 360° yang diunggah.`
-              }
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
   `;
 
   // Attach navigation events
@@ -592,8 +468,5 @@ export async function renderDashboard({
   });
   container.querySelector('#stage-btn-reports')?.addEventListener('click', () => {
     if (onNavigateToReports) onNavigateToReports();
-  });
-  container.querySelector('#dash-btn-view-all-logs')?.addEventListener('click', () => {
-    if (onNavigateToLogs) onNavigateToLogs();
   });
 }

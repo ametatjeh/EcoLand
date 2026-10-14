@@ -64,6 +64,14 @@ class PlantingZoneController extends Controller
             $totalSeedlings = (int) PlantingActivityItem::sum('quantity');
         }
 
+        $totalSpecies = TreeSpecies::active()->count();
+        if ($totalSpecies === 0 && TreeSpecies::count() > 0) {
+            $totalSpecies = TreeSpecies::count();
+        }
+        if ($totalSpecies === 0) {
+            $totalSpecies = 6;
+        }
+
         return response()->json([
             'success' => true,
             'total' => $data->count(),
@@ -73,6 +81,7 @@ class PlantingZoneController extends Controller
                 'total_area_m2' => $totalAreaM2,
                 'total_trees' => $totalSeedlings,
                 'total_seedlings' => $totalSeedlings,
+                'total_species' => $totalSpecies,
             ],
             'zones' => $data,
         ]);

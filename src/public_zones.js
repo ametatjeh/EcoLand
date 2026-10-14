@@ -38,6 +38,10 @@ export function updatePublicTotalArea(summaryOrZones) {
   const treeCountEl = document.getElementById('stat-trees-count');
   const treeDescEl = document.getElementById('stat-trees-desc');
 
+  const speciesLabelEl = document.getElementById('stat-species-label');
+  const speciesCountEl = document.getElementById('stat-species-count');
+  const speciesDescEl = document.getElementById('stat-species-desc');
+
   if (labelEl) {
     labelEl.textContent = 'Total Luas Kawasan';
   }
@@ -47,11 +51,18 @@ export function updatePublicTotalArea(summaryOrZones) {
   if (treeLabelEl) {
     treeLabelEl.textContent = 'Bibit Awal Ditanam';
   }
+  if (speciesLabelEl) {
+    speciesLabelEl.textContent = 'Total Jenis Pohon';
+  }
+  if (speciesDescEl) {
+    speciesDescEl.textContent = 'Spesies terdata di master database';
+  }
 
   let totalHa = 0;
   let totalM2 = 0;
   let totalZones = 0;
   let totalTrees = 0;
+  let totalSpecies = 6;
 
   if (summaryOrZones && typeof summaryOrZones === 'object') {
     if ('total_area_ha' in summaryOrZones) {
@@ -59,6 +70,9 @@ export function updatePublicTotalArea(summaryOrZones) {
       totalM2 = Number(summaryOrZones.total_area_m2) || (totalHa * 10000);
       totalZones = Number(summaryOrZones.total_zones) || 0;
       totalTrees = Number(summaryOrZones.total_trees ?? summaryOrZones.total_seedlings) || 0;
+      if ('total_species' in summaryOrZones) {
+        totalSpecies = Number(summaryOrZones.total_species) || 6;
+      }
     } else if (Array.isArray(summaryOrZones)) {
       totalZones = summaryOrZones.length;
       totalHa = summaryOrZones.reduce((acc, z) => {
@@ -84,13 +98,16 @@ export function updatePublicTotalArea(summaryOrZones) {
     zoneCountEl.textContent = `${totalZones} Kawasan`;
   }
   if (zoneDescEl) {
-    zoneDescEl.textContent = 'Total kawasan/lahan yang terdaftar dalam sistem.';
+    zoneDescEl.textContent = 'Total kawasan/lahan dalam sistem.';
   }
   if (treeCountEl) {
     treeCountEl.textContent = `${totalTrees.toLocaleString('id-ID')} Batang`;
   }
   if (treeDescEl) {
     treeDescEl.textContent = 'Akumulasi seluruh kegiatan & lahan';
+  }
+  if (speciesCountEl) {
+    speciesCountEl.innerHTML = `<span class="stat-emoji" style="margin-right: 6px;">🌿</span>${totalSpecies}`;
   }
 }
 

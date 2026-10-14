@@ -43,12 +43,21 @@ Route::get('/', function () {
         $totalSeedlings = (int) \App\Models\PlantingActivityItem::sum('quantity');
     }
 
+    $totalSpecies = \App\Models\TreeSpecies::active()->count();
+    if ($totalSpecies === 0 && \App\Models\TreeSpecies::count() > 0) {
+        $totalSpecies = \App\Models\TreeSpecies::count();
+    }
+    if ($totalSpecies === 0) {
+        $totalSpecies = 6;
+    }
+
     $initialAreaSummary = [
         'total_area_ha' => round($totalAreaHa, 4),
         'total_area_m2' => $totalAreaM2,
         'total_zones' => $publishedZones->count(),
         'total_trees' => $totalSeedlings,
         'total_seedlings' => $totalSeedlings,
+        'total_species' => $totalSpecies,
     ];
 
     if (view()->exists('app')) {

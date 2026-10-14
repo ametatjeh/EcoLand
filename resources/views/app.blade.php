@@ -49,20 +49,46 @@
           <button class="nav-tab-btn active" data-tab="beranda">
             <span class="nav-icon">🌿</span> <span>Home</span>
           </button>
+
+          <!-- Dropdown: Informasi (Galeri, Data Pohon, Tree QR) -->
+          <div class="nav-dropdown" id="nav-dropdown-informasi" data-dropdown="informasi">
+            <button class="nav-tab-btn nav-dropdown-trigger" data-tab="informasi" aria-haspopup="true" aria-expanded="false" id="nav-btn-informasi" type="button">
+              <span class="nav-icon">📁</span>
+              <span>Informasi</span>
+              <svg class="nav-dropdown-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+            <div class="nav-dropdown-menu" aria-labelledby="nav-btn-informasi" role="menu">
+              <a href="#galeri" class="nav-dropdown-item" data-tab="galeri" role="menuitem">
+                <span class="dropdown-item-icon">🖼️</span>
+                <div class="dropdown-item-content">
+                  <span class="dropdown-item-title">Galeri</span>
+                  <span class="dropdown-item-desc">Dokumentasi visual & foto kawasan</span>
+                </div>
+              </a>
+              <a href="#katalog" class="nav-dropdown-item" data-tab="katalog" role="menuitem">
+                <span class="dropdown-item-icon">🌳</span>
+                <div class="dropdown-item-content">
+                  <span class="dropdown-item-title">Data Pohon</span>
+                  <span class="dropdown-item-desc">Katalog master jenis & bibit pohon</span>
+                </div>
+              </a>
+              <a href="#tree-qr" class="nav-dropdown-item" data-tab="tree-qr" role="menuitem">
+                <span class="dropdown-item-icon">📱</span>
+                <div class="dropdown-item-content">
+                  <span class="dropdown-item-title">Tree QR</span>
+                  <span class="dropdown-item-desc">Identifikasi digital pohon & blok</span>
+                </div>
+              </a>
+            </div>
+          </div>
+
           <button class="nav-tab-btn" data-tab="tour">
             <span class="nav-icon">🔄</span> <span>Virtual Tour</span>
           </button>
           <button class="nav-tab-btn" data-tab="info">
             <span class="nav-icon">ℹ️</span> <span>Info Kawasan</span>
-          </button>
-          <button class="nav-tab-btn" data-tab="galeri">
-            <span class="nav-icon">🖼️</span> <span>Galeri</span>
-          </button>
-          <button class="nav-tab-btn" data-tab="katalog">
-            <span class="nav-icon">🌳</span> <span>Data Pohon</span>
-          </button>
-          <button class="nav-tab-btn" data-tab="tree-qr">
-            <span class="nav-icon">📱</span> <span>Tree QR</span>
           </button>
           <button class="nav-tab-btn" data-tab="karbon">
             <span class="nav-icon">🍃</span> <span>Monitoring Karbon</span>
@@ -145,7 +171,7 @@
                 $initZonesCount = $initialAreaSummary["total_zones"] ?? 0;
               @endphp
               <span class="stat-value" id="stat-zones-count">{{ $initZonesCount }} Kawasan</span>
-              <span class="stat-desc" id="stat-zones-desc">Total kawasan/lahan yang terdaftar dalam sistem.</span>
+              <span class="stat-desc" id="stat-zones-desc">Total kawasan/lahan dalam sistem.</span>
             </div>
             <div class="stat-card" id="stat-card-luas">
               <span class="stat-label" id="stat-luas-label">Total Luas Kawasan</span>
@@ -158,10 +184,13 @@
               <span class="stat-value" id="stat-luas">{{ $formattedHa }}</span>
               <span class="stat-desc" id="stat-luas-desc">{{ $formattedM2 }}</span>
             </div>
-            <div class="stat-card">
-              <span class="stat-label">Titik Panorama Lapangan</span>
-              <span class="stat-value">6 Titik Pantau</span>
-              <span class="stat-desc">Dokumentasi Go Street View</span>
+            <div class="stat-card" id="stat-card-species">
+              <span class="stat-label" id="stat-species-label">Total Jenis Pohon</span>
+              @php
+                $initSpecies = $initialAreaSummary["total_species"] ?? 6;
+              @endphp
+              <span class="stat-value" id="stat-species-count"><span class="stat-emoji" style="margin-right: 6px;">🌿</span>{{ $initSpecies }}</span>
+              <span class="stat-desc" id="stat-species-desc">Spesies terdata di master database</span>
             </div>
             <div class="stat-card" id="stat-card-trees">
               <span class="stat-label" id="stat-trees-label">Bibit Awal Ditanam</span>
@@ -291,6 +320,14 @@
 
           <div class="info-grid">
             <div class="info-main-content">
+              <div class="info-sidebar-card">
+                <h4>Identitas & Pengelola</h4>
+                <ul>
+                  <li><strong>Luas Kawasan:</strong> ±2 Hektare (Deskriptif)</li>
+                  <li><strong>Titik Acuan:</strong> 5.4818556° N, 95.5840917° E</li>
+                </ul>
+              </div>
+
               <h3>1. Gambaran Umum & Lokasi Referensi</h3>
               <p id="info-general-desc">
                 Inisiatif restorasi bentang lahan dan pemulihan keanekaragaman hayati seluas kurang lebih 2 hektare. Program ini berfokus pada pengayaan tutupan vegetasi menggunakan spesies pohon kayu keras endemik Aceh dan pohon buah hutan pakan satwa.
@@ -315,6 +352,72 @@
                 <div id="gis-map" class="map-canvas-container"></div>
                 <div class="ref-map-info-text">
                   ℹ️ Peta menampilkan penanda lokasi titik acuan lapangan dan titik survei panorama 360°.
+                </div>
+              </div>
+
+              <!-- Modern Jadwal Silvikultur (Timeline Card Grid) -->
+              <div class="silvikultur-modern-container">
+                <div class="silvikultur-header">
+                  <div class="silvikultur-badge">
+                    <span>🗓️</span> Siklus Pemeliharaan
+                  </div>
+                  <h4 class="silvikultur-title">Jadwal Silvikultur Kawasan</h4>
+                  <p class="silvikultur-desc">
+                    Prosedur operasional baku pemeliharaan bibit pohon terverifikasi selama 12 bulan pasca penanaman:
+                  </p>
+                </div>
+
+                <div class="silvikultur-timeline-grid">
+                  <!-- Fase 1 -->
+                  <div class="silvikultur-step-card">
+                    <div class="step-badge-wrap">
+                      <span class="step-period-badge">Bulan 1 - 3</span>
+                    </div>
+                    <div class="step-icon-wrap">
+                      <span class="step-emoji">🌱</span>
+                    </div>
+                    <h5 class="step-title">Penyiraman & Penyiangan</h5>
+                    <p class="step-desc">
+                      Penyiraman & penyiangan gulma harian untuk menjaga kelembapan serta mengurangi kompetisi nutrisi bibit muda.
+                    </p>
+                    <div class="step-footer-tag">
+                      <span>✓ Rutinitas Harian</span>
+                    </div>
+                  </div>
+
+                  <!-- Fase 2 -->
+                  <div class="silvikultur-step-card">
+                    <div class="step-badge-wrap">
+                      <span class="step-period-badge">Bulan 4 - 6</span>
+                    </div>
+                    <div class="step-icon-wrap">
+                      <span class="step-emoji">🎋</span>
+                    </div>
+                    <h5 class="step-title">Pemupukan & Ajir Bambu</h5>
+                    <p class="step-desc">
+                      Pemupukan organik & pemasangan ajir bambu guna memperkokoh tegakan pohon dari terpaan angin lereng.
+                    </p>
+                    <div class="step-footer-tag">
+                      <span>✓ Penguatan Batang & Nutrisi</span>
+                    </div>
+                  </div>
+
+                  <!-- Fase 3 -->
+                  <div class="silvikultur-step-card">
+                    <div class="step-badge-wrap">
+                      <span class="step-period-badge">Bulan 7 - 12</span>
+                    </div>
+                    <div class="step-icon-wrap">
+                      <span class="step-emoji">🌳</span>
+                    </div>
+                    <h5 class="step-title">Survei & Penyulaman</h5>
+                    <p class="step-desc">
+                      Survei kelulusan hidup bibit (survival rate) & penyulaman bibit pengganti untuk menjamin kerapatan target.
+                    </p>
+                    <div class="step-footer-tag">
+                      <span>✓ Sensus & Penyulaman Bibit</span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -416,28 +519,6 @@
               </div>
             </div>
 
-            <!-- Sidebar Info -->
-            <div class="info-sidebar">
-              <div class="info-sidebar-card">
-                <h4>Identitas & Pengelola</h4>
-                <ul>
-                  <li><strong>Nama Aplikasi:</strong> Eco Land</li>
-                  <li><strong>Inisiator:</strong> IKHW Aceh</li>
-                  <li><strong>Domain Publikasi:</strong> ikhw.org</li>
-                  <li><strong>Luas Kawasan:</strong> ±2 Hektare (Deskriptif)</li>
-                  <li><strong>Titik Acuan:</strong> 5.4818556° N, 95.5840917° E</li>
-                </ul>
-              </div>
-
-              <div class="info-sidebar-card">
-                <h4>Jadwal Silvikultur</h4>
-                <ul>
-                  <li><strong>Bulan 1 - 3:</strong> Penyiraman & penyiangan gulma harian.</li>
-                  <li><strong>Bulan 4 - 6:</strong> Pemupukan organik & pemasangan ajir bambu.</li>
-                  <li><strong>Bulan 7 - 12:</strong> Survei kelulusan hidup bibit (survival rate) & penyulaman.</li>
-                </ul>
-              </div>
-            </div>
           </div>
         </div>
       </section>

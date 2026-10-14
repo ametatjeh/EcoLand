@@ -641,7 +641,7 @@ function renderSpeciesFormView(item = null, container) {
                 <label for="page-sp-ref" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
                   Sumber Referensi Identifikasi:
                 </label>
-                <input type="text" id="page-sp-ref" class="form-input" placeholder="Buku Flora Malesiana / Balai Litbang LHK Aceh" value="${escapeHtml(item?.reference_source || '')}" />
+                <input type="text" id="page-sp-ref" class="form-input" placeholder="Buku Flora Malesiana" value="${escapeHtml(item?.reference_source || '')}" />
                 <small style="color: var(--clr-text-muted); font-size: 11px;">Rujukan pustaka atau tim surveyor yang mengidentifikasi spesies.</small>
               </div>
             </div>
@@ -898,7 +898,6 @@ async function renderActivitiesTab(container, scenes) {
             <th style="padding: 10px 14px;">Batch & Tanggal</th>
             <th style="padding: 10px 14px;">Nama Kegiatan & Pelaksana</th>
             <th style="padding: 10px 14px;">Zona / Panorama</th>
-            <th style="padding: 10px 14px;">Rincian Bibit Ditanam</th>
             <th style="padding: 10px 14px; text-align: right;">Total Awal</th>
             <th style="padding: 10px 14px; text-align: center;">Kelangsungan Hidup</th>
             <th style="padding: 10px 14px; text-align: center;">Aksi</th>
@@ -910,178 +909,40 @@ async function renderActivitiesTab(container, scenes) {
       </table>
     </div>
 
-    <!-- Modal Form Kegiatan Penanaman -->
-    <div id="modal-activity" class="admin-modal-overlay hidden">
-      <div class="admin-modal-box" style="max-width: 660px;">
-        <div class="admin-modal-header">
-          <h3 id="modal-activity-title">Catat Kegiatan Penanaman Baru</h3>
-          <button id="btn-close-activity-modal" class="icon-btn-sm">✕</button>
-        </div>
-        <form id="form-activity" class="admin-modal-body" style="display: flex; flex-direction: column; gap: 12px;">
-          <div class="form-row">
-            <div class="form-group" style="flex: 1;">
-              <label>Kode Batch: *</label>
-              <input type="text" id="act-batch" class="form-input" required placeholder="Contoh: BATCH-2026-01" />
-            </div>
-            <div class="form-group" style="flex: 1;">
-              <label>Tanggal Penanaman: *</label>
-              <input type="date" id="act-date" class="form-input" required />
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Nama Kegiatan: *</label>
-            <input type="text" id="act-name" class="form-input" required placeholder="Contoh: Penanaman Pohon Blok Utara Kawasan" />
-          </div>
-          <div class="form-row">
-            <div class="form-group" style="flex: 1;">
-              <label>Kawasan Penanaman: *</label>
-              <select id="act-zone-id" class="form-select" required>
-                ${zonesList.map((z) => `<option value="${z.id}">${escapeHtml(z.name)} (${z.zone_code})</option>`).join('')}
-              </select>
-            </div>
-            <div class="form-group" style="flex: 1;">
-              <label>Zona Deskriptif / Blok: *</label>
-              <input type="text" id="act-zone" class="form-input" required placeholder="Contoh: Blok A - Lereng Barat" />
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Hubungkan ke Panorama Marzipano (Opsional):</label>
-            <select id="act-scene" class="form-select">
-              <option value="">-- Tanpa Hubungan Panorama --</option>
-              ${scenes.map((s) => `<option value="${s.id}">${escapeHtml(s.name)}</option>`).join('')}
-            </select>
-          </div>
-          <div class="form-row">
-            <div class="form-group" style="flex: 1;">
-              <label>Nama Penanggung Jawab: *</label>
-              <input type="text" id="act-pic" class="form-input" required placeholder="Penanggung Jawab Lapangan" />
-            </div>
-            <div class="form-group" style="flex: 1;">
-              <label>Tim / Organisasi Pelaksana: *</label>
-              <input type="text" id="act-org" class="form-input" required placeholder="Contoh: Tim IKHW Aceh" />
-            </div>
-          </div>
-
-          <!-- Rincian Multi-Spesies Bibit -->
-          <div style="border: 1px solid var(--clr-border); border-radius: 6px; padding: 12px; background: rgba(255,255,255,0.02);">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-              <span style="font-weight: 600; font-size: 13px;">Rincian Jenis Pohon & Bibit Awal Ditanam: *</span>
-              <button type="button" id="btn-add-item-row" class="btn-secondary-action btn-sm">➕ Tambah Baris Jenis</button>
-            </div>
-            <div id="act-items-container" style="display: flex; flex-direction: column; gap: 8px;">
-              <!-- Dynamic Rows -->
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label>Catatan Tambahan:</label>
-            <textarea id="act-notes" class="form-textarea" rows="2" placeholder="Kondisi cuaca saat tanam, perlakuan mulsa..."></textarea>
-          </div>
-
-          <div class="admin-modal-footer">
-            <button type="button" id="btn-cancel-activity" class="btn-secondary-action">Batal</button>
-            <button type="submit" class="btn-primary-action">Simpan Kegiatan</button>
-          </div>
-        </form>
-      </div>
-    </div>
   `;
 
-  // Bind Activity Events
-  const modal = document.getElementById('modal-activity');
-  const form = document.getElementById('form-activity');
-  const itemsContainer = document.getElementById('act-items-container');
-
-  const addItemRow = () => {
-    const row = document.createElement('div');
-    row.className = 'act-item-row';
-    row.style.cssText = 'display: flex; gap: 8px; align-items: center;';
-    row.innerHTML = `
-      <select class="form-select item-sp-select" style="flex: 2;" required>
-        <option value="">-- Pilih Jenis Pohon --</option>
-        ${cachedSpecies.map((s) => `<option value="${s.id}">${escapeHtml(s.common_name)} (${escapeHtml(s.scientific_name)})</option>`).join('')}
-      </select>
-      <input type="number" class="form-input item-qty-input" style="flex: 1;" placeholder="Jumlah" min="1" required />
-      <input type="text" class="form-input item-unit-input" style="width: 80px;" value="batang" />
-      <button type="button" class="icon-btn-sm btn-del-row" style="color: #ef4444;" title="Hapus Baris">✕</button>
-    `;
-    row.querySelector('.btn-del-row').addEventListener('click', () => {
-      if (itemsContainer.children.length > 1) row.remove();
+  // Bind Activity Search Filter
+  document.getElementById('filter-act-search')?.addEventListener('input', (e) => {
+    const q = e.target.value.toLowerCase().trim();
+    const filtered = cachedActivities.filter((a) => {
+      const matchBatch = (a.batch_code || '').toLowerCase().includes(q);
+      const matchName = (a.name || '').toLowerCase().includes(q);
+      const matchZone = (a.location_zone || '').toLowerCase().includes(q);
+      const matchPic = (a.person_in_charge || '').toLowerCase().includes(q);
+      return matchBatch || matchName || matchZone || matchPic;
     });
-    itemsContainer.appendChild(row);
-  };
-
-  document.getElementById('btn-add-activity')?.addEventListener('click', () => {
-    form.reset();
-    document.getElementById('act-date').value = new Date().toISOString().split('T')[0];
-    itemsContainer.innerHTML = '';
-    addItemRow();
-    modal.classList.remove('hidden');
+    const tbody = document.getElementById('act-table-body');
+    if (tbody) tbody.innerHTML = renderActivityRows(filtered);
+    bindActivityActionBtns(container, scenes);
   });
 
-  document.getElementById('btn-add-item-row')?.addEventListener('click', addItemRow);
-  document.getElementById('btn-close-activity-modal')?.addEventListener('click', () => modal.classList.add('hidden'));
-  document.getElementById('btn-cancel-activity')?.addEventListener('click', () => modal.classList.add('hidden'));
-
-  form?.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const rows = itemsContainer.querySelectorAll('.act-item-row');
-    const items = [];
-    rows.forEach((r) => {
-      const spId = r.querySelector('.item-sp-select').value;
-      const qty = parseInt(r.querySelector('.item-qty-input').value, 10);
-      const unit = r.querySelector('.item-unit-input').value.trim() || 'batang';
-      if (spId && qty > 0) items.push({ tree_species_id: spId, quantity: qty, unit });
-    });
-
-    if (items.length === 0) {
-      EcoToast.warning('Peringatan Input', 'Pilih setidaknya 1 jenis pohon dengan jumlah bibit yang valid!');
-      return;
-    }
-
-    const actDateVal = parseDateForPayload(document.getElementById('act-date').value);
-    if (!actDateVal) {
-      EcoToast.warning('Peringatan Input', 'Tanggal penanaman wajib diisi dengan tanggal yang valid!');
-      return;
-    }
-
-    const payload = {
-      batch_code: document.getElementById('act-batch').value.trim(),
-      activity_date: actDateVal,
-      name: document.getElementById('act-name').value.trim(),
-      planting_zone_id: document.getElementById('act-zone-id').value || null,
-      location_zone: document.getElementById('act-zone').value.trim(),
-      scene_id: document.getElementById('act-scene').value || null,
-      person_in_charge: document.getElementById('act-pic').value.trim(),
-      organizer: document.getElementById('act-org').value.trim(),
-      notes: document.getElementById('act-notes').value.trim(),
-      items,
-    };
-
-    try {
-      await ApiService.savePlantingActivity(payload);
-      EcoToast.saved('Data kegiatan penanaman dan rincian bibit berhasil disimpan.');
-      modal.classList.add('hidden');
-      await renderActivitiesTab(container, scenes);
-    } catch (err) {
-      EcoToast.error('✕ Gagal menyimpan kegiatan penanaman', err.message);
-    }
+  // Tombol Catat Kegiatan Penanaman -> Buka Halaman Formulir Lengkap
+  document.getElementById('btn-add-activity')?.addEventListener('click', async () => {
+    await renderActivityFormView(null, container, scenes || cachedScenes, cachedZones);
   });
 
   bindActivityActionBtns(container, scenes);
 }
 
+
 function renderActivityRows(list) {
   if (list.length === 0) {
-    return `<tr><td colspan="7" style="padding: 20px; text-align: center; color: var(--clr-text-muted);">Belum ada catatan kegiatan penanaman.</td></tr>`;
+    return `<tr><td colspan="6" style="padding: 20px; text-align: center; color: var(--clr-text-muted);">Belum ada catatan kegiatan penanaman.</td></tr>`;
   }
   return list
     .map((a) => {
       const rateStr = a.survival_rate !== null ? `${a.survival_rate}%` : 'Data Belum Lengkap';
       const rateClass = a.survival_rate !== null ? (a.survival_rate >= 80 ? 'pill-success' : 'pill-warning') : 'pill-neutral';
-      const speciesBadges = (a.species_list || [])
-        .map((sp) => `<span class="point-sequence-badge" style="font-size: 11px; margin: 2px 0;">${escapeHtml(sp.common_name)} (${sp.quantity} ${sp.unit})</span>`)
-        .join(' ');
 
       return `
       <tr style="border-bottom: 1px solid var(--clr-border);">
@@ -1096,9 +957,6 @@ function renderActivityRows(list) {
         <td style="padding: 10px 14px;">
           <span>📍 ${escapeHtml(a.location_zone)}</span><br>
           <span style="font-size: 11px; color: var(--clr-text-muted);">${a.scene_name ? '🌐 ' + escapeHtml(a.scene_name) : 'Tanpa Panorama'}</span>
-        </td>
-        <td style="padding: 10px 14px; max-width: 250px;">
-          ${speciesBadges}
         </td>
         <td style="padding: 10px 14px; text-align: right; font-weight: 600;">
           ${a.total_initial_seedlings} bibit
@@ -1125,7 +983,7 @@ function bindActivityActionBtns(container, scenes) {
         btn.innerHTML = '⏳';
         const res = await ApiService.getPlantingActivity(id);
         const act = res.activity || res;
-        await renderActivityEditFormView(act, container, scenes || cachedScenes, cachedZones);
+        await renderActivityFormView(act, container, scenes || cachedScenes, cachedZones);
       } catch (e) {
         EcoToast.error('✕ Gagal memuat data kegiatan', e.message);
         btn.disabled = false;
@@ -1151,10 +1009,12 @@ function bindActivityActionBtns(container, scenes) {
 }
 
 /**
- * Halaman Khusus Formulir Edit Kegiatan Penanaman
- * Breadcrumb: Dashboard / Data Penanaman / Kegiatan Penanaman / Edit
+ * Halaman Khusus Formulir Kegiatan Penanaman (Catat Baru / Edit)
+ * Breadcrumb: Dashboard / Data Penanaman / Kegiatan Penanaman / (Catat Baru | Edit)
  */
-async function renderActivityEditFormView(activity, container, scenes = [], zonesList = []) {
+async function renderActivityFormView(activity = null, container, scenes = [], zonesList = []) {
+  const isEdit = !!activity;
+
   if (!zonesList || zonesList.length === 0) {
     if (cachedZones.length > 0) zonesList = cachedZones;
     else {
@@ -1171,7 +1031,7 @@ async function renderActivityEditFormView(activity, container, scenes = [], zone
     cachedSpecies = spRes.species || [];
   }
 
-  const existingItems = activity.items && activity.items.length > 0 ? activity.items : [];
+  const existingItems = activity && activity.items && activity.items.length > 0 ? activity.items : [];
 
   container.innerHTML = `
     <!-- Breadcrumb Navigasi -->
@@ -1183,16 +1043,16 @@ async function renderActivityEditFormView(activity, container, scenes = [], zone
         <span>&rsaquo;</span>
         <button type="button" id="breadcrumb-btn-act-list" style="background: none; border: none; color: var(--clr-text-muted); cursor: pointer; padding: 0; font-size: 12px; text-decoration: underline;">Kegiatan Penanaman</button>
         <span>&rsaquo;</span>
-        <span style="color: #38bdf8; font-weight: 600;">Edit</span>
+        <span style="color: ${isEdit ? '#38bdf8' : '#10b981'}; font-weight: 600;">${isEdit ? 'Edit' : 'Catat Baru'}</span>
       </nav>
 
       <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
         <div>
           <h2 style="font-size: 20px; font-weight: 700; color: #fff; margin: 0; display: flex; align-items: center; gap: 8px;">
-            <span>✏️</span> Edit Kegiatan Penanaman: ${escapeHtml(activity.batch_code)}
+            <span>${isEdit ? '✏️' : '🌱'}</span> ${isEdit ? `Edit Kegiatan Penanaman: ${escapeHtml(activity.batch_code)}` : 'Catat Kegiatan Penanaman Baru'}
           </h2>
           <p style="font-size: 13px; color: var(--clr-text-muted); margin: 4px 0 0;">
-            Perbarui data pelaksanaan, kawasan penanaman, tim pelaksana, dan rincian jenis bibit yang ditanam.
+            ${isEdit ? 'Perbarui data pelaksanaan, kawasan penanaman, tim pelaksana, dan rincian jenis bibit yang ditanam.' : 'Catat data pelaksanaan kegiatan penanaman baru, kawasan target, tim pelaksana, dan rincian bibit awal yang ditanam.'}
           </p>
         </div>
 
@@ -1204,7 +1064,7 @@ async function renderActivityEditFormView(activity, container, scenes = [], zone
             Batal
           </button>
           <button type="button" id="btn-save-act-top" class="btn-primary-action btn-sm">
-            💾 Simpan Perubahan
+            💾 ${isEdit ? 'Simpan Perubahan' : 'Simpan Kegiatan'}
           </button>
         </div>
       </div>
@@ -1226,25 +1086,29 @@ async function renderActivityEditFormView(activity, container, scenes = [], zone
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
           <div class="form-group">
             <label for="edit-act-batch" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
-              Kode / Kelompok Batch:
+              Kode / Kelompok Batch: <span style="color: #ef4444;">*</span>
             </label>
-            <input type="text" id="edit-act-batch" class="form-input" readonly value="${escapeHtml(activity.batch_code)}" style="background: rgba(255,255,255,0.05); cursor: not-allowed; opacity: 0.85;" />
-            <small style="color: var(--clr-text-muted); font-size: 11px;">Kode unik batch penanaman dipertahankan sebagai referensi riwayat.</small>
+            ${isEdit
+              ? `<input type="text" id="edit-act-batch" class="form-input" readonly value="${escapeHtml(activity.batch_code)}" style="background: rgba(255,255,255,0.05); cursor: not-allowed; opacity: 0.85;" />
+                 <small style="color: var(--clr-text-muted); font-size: 11px;">Kode unik batch penanaman dipertahankan sebagai referensi riwayat.</small>`
+              : `<input type="text" id="edit-act-batch" class="form-input" required placeholder="Contoh: BATCH-2026-01" value="" />
+                 <small style="color: var(--clr-text-muted); font-size: 11px;">Kode unik batch penanaman untuk identifikasi dan referensi pemantauan berkala.</small>`
+            }
           </div>
 
-            <div class="form-group">
+          <div class="form-group">
             <label for="edit-act-date" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
               Tanggal Penanaman: <span style="color: #ef4444;">*</span>
             </label>
-            <input type="date" id="edit-act-date" class="form-input" required value="${toDateInputValue(activity.activity_date)}" />
-            <small style="color: var(--clr-text-muted); font-size: 11px;">Format tersimpan: YYYY-MM-DD • Tampilan: ${formatDateDisplay(activity.activity_date)}</small>
+            <input type="date" id="edit-act-date" class="form-input" required value="${isEdit ? toDateInputValue(activity.activity_date) : new Date().toISOString().split('T')[0]}" />
+            <small style="color: var(--clr-text-muted); font-size: 11px;">Format tersimpan: YYYY-MM-DD${isEdit ? ` • Tampilan: ${formatDateDisplay(activity.activity_date)}` : ''}</small>
           </div>
 
           <div class="form-group" style="grid-column: 1 / -1;">
             <label for="edit-act-name" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
               Nama Kegiatan Penanaman: <span style="color: #ef4444;">*</span>
             </label>
-            <input type="text" id="edit-act-name" class="form-input" required placeholder="Contoh: Penanaman Pohon Blok Utara Kawasan" value="${escapeHtml(activity.name)}" />
+            <input type="text" id="edit-act-name" class="form-input" required placeholder="Contoh: Penanaman Pohon Blok Utara Kawasan" value="${isEdit ? escapeHtml(activity.name) : ''}" />
           </div>
         </div>
       </div>
@@ -1263,7 +1127,8 @@ async function renderActivityEditFormView(activity, container, scenes = [], zone
               Kawasan Penanaman: <span style="color: #ef4444;">*</span>
             </label>
             <select id="edit-act-zone-id" class="form-select" required>
-              ${zonesList.map((z) => `<option value="${z.id}" ${z.id === activity.planting_zone_id ? 'selected' : ''}>${escapeHtml(z.name)} (${escapeHtml(z.zone_code || '')})</option>`).join('')}
+              <option value="">-- Pilih Kawasan Penanaman --</option>
+              ${zonesList.map((z) => `<option value="${z.id}" ${isEdit ? (z.id === activity.planting_zone_id ? 'selected' : '') : (zonesList.length === 1 ? 'selected' : '')}>${escapeHtml(z.name)} (${escapeHtml(z.zone_code || '')})</option>`).join('')}
             </select>
           </div>
 
@@ -1271,7 +1136,7 @@ async function renderActivityEditFormView(activity, container, scenes = [], zone
             <label for="edit-act-zone" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
               Zona Deskriptif / Blok Lapangan: <span style="color: #ef4444;">*</span>
             </label>
-            <input type="text" id="edit-act-zone" class="form-input" required placeholder="Contoh: Blok A - Lereng Barat" value="${escapeHtml(activity.location_zone)}" />
+            <input type="text" id="edit-act-zone" class="form-input" required placeholder="Contoh: Blok A - Lereng Barat" value="${isEdit ? escapeHtml(activity.location_zone) : ''}" />
           </div>
 
           <div class="form-group" style="grid-column: 1 / -1;">
@@ -1280,7 +1145,7 @@ async function renderActivityEditFormView(activity, container, scenes = [], zone
             </label>
             <select id="edit-act-scene" class="form-select">
               <option value="">-- Tanpa Hubungan Panorama --</option>
-              ${scenes.map((s) => `<option value="${s.id}" ${s.id === activity.scene_id ? 'selected' : ''}>${escapeHtml(s.name)}</option>`).join('')}
+              ${scenes.map((s) => `<option value="${s.id}" ${isEdit && s.id === activity.scene_id ? 'selected' : ''}>${escapeHtml(s.name)}</option>`).join('')}
             </select>
           </div>
         </div>
@@ -1299,14 +1164,14 @@ async function renderActivityEditFormView(activity, container, scenes = [], zone
             <label for="edit-act-pic" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
               Nama Penanggung Jawab (PIC): <span style="color: #ef4444;">*</span>
             </label>
-            <input type="text" id="edit-act-pic" class="form-input" required placeholder="Penanggung Jawab Lapangan" value="${escapeHtml(activity.person_in_charge)}" />
+            <input type="text" id="edit-act-pic" class="form-input" required placeholder="Penanggung Jawab Lapangan" value="${isEdit ? escapeHtml(activity.person_in_charge) : ''}" />
           </div>
 
           <div class="form-group">
             <label for="edit-act-org" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
               Tim / Organisasi / Mitra: <span style="color: #ef4444;">*</span>
             </label>
-            <input type="text" id="edit-act-org" class="form-input" required placeholder="Contoh: Tim IKHW Aceh" value="${escapeHtml(activity.organizer)}" />
+            <input type="text" id="edit-act-org" class="form-input" required placeholder="Contoh: Tim IKHW Aceh" value="${isEdit ? escapeHtml(activity.organizer) : 'Tim IKHW Aceh'}" />
           </div>
         </div>
       </div>
@@ -1319,7 +1184,7 @@ async function renderActivityEditFormView(activity, container, scenes = [], zone
               <span>🌱</span> Card 4 — Rincian Jenis Pohon & Bibit Awal Ditanam
             </h3>
             <p style="font-size: 12px; color: var(--clr-text-muted); margin: 4px 0 0;">
-              Data bibit lama dimuat secara lengkap. Tambahkan atau sesuaikan jumlah tanpa menghapus detail yang tidak diubah.
+              ${isEdit ? 'Data bibit lama dimuat secara lengkap. Tambahkan atau sesuaikan jumlah tanpa menghapus detail yang tidak diubah.' : 'Pilih jenis pohon dan tentukan jumlah bibit awal yang ditanam. Anda dapat menambahkan beberapa jenis sekaligus.'}
             </p>
           </div>
           <button type="button" id="btn-edit-add-item-row" class="btn-secondary-action btn-sm">
@@ -1344,7 +1209,7 @@ async function renderActivityEditFormView(activity, container, scenes = [], zone
           <label for="edit-act-notes" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
             Catatan Tambahan:
           </label>
-          <textarea id="edit-act-notes" class="form-textarea" rows="3" placeholder="Kondisi cuaca saat tanam, perlakuan mulsa, persiapan lubang tanam...">${escapeHtml(activity.notes || '')}</textarea>
+          <textarea id="edit-act-notes" class="form-textarea" rows="3" placeholder="Kondisi cuaca saat tanam, perlakuan mulsa, persiapan lubang tanam...">${isEdit ? escapeHtml(activity.notes || '') : ''}</textarea>
         </div>
       </div>
 
@@ -1354,7 +1219,7 @@ async function renderActivityEditFormView(activity, container, scenes = [], zone
           Batal
         </button>
         <button type="button" id="btn-save-act-bottom" class="btn-primary-action">
-          💾 Simpan Perubahan
+          💾 ${isEdit ? 'Simpan Perubahan' : 'Simpan Kegiatan'}
         </button>
       </div>
     </form>
@@ -1440,6 +1305,7 @@ async function renderActivityEditFormView(activity, container, scenes = [], zone
     alertBox.textContent = '';
     clearFieldErrors();
 
+    const batchCode = document.getElementById('edit-act-batch').value.trim();
     const rawDate = document.getElementById('edit-act-date').value;
     const date = parseDateForPayload(rawDate);
     const name = document.getElementById('edit-act-name').value.trim();
@@ -1449,6 +1315,15 @@ async function renderActivityEditFormView(activity, container, scenes = [], zone
     const pic = document.getElementById('edit-act-pic').value.trim();
     const org = document.getElementById('edit-act-org').value.trim();
     const notes = document.getElementById('edit-act-notes').value.trim();
+
+    if (!batchCode) {
+      alertBox.className = 'alert-banner alert-danger';
+      alertBox.textContent = 'Kode / kelompok batch kegiatan penanaman wajib diisi.';
+      alertBox.classList.remove('hidden');
+      alertBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      showFieldError(document.getElementById('edit-act-batch'), 'Kode batch wajib diisi.');
+      return;
+    }
 
     if (!date) {
       alertBox.className = 'alert-banner alert-danger';
@@ -1468,6 +1343,15 @@ async function renderActivityEditFormView(activity, container, scenes = [], zone
       return;
     }
 
+    if (!zoneId) {
+      alertBox.className = 'alert-banner alert-danger';
+      alertBox.textContent = 'Kawasan penanaman wajib dipilih.';
+      alertBox.classList.remove('hidden');
+      alertBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      showFieldError(document.getElementById('edit-act-zone-id'), 'Pilih kawasan penanaman.');
+      return;
+    }
+
     if (!locationZone) {
       alertBox.className = 'alert-banner alert-danger';
       alertBox.textContent = 'Zona deskriptif / blok penanaman wajib diisi.';
@@ -1483,6 +1367,15 @@ async function renderActivityEditFormView(activity, container, scenes = [], zone
       alertBox.classList.remove('hidden');
       alertBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
       showFieldError(document.getElementById('edit-act-pic'), 'Nama penanggung jawab (PIC) wajib diisi.');
+      return;
+    }
+
+    if (!org) {
+      alertBox.className = 'alert-banner alert-danger';
+      alertBox.textContent = 'Tim atau organisasi pelaksana wajib diisi.';
+      alertBox.classList.remove('hidden');
+      alertBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      showFieldError(document.getElementById('edit-act-org'), 'Tim atau organisasi pelaksana wajib diisi.');
       return;
     }
 
@@ -1527,7 +1420,7 @@ async function renderActivityEditFormView(activity, container, scenes = [], zone
     }
 
     const payload = {
-      batch_code: activity.batch_code,
+      batch_code: batchCode,
       activity_date: date,
       name,
       planting_zone_id: zoneId || null,
@@ -1548,11 +1441,13 @@ async function renderActivityEditFormView(activity, container, scenes = [], zone
     });
 
     try {
-      await ApiService.savePlantingActivity(payload, activity.id);
+      await ApiService.savePlantingActivity(payload, isEdit ? activity.id : null);
       EcoToast.show({
         type: 'success',
-        title: 'Berhasil diperbarui.',
-        message: `Data kegiatan penanaman '${activity.batch_code}' berhasil diperbarui.`,
+        title: isEdit ? 'Berhasil diperbarui.' : 'Berhasil disimpan.',
+        message: isEdit
+          ? `Data kegiatan penanaman '${batchCode}' berhasil diperbarui.`
+          : `Data kegiatan penanaman '${batchCode}' dan rincian bibit berhasil dicatat.`,
       });
       await renderActivitiesTab(container, scenes);
     } catch (err) {
@@ -1565,7 +1460,8 @@ async function renderActivityEditFormView(activity, container, scenes = [], zone
             const msg = Array.isArray(messages) ? messages.join(', ') : String(messages);
 
             // Map field error to form input
-            if (field === 'name') showFieldError(document.getElementById('edit-act-name'), msg);
+            if (field === 'batch_code') showFieldError(document.getElementById('edit-act-batch'), msg);
+            else if (field === 'name') showFieldError(document.getElementById('edit-act-name'), msg);
             else if (field === 'activity_date') showFieldError(document.getElementById('edit-act-date'), msg);
             else if (field === 'location_zone') showFieldError(document.getElementById('edit-act-zone'), msg);
             else if (field === 'planting_zone_id') showFieldError(document.getElementById('edit-act-zone-id'), msg);
@@ -1591,22 +1487,22 @@ async function renderActivityEditFormView(activity, container, scenes = [], zone
           .join('');
 
         alertBox.innerHTML = `
-          <strong>✕ Gagal memperbarui kegiatan: Terdapat kesalahan validasi input</strong>
+          <strong>✕ Gagal menyimpan kegiatan: Terdapat kesalahan validasi input</strong>
           <ul style="margin: 8px 0 0 18px; padding: 0;">${errorList}</ul>
           <div style="margin-top: 6px; font-size: 11px; opacity: 0.85;">Seluruh data input yang telah Anda isi tetap dipertahankan. Silakan periksa kembali dan simpan ulang.</div>
         `;
       } else {
-        alertBox.textContent = `Gagal memperbarui kegiatan penanaman: ${err.message}. Seluruh data input tetap dipertahankan.`;
+        alertBox.textContent = `Gagal menyimpan kegiatan penanaman: ${err.message}. Seluruh data input tetap dipertahankan.`;
       }
 
       alertBox.classList.remove('hidden');
       alertBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      EcoToast.error('✕ Gagal memperbarui kegiatan', err.message || 'Terjadi kesalahan validasi.');
+      EcoToast.error('✕ Gagal menyimpan kegiatan', err.message || 'Terjadi kesalahan validasi.');
 
       saveBtns.forEach((b) => {
         if (b) {
           b.disabled = false;
-          b.innerHTML = '💾 Simpan Perubahan';
+          b.innerHTML = `💾 ${isEdit ? 'Simpan Perubahan' : 'Simpan Kegiatan'}`;
         }
       });
     }
@@ -1615,6 +1511,9 @@ async function renderActivityEditFormView(activity, container, scenes = [], zone
   document.getElementById('btn-save-act-top')?.addEventListener('click', handleSave);
   document.getElementById('btn-save-act-bottom')?.addEventListener('click', handleSave);
 }
+
+const renderActivityEditFormView = renderActivityFormView;
+
 
 // ─────────────────────────────────────────────────────────────
 // 4. PEMANTAUAN TANAMAN (SURVEI HISTORIS)
@@ -1695,128 +1594,11 @@ async function renderSurveysTab(container) {
       </table>
     </div>
 
-    <!-- Modal Form Survei -->
-    <div id="modal-survey" class="admin-modal-overlay hidden">
-      <div class="admin-modal-box" style="max-width: 600px;">
-        <div class="admin-modal-header">
-          <h3>Catat Survei Pemantauan Baru</h3>
-          <button id="btn-close-survey-modal" class="icon-btn-sm">✕</button>
-        </div>
-        <form id="form-survey" class="admin-modal-body" style="display: flex; flex-direction: column; gap: 12px;">
-          <div class="form-row">
-            <div class="form-group" style="flex: 1;">
-              <label>Pilih Kelompok / Batch Penanaman: *</label>
-              <select id="srv-act" class="form-select" required>
-                <option value="">-- Pilih Batch --</option>
-                ${cachedActivities.map((a) => `<option value="${a.id}">${escapeHtml(a.batch_code)} - ${escapeHtml(a.name)} (${a.total_initial_seedlings} bibit)</option>`).join('')}
-              </select>
-            </div>
-            <div class="form-group" style="flex: 1;">
-              <label>Tanggal Pemeriksaan: *</label>
-              <input type="date" id="srv-date" class="form-input" required />
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group" style="flex: 1;">
-              <label>Jumlah Hidup Kelompok Awal: *</label>
-              <input type="number" id="srv-alive" class="form-input" required min="0" placeholder="0" />
-            </div>
-            <div class="form-group" style="flex: 1;">
-              <label>Jumlah Mati: *</label>
-              <input type="number" id="srv-dead" class="form-input" required min="0" value="0" />
-            </div>
-            <div class="form-group" style="flex: 1;">
-              <label>Jumlah Hilang / Belum Ketemu:</label>
-              <input type="number" id="srv-missing" class="form-input" min="0" value="0" />
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group" style="flex: 1;">
-              <label>Kondisi Kesehatan Tanaman: *</label>
-              <select id="srv-health" class="form-select" required>
-                <option value="sangat_baik">Sangat Baik (Segar, Tunas Aktif)</option>
-                <option value="baik" selected>Baik (Normal)</option>
-                <option value="sedang">Sedang (Daun Kekuningan/Kering Sebagian)</option>
-                <option value="merana">Merana (Pertumbuhan Terhambat)</option>
-                <option value="terserang_hama">Terserang Hama / Penyakit</option>
-              </select>
-            </div>
-            <div class="form-group" style="flex: 1;">
-              <label>Nama Petugas Pemeriksa: *</label>
-              <input type="text" id="srv-inspector" class="form-input" required placeholder="Nama Surveyor" />
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group" style="flex: 1;">
-              <label>Tinggi Rata-rata (cm, opsional):</label>
-              <input type="number" step="0.1" id="srv-height" class="form-input" placeholder="Misal: 65.5" />
-            </div>
-            <div class="form-group" style="flex: 1;">
-              <label>Diameter Batang (cm, opsional):</label>
-              <input type="number" step="0.1" id="srv-diameter" class="form-input" placeholder="Misal: 1.8" />
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Gejala / Penyebab Kerusakan (Jika ada):</label>
-            <input type="text" id="srv-symptoms" class="form-input" placeholder="Kekeringan, dimakan satwa, gulma tinggi..." />
-          </div>
-          <div class="form-group">
-            <label>Catatan Lapangan & Rekomendasi:</label>
-            <textarea id="srv-notes" class="form-textarea" rows="2" placeholder="Perlu pembersihan gulma, pasang ajir tambahan..."></textarea>
-          </div>
-          <div class="admin-modal-footer">
-            <button type="button" id="btn-cancel-survey" class="btn-secondary-action">Batal</button>
-            <button type="submit" class="btn-primary-action">Simpan Survei</button>
-          </div>
-        </form>
-      </div>
-    </div>
   `;
 
   // Bind Survey Events
-  const modal = document.getElementById('modal-survey');
-  const form = document.getElementById('form-survey');
-
-  document.getElementById('btn-add-survey')?.addEventListener('click', () => {
-    form.reset();
-    document.getElementById('srv-date').value = new Date().toISOString().split('T')[0];
-    modal.classList.remove('hidden');
-  });
-
-  document.getElementById('btn-close-survey-modal')?.addEventListener('click', () => modal.classList.add('hidden'));
-  document.getElementById('btn-cancel-survey')?.addEventListener('click', () => modal.classList.add('hidden'));
-
-  form?.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const surveyDateVal = parseDateForPayload(document.getElementById('srv-date').value);
-    if (!surveyDateVal) {
-      EcoToast.warning('Peringatan Input', 'Tanggal pemeriksaan wajib diisi dengan tanggal yang valid!');
-      return;
-    }
-
-    const payload = {
-      planting_activity_id: document.getElementById('srv-act').value,
-      survey_date: surveyDateVal,
-      alive_count: parseInt(document.getElementById('srv-alive').value, 10),
-      dead_count: parseInt(document.getElementById('srv-dead').value, 10) || 0,
-      missing_count: parseInt(document.getElementById('srv-missing').value, 10) || 0,
-      health_condition: document.getElementById('srv-health').value,
-      inspector_name: document.getElementById('srv-inspector').value.trim(),
-      average_height_cm: parseFloat(document.getElementById('srv-height').value) || null,
-      average_diameter_cm: parseFloat(document.getElementById('srv-diameter').value) || null,
-      damage_symptoms: document.getElementById('srv-symptoms').value.trim() || null,
-      field_notes: document.getElementById('srv-notes').value.trim() || null,
-      is_verified: true,
-    };
-
-    try {
-      await ApiService.saveTreeSurvey(payload);
-      EcoToast.saved('Catatan survei pemantauan pohon berhasil disimpan.');
-      modal.classList.add('hidden');
-      await renderSurveysTab(container);
-    } catch (err) {
-      EcoToast.error('✕ Gagal menyimpan survei', err.message);
-    }
+  document.getElementById('btn-add-survey')?.addEventListener('click', async () => {
+    await renderSurveyFormView(null, container);
   });
 
   document.querySelectorAll('.btn-edit-survey').forEach((btn) => {
@@ -1827,7 +1609,7 @@ async function renderSurveysTab(container) {
         btn.innerHTML = '⏳';
         const res = await ApiService.getTreeSurveyDetail(id);
         const srv = res.survey || res;
-        await renderSurveyEditFormView(srv, container);
+        await renderSurveyFormView(srv, container);
       } catch (e) {
         EcoToast.error('✕ Gagal memuat data survei', e.message);
         btn.disabled = false;
@@ -1853,10 +1635,12 @@ async function renderSurveysTab(container) {
 }
 
 /**
- * Halaman Khusus Formulir Edit Pemantauan Tanaman
- * Breadcrumb: Dashboard / Data Penanaman / Pemantauan Tanaman / Edit
+ * Halaman Formulir Pemantauan Tanaman (Tambah Baru & Edit)
+ * Breadcrumb: Dashboard / Data Penanaman / Pemantauan Tanaman / Catat Baru atau Edit
  */
-async function renderSurveyEditFormView(survey, container) {
+async function renderSurveyFormView(survey = null, container) {
+  const isEdit = !!survey;
+
   if (!cachedActivities || cachedActivities.length === 0) {
     const actRes = await ApiService.getPlantingActivities();
     cachedActivities = actRes.activities || [];
@@ -1872,16 +1656,16 @@ async function renderSurveyEditFormView(survey, container) {
         <span>&rsaquo;</span>
         <button type="button" id="breadcrumb-btn-srv-list" style="background: none; border: none; color: var(--clr-text-muted); cursor: pointer; padding: 0; font-size: 12px; text-decoration: underline;">Pemantauan Tanaman</button>
         <span>&rsaquo;</span>
-        <span style="color: #38bdf8; font-weight: 600;">Edit</span>
+        <span style="color: #38bdf8; font-weight: 600;">${isEdit ? 'Edit' : 'Catat Baru'}</span>
       </nav>
 
       <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
         <div>
           <h2 style="font-size: 20px; font-weight: 700; color: #fff; margin: 0; display: flex; align-items: center; gap: 8px;">
-            <span>✏️</span> Edit Pemantauan Tanaman: ${escapeHtml(survey.batch_code || survey.id)}
+            <span>${isEdit ? '✏️' : '➕'}</span> ${isEdit ? `Edit Pemantauan Tanaman: ${escapeHtml(survey.batch_code || survey.id)}` : 'Catat Hasil Survei Pemantauan Tanaman'}
           </h2>
           <p style="font-size: 13px; color: var(--clr-text-muted); margin: 4px 0 0;">
-            Koreksi hasil sensus lapangan, kondisi kesehatan bibit, dan pengukuran silvikultur batch tanaman.
+            ${isEdit ? 'Koreksi hasil sensus lapangan, kondisi kesehatan bibit, dan pengukuran silvikultur batch tanaman.' : 'Rekam hasil sensus berkala, laju kelangsungan hidup, dan catatan silvikultur per batch penanaman.'}
           </p>
         </div>
 
@@ -1893,17 +1677,17 @@ async function renderSurveyEditFormView(survey, container) {
             Batal
           </button>
           <button type="button" id="btn-save-srv-top" class="btn-primary-action btn-sm">
-            💾 Simpan Perubahan
+            💾 ${isEdit ? 'Simpan Perubahan' : 'Simpan Survei'}
           </button>
         </div>
       </div>
     </div>
 
     <!-- Alert Notifikasi / Error Validasi -->
-    <div id="srv-edit-alert" class="hidden" style="margin-bottom: 20px; padding: 14px 18px; border-radius: 8px; font-size: 13px;"></div>
+    <div id="srv-form-alert" class="hidden" style="margin-bottom: 20px; padding: 14px 18px; border-radius: 8px; font-size: 13px;"></div>
 
-    <form id="form-edit-survey" style="display: flex; flex-direction: column; gap: 20px;">
-      <!-- CARD 1: IDENTITAS & WAKTU PEMANTAUAN -->
+    <form id="form-survey-page" style="display: flex; flex-direction: column; gap: 20px;">
+      <!-- CARD 1: INFORMASI BATCH & JADWAL PEMANTAUAN -->
       <div class="admin-pane-card" style="background: var(--clr-surface); border: 1px solid var(--clr-border); border-radius: 12px; padding: 22px;">
         <div style="border-bottom: 1px solid var(--clr-border-subtle); padding-bottom: 12px; margin-bottom: 18px; display: flex; justify-content: space-between; align-items: center;">
           <h3 style="font-size: 15px; font-weight: 700; color: #fff; margin: 0; display: flex; align-items: center; gap: 8px;">
@@ -1914,28 +1698,28 @@ async function renderSurveyEditFormView(survey, container) {
 
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
           <div class="form-group">
-            <label for="edit-srv-act" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
+            <label for="srv-form-act" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
               Kelompok / Batch Penanaman: <span style="color: #ef4444;">*</span>
             </label>
-            <select id="edit-srv-act" class="form-select" required>
+            <select id="srv-form-act" class="form-select" required>
               <option value="">-- Pilih Batch Penanaman --</option>
-              ${cachedActivities.map((a) => `<option value="${a.id}" ${a.id === survey.planting_activity_id ? 'selected' : ''}>${escapeHtml(a.batch_code)} - ${escapeHtml(a.name)} (${a.total_initial_seedlings} bibit)</option>`).join('')}
+              ${cachedActivities.map((a) => `<option value="${a.id}" ${survey && a.id === survey.planting_activity_id ? 'selected' : ''}>${escapeHtml(a.batch_code)} - ${escapeHtml(a.name)} (${a.total_initial_seedlings} bibit)</option>`).join('')}
             </select>
           </div>
 
           <div class="form-group">
-            <label for="edit-srv-date" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
+            <label for="srv-form-date" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
               Tanggal Pemeriksaan: <span style="color: #ef4444;">*</span>
             </label>
-            <input type="date" id="edit-srv-date" class="form-input" required value="${toDateInputValue(survey.survey_date)}" />
-            <small style="color: var(--clr-text-muted); font-size: 11px;">Format tersimpan: YYYY-MM-DD • Tampilan: ${formatDateDisplay(survey.survey_date)}</small>
+            <input type="date" id="srv-form-date" class="form-input" required value="${survey ? toDateInputValue(survey.survey_date) : new Date().toISOString().split('T')[0]}" />
+            <small style="color: var(--clr-text-muted); font-size: 11px;">Format tersimpan: YYYY-MM-DD ${survey ? `• Tampilan sebelumnya: ${formatDateDisplay(survey.survey_date)}` : ''}</small>
           </div>
 
           <div class="form-group" style="grid-column: 1 / -1;">
-            <label for="edit-srv-inspector" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
+            <label for="srv-form-inspector" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
               Nama Petugas Pemeriksa: <span style="color: #ef4444;">*</span>
             </label>
-            <input type="text" id="edit-srv-inspector" class="form-input" required placeholder="Nama Surveyor / Tim Lapangan" value="${escapeHtml(survey.inspector_name || '')}" />
+            <input type="text" id="srv-form-inspector" class="form-input" required placeholder="Nama Surveyor / Tim Lapangan" value="${escapeHtml(survey?.inspector_name || '')}" />
           </div>
         </div>
       </div>
@@ -1950,39 +1734,39 @@ async function renderSurveyEditFormView(survey, container) {
 
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px;">
           <div class="form-group">
-            <label for="edit-srv-alive" style="color: #10b981; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
+            <label for="srv-form-alive" style="color: #10b981; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
               Jumlah Bibit Hidup: <span style="color: #ef4444;">*</span>
             </label>
-            <input type="number" id="edit-srv-alive" class="form-input" required min="0" value="${survey.alive_count}" />
+            <input type="number" id="srv-form-alive" class="form-input" required min="0" placeholder="0" value="${survey ? survey.alive_count : ''}" />
             <small style="color: var(--clr-text-muted); font-size: 11px;">Bibit yang masih tegak dan hidup.</small>
           </div>
 
           <div class="form-group">
-            <label for="edit-srv-dead" style="color: #ef4444; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
+            <label for="srv-form-dead" style="color: #ef4444; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
               Jumlah Mati: <span style="color: #ef4444;">*</span>
             </label>
-            <input type="number" id="edit-srv-dead" class="form-input" required min="0" value="${survey.dead_count}" />
+            <input type="number" id="srv-form-dead" class="form-input" required min="0" value="${survey ? survey.dead_count : 0}" />
             <small style="color: var(--clr-text-muted); font-size: 11px;">Bibit mati / kering.</small>
           </div>
 
           <div class="form-group">
-            <label for="edit-srv-missing" style="color: #f59e0b; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
+            <label for="srv-form-missing" style="color: #f59e0b; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
               Jumlah Hilang:
             </label>
-            <input type="number" id="edit-srv-missing" class="form-input" min="0" value="${survey.missing_count || 0}" />
+            <input type="number" id="srv-form-missing" class="form-input" min="0" value="${survey ? (survey.missing_count || 0) : 0}" />
             <small style="color: var(--clr-text-muted); font-size: 11px;">Ajir ada namun tanaman raib.</small>
           </div>
 
           <div class="form-group">
-            <label for="edit-srv-health" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
+            <label for="srv-form-health" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
               Kondisi Kesehatan Tanaman: <span style="color: #ef4444;">*</span>
             </label>
-            <select id="edit-srv-health" class="form-select" required>
-              <option value="sangat_baik" ${survey.health_condition === 'sangat_baik' ? 'selected' : ''}>Sangat Baik (Segar, Tunas Aktif)</option>
-              <option value="baik" ${survey.health_condition === 'baik' ? 'selected' : ''}>Baik (Pertumbuhan Normal)</option>
-              <option value="sedang" ${survey.health_condition === 'sedang' ? 'selected' : ''}>Sedang (Daun Menguning/Kering Parsial)</option>
-              <option value="merana" ${survey.health_condition === 'merana' ? 'selected' : ''}>Merana (Pertumbuhan Terhambat)</option>
-              <option value="terserang_hama" ${survey.health_condition === 'terserang_hama' ? 'selected' : ''}>Terserang Hama / Penyakit</option>
+            <select id="srv-form-health" class="form-select" required>
+              <option value="sangat_baik" ${survey?.health_condition === 'sangat_baik' ? 'selected' : ''}>Sangat Baik (Segar, Tunas Aktif)</option>
+              <option value="baik" ${!survey || survey?.health_condition === 'baik' ? 'selected' : ''}>Baik (Pertumbuhan Normal)</option>
+              <option value="sedang" ${survey?.health_condition === 'sedang' ? 'selected' : ''}>Sedang (Daun Menguning/Kering Parsial)</option>
+              <option value="merana" ${survey?.health_condition === 'merana' ? 'selected' : ''}>Merana (Pertumbuhan Terhambat)</option>
+              <option value="terserang_hama" ${survey?.health_condition === 'terserang_hama' ? 'selected' : ''}>Terserang Hama / Penyakit</option>
             </select>
           </div>
         </div>
@@ -1998,31 +1782,31 @@ async function renderSurveyEditFormView(survey, container) {
 
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
           <div class="form-group">
-            <label for="edit-srv-height" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
+            <label for="srv-form-height" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
               Tinggi Rata-rata (cm, opsional):
             </label>
-            <input type="number" step="0.1" min="0" id="edit-srv-height" class="form-input" placeholder="Misal: 65.5" value="${survey.average_height_cm || ''}" />
+            <input type="number" step="0.1" min="0" id="srv-form-height" class="form-input" placeholder="Misal: 65.5" value="${survey?.average_height_cm || ''}" />
           </div>
 
           <div class="form-group">
-            <label for="edit-srv-diameter" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
+            <label for="srv-form-diameter" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
               Diameter Batang Rata-rata (cm, opsional):
             </label>
-            <input type="number" step="0.1" min="0" id="edit-srv-diameter" class="form-input" placeholder="Misal: 1.8" value="${survey.average_diameter_cm || ''}" />
+            <input type="number" step="0.1" min="0" id="srv-form-diameter" class="form-input" placeholder="Misal: 1.8" value="${survey?.average_diameter_cm || ''}" />
           </div>
 
           <div class="form-group" style="grid-column: 1 / -1;">
-            <label for="edit-srv-symptoms" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
+            <label for="srv-form-symptoms" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
               Gejala / Penyebab Kerusakan (Jika ada):
             </label>
-            <input type="text" id="edit-srv-symptoms" class="form-input" placeholder="Kekeringan, dimakan satwa, tertutup gulma..." value="${escapeHtml(survey.damage_symptoms || '')}" />
+            <input type="text" id="srv-form-symptoms" class="form-input" placeholder="Kekeringan, dimakan satwa, tertutup gulma..." value="${escapeHtml(survey?.damage_symptoms || '')}" />
           </div>
 
           <div class="form-group" style="grid-column: 1 / -1;">
-            <label for="edit-srv-notes" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
+            <label for="srv-form-notes" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
               Catatan Lapangan & Rekomendasi Tindakan:
             </label>
-            <textarea id="edit-srv-notes" class="form-textarea" rows="3" placeholder="Perlu penyiangan piringan, pemupukan tambahan, penyulaman...">${escapeHtml(survey.field_notes || '')}</textarea>
+            <textarea id="srv-form-notes" class="form-textarea" rows="3" placeholder="Perlu penyiangan piringan, pemupukan tambahan, penyulaman...">${escapeHtml(survey?.field_notes || '')}</textarea>
           </div>
         </div>
       </div>
@@ -2033,7 +1817,7 @@ async function renderSurveyEditFormView(survey, container) {
           Batal
         </button>
         <button type="button" id="btn-save-srv-bottom" class="btn-primary-action">
-          💾 Simpan Perubahan
+          💾 ${isEdit ? 'Simpan Perubahan' : 'Simpan Survei'}
         </button>
       </div>
     </form>
@@ -2051,22 +1835,22 @@ async function renderSurveyEditFormView(survey, container) {
 
   // Save handler
   const handleSave = async () => {
-    const alertBox = document.getElementById('srv-edit-alert');
+    const alertBox = document.getElementById('srv-form-alert');
     alertBox.classList.add('hidden');
     alertBox.textContent = '';
 
-    const actId = document.getElementById('edit-srv-act').value;
-    const rawDate = document.getElementById('edit-srv-date').value;
+    const actId = document.getElementById('srv-form-act').value;
+    const rawDate = document.getElementById('srv-form-date').value;
     const date = parseDateForPayload(rawDate);
-    const inspector = document.getElementById('edit-srv-inspector').value.trim();
-    const aliveStr = document.getElementById('edit-srv-alive').value;
-    const deadStr = document.getElementById('edit-srv-dead').value;
-    const missingStr = document.getElementById('edit-srv-missing').value;
-    const health = document.getElementById('edit-srv-health').value;
-    const height = parseFloat(document.getElementById('edit-srv-height').value) || null;
-    const diameter = parseFloat(document.getElementById('edit-srv-diameter').value) || null;
-    const symptoms = document.getElementById('edit-srv-symptoms').value.trim() || null;
-    const notes = document.getElementById('edit-srv-notes').value.trim() || null;
+    const inspector = document.getElementById('srv-form-inspector').value.trim();
+    const aliveStr = document.getElementById('srv-form-alive').value;
+    const deadStr = document.getElementById('srv-form-dead').value;
+    const missingStr = document.getElementById('srv-form-missing').value;
+    const health = document.getElementById('srv-form-health').value;
+    const height = parseFloat(document.getElementById('srv-form-height').value) || null;
+    const diameter = parseFloat(document.getElementById('srv-form-diameter').value) || null;
+    const symptoms = document.getElementById('srv-form-symptoms').value.trim() || null;
+    const notes = document.getElementById('srv-form-notes').value.trim() || null;
 
     if (!actId) {
       alertBox.className = 'alert-banner alert-danger';
@@ -2098,7 +1882,7 @@ async function renderSurveyEditFormView(survey, container) {
 
     if (isNaN(alive) || alive < 0) {
       alertBox.className = 'alert-banner alert-danger';
-      alertBox.textContent = 'Jumlah bibit hidup tidak boleh negatif.';
+      alertBox.textContent = 'Jumlah bibit hidup tidak boleh kosong atau bernilai negatif.';
       alertBox.classList.remove('hidden');
       alertBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
@@ -2156,23 +1940,27 @@ async function renderSurveyEditFormView(survey, container) {
     });
 
     try {
-      await ApiService.saveTreeSurvey(payload, survey.id);
-      EcoToast.show({
-        type: 'success',
-        title: 'Berhasil diperbarui.',
-        message: 'Data hasil pemantauan tanaman berhasil diperbarui.',
-      });
+      await ApiService.saveTreeSurvey(payload, isEdit ? survey.id : null);
+      if (isEdit) {
+        EcoToast.show({
+          type: 'success',
+          title: 'Berhasil diperbarui.',
+          message: 'Data hasil pemantauan tanaman berhasil diperbarui.',
+        });
+      } else {
+        EcoToast.saved('Catatan survei pemantauan pohon berhasil disimpan.');
+      }
       await renderSurveysTab(container);
     } catch (err) {
       alertBox.className = 'alert-banner alert-danger';
-      alertBox.textContent = `Gagal memperbarui survei: ${err.message}. Seluruh data input tetap dipertahankan.`;
+      alertBox.textContent = `Gagal menyimpan survei: ${err.message}. Seluruh data input tetap dipertahankan.`;
       alertBox.classList.remove('hidden');
       alertBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      EcoToast.error('✕ Gagal memperbarui survei', err.message);
+      EcoToast.error('✕ Gagal menyimpan survei', err.message);
       saveBtns.forEach((b) => {
         if (b) {
           b.disabled = false;
-          b.innerHTML = '💾 Simpan Perubahan';
+          b.innerHTML = isEdit ? '💾 Simpan Perubahan' : '💾 Simpan Survei';
         }
       });
     }
@@ -2181,6 +1969,8 @@ async function renderSurveyEditFormView(survey, container) {
   document.getElementById('btn-save-srv-top')?.addEventListener('click', handleSave);
   document.getElementById('btn-save-srv-bottom')?.addEventListener('click', handleSave);
 }
+
+const renderSurveyEditFormView = renderSurveyFormView;
 
 // ─────────────────────────────────────────────────────────────
 // 5. PERAWATAN DAN PENYULAMAN
@@ -2253,111 +2043,11 @@ async function renderMaintenanceTab(container) {
       </table>
     </div>
 
-    <!-- Modal Form Perawatan -->
-    <div id="modal-maintenance" class="admin-modal-overlay hidden">
-      <div class="admin-modal-box" style="max-width: 580px;">
-        <div class="admin-modal-header">
-          <h3>Catat Perawatan / Penyulaman</h3>
-          <button id="btn-close-maintenance-modal" class="icon-btn-sm">✕</button>
-        </div>
-        <form id="form-maintenance" class="admin-modal-body" style="display: flex; flex-direction: column; gap: 12px;">
-          <div class="form-row">
-            <div class="form-group" style="flex: 1;">
-              <label>Kelompok / Batch Penanaman: *</label>
-              <select id="mnt-act" class="form-select" required>
-                <option value="">-- Pilih Batch --</option>
-                ${cachedActivities.map((a) => `<option value="${a.id}">${escapeHtml(a.batch_code)} - ${escapeHtml(a.name)}</option>`).join('')}
-              </select>
-            </div>
-            <div class="form-group" style="flex: 1;">
-              <label>Tanggal Pelaksanaan: *</label>
-              <input type="date" id="mnt-date" class="form-input" required />
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group" style="flex: 1;">
-              <label>Jenis Tindakan Silvikultur: *</label>
-              <select id="mnt-action" class="form-select" required>
-                <option value="penyiangan">Penyiangan (Pembersihan Gulma)</option>
-                <option value="penyiraman">Penyiraman</option>
-                <option value="pemupukan">Pemupukan</option>
-                <option value="perlindungan_bibit">Perlindungan Bibit / Ajir</option>
-                <option value="pengendalian_gangguan">Pengendalian Hama / Gangguan</option>
-                <option value="penyulaman">Penyulaman (Tanam Pengganti Bibit Mati)</option>
-              </select>
-            </div>
-            <div class="form-group" style="flex: 1;">
-              <label>Petugas / Tim Pelaksana: *</label>
-              <input type="text" id="mnt-team" class="form-input" required placeholder="Tim Silvikultur IKHW" />
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group" style="flex: 1;">
-              <label>Jumlah Tanaman Ditangani:</label>
-              <input type="number" id="mnt-handled" class="form-input" min="0" placeholder="0" />
-            </div>
-            <div class="form-group" style="flex: 1;" id="mnt-replant-group">
-              <label style="color: #f59e0b;">Bibit Penyulaman (Pengganti):</label>
-              <input type="number" id="mnt-replacement" class="form-input" min="0" value="0" placeholder="0" />
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Alasan Tindakan:</label>
-            <input type="text" id="mnt-reason" class="form-input" placeholder="Gulma menutupi tajuk bibit / bibit mati kekeringan..." />
-          </div>
-          <div class="form-group">
-            <label>Catatan Tambahan:</label>
-            <textarea id="mnt-notes" class="form-textarea" rows="2"></textarea>
-          </div>
-          <div class="admin-modal-footer">
-            <button type="button" id="btn-cancel-maintenance" class="btn-secondary-action">Batal</button>
-            <button type="submit" class="btn-primary-action">Simpan Perawatan</button>
-          </div>
-        </form>
-      </div>
-    </div>
   `;
 
   // Bind Maintenance Events
-  const modal = document.getElementById('modal-maintenance');
-  const form = document.getElementById('form-maintenance');
-
-  document.getElementById('btn-add-maintenance')?.addEventListener('click', () => {
-    form.reset();
-    document.getElementById('mnt-date').value = new Date().toISOString().split('T')[0];
-    modal.classList.remove('hidden');
-  });
-
-  document.getElementById('btn-close-maintenance-modal')?.addEventListener('click', () => modal.classList.add('hidden'));
-  document.getElementById('btn-cancel-maintenance')?.addEventListener('click', () => modal.classList.add('hidden'));
-
-  form?.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const mntDateVal = parseDateForPayload(document.getElementById('mnt-date').value);
-    if (!mntDateVal) {
-      EcoToast.warning('Peringatan Input', 'Tanggal pelaksanaan perawatan wajib diisi dengan tanggal yang valid!');
-      return;
-    }
-
-    const payload = {
-      planting_activity_id: document.getElementById('mnt-act').value,
-      maintenance_date: mntDateVal,
-      action_type: document.getElementById('mnt-action').value,
-      officer_or_team: document.getElementById('mnt-team').value.trim(),
-      plants_handled_count: parseInt(document.getElementById('mnt-handled').value, 10) || 0,
-      replacement_plants_count: parseInt(document.getElementById('mnt-replacement').value, 10) || 0,
-      action_reason: document.getElementById('mnt-reason').value.trim() || null,
-      notes: document.getElementById('mnt-notes').value.trim() || null,
-    };
-
-    try {
-      await ApiService.saveTreeMaintenance(payload);
-      EcoToast.saved('Catatan perawatan dan penyulaman berhasil disimpan.');
-      modal.classList.add('hidden');
-      await renderMaintenanceTab(container);
-    } catch (err) {
-      EcoToast.error('✕ Gagal menyimpan perawatan', err.message);
-    }
+  document.getElementById('btn-add-maintenance')?.addEventListener('click', async () => {
+    await renderMaintenanceFormView(null, container);
   });
 
   document.querySelectorAll('.btn-edit-maintenance').forEach((btn) => {
@@ -2368,7 +2058,7 @@ async function renderMaintenanceTab(container) {
         btn.innerHTML = '⏳';
         const res = await ApiService.getTreeMaintenanceDetail(id);
         const log = res.log || res.maintenance || res;
-        await renderMaintenanceEditFormView(log, container);
+        await renderMaintenanceFormView(log, container);
       } catch (e) {
         EcoToast.error('✕ Gagal memuat data perawatan', e.message);
         btn.disabled = false;
@@ -2394,10 +2084,12 @@ async function renderMaintenanceTab(container) {
 }
 
 /**
- * Halaman Khusus Formulir Edit Perawatan dan Penyulaman
- * Breadcrumb: Dashboard / Data Penanaman / Perawatan dan Penyulaman / Edit
+ * Halaman Formulir Perawatan dan Penyulaman (Tambah Baru & Edit)
+ * Breadcrumb: Dashboard / Data Penanaman / Perawatan dan Penyulaman / Catat Baru atau Edit
  */
-async function renderMaintenanceEditFormView(log, container) {
+async function renderMaintenanceFormView(log = null, container) {
+  const isEdit = !!log;
+
   if (!cachedActivities || cachedActivities.length === 0) {
     const actRes = await ApiService.getPlantingActivities();
     cachedActivities = actRes.activities || [];
@@ -2413,16 +2105,16 @@ async function renderMaintenanceEditFormView(log, container) {
         <span>&rsaquo;</span>
         <button type="button" id="breadcrumb-btn-mnt-list" style="background: none; border: none; color: var(--clr-text-muted); cursor: pointer; padding: 0; font-size: 12px; text-decoration: underline;">Perawatan dan Penyulaman</button>
         <span>&rsaquo;</span>
-        <span style="color: #38bdf8; font-weight: 600;">Edit</span>
+        <span style="color: #38bdf8; font-weight: 600;">${isEdit ? 'Edit' : 'Catat Baru'}</span>
       </nav>
 
-      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: gap: 12px;">
         <div>
           <h2 style="font-size: 20px; font-weight: 700; color: #fff; margin: 0; display: flex; align-items: center; gap: 8px;">
-            <span>✏️</span> Edit Perawatan & Penyulaman: ${escapeHtml(log.batch_code || log.id)}
+            <span>${isEdit ? '✏️' : '➕'}</span> ${isEdit ? `Edit Perawatan & Penyulaman: ${escapeHtml(log.batch_code || log.id)}` : 'Catat Tindakan Perawatan / Penyulaman'}
           </h2>
           <p style="font-size: 13px; color: var(--clr-text-muted); margin: 4px 0 0;">
-            Koreksi tindakan silvikultur, bibit penyulaman baru, dan tim pelaksana penanganan bibit.
+            ${isEdit ? 'Koreksi tindakan silvikultur, bibit penyulaman baru, dan tim pelaksana penanganan bibit.' : 'Catat tindakan silvikultur (penyiangan, penyiraman, pemupukan) atau penyulaman bibit baru pengganti.'}
           </p>
         </div>
 
@@ -2434,16 +2126,16 @@ async function renderMaintenanceEditFormView(log, container) {
             Batal
           </button>
           <button type="button" id="btn-save-mnt-top" class="btn-primary-action btn-sm">
-            💾 Simpan Perubahan
+            💾 ${isEdit ? 'Simpan Perubahan' : 'Simpan Tindakan'}
           </button>
         </div>
       </div>
     </div>
 
     <!-- Alert Notifikasi / Error Validasi -->
-    <div id="mnt-edit-alert" class="hidden" style="margin-bottom: 20px; padding: 14px 18px; border-radius: 8px; font-size: 13px;"></div>
+    <div id="mnt-form-alert" class="hidden" style="margin-bottom: 20px; padding: 14px 18px; border-radius: 8px; font-size: 13px;"></div>
 
-    <form id="form-edit-maintenance" style="display: flex; flex-direction: column; gap: 20px;">
+    <form id="form-maintenance-page" style="display: flex; flex-direction: column; gap: 20px;">
       <!-- CARD 1: INFORMASI BATCH & WAKTU -->
       <div class="admin-pane-card" style="background: var(--clr-surface); border: 1px solid var(--clr-border); border-radius: 12px; padding: 22px;">
         <div style="border-bottom: 1px solid var(--clr-border-subtle); padding-bottom: 12px; margin-bottom: 18px; display: flex; justify-content: space-between; align-items: center;">
@@ -2455,28 +2147,28 @@ async function renderMaintenanceEditFormView(log, container) {
 
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
           <div class="form-group">
-            <label for="edit-mnt-act" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
+            <label for="mnt-form-act" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
               Kelompok / Batch Penanaman: <span style="color: #ef4444;">*</span>
             </label>
-            <select id="edit-mnt-act" class="form-select" required>
+            <select id="mnt-form-act" class="form-select" required>
               <option value="">-- Pilih Batch Penanaman --</option>
-              ${cachedActivities.map((a) => `<option value="${a.id}" ${a.id === log.planting_activity_id ? 'selected' : ''}>${escapeHtml(a.batch_code)} - ${escapeHtml(a.name)}</option>`).join('')}
+              ${cachedActivities.map((a) => `<option value="${a.id}" ${log && a.id === log.planting_activity_id ? 'selected' : ''}>${escapeHtml(a.batch_code)} - ${escapeHtml(a.name)}</option>`).join('')}
             </select>
           </div>
 
           <div class="form-group">
-            <label for="edit-mnt-date" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
+            <label for="mnt-form-date" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
               Tanggal Pelaksanaan: <span style="color: #ef4444;">*</span>
             </label>
-            <input type="date" id="edit-mnt-date" class="form-input" required value="${toDateInputValue(log.maintenance_date)}" />
-            <small style="color: var(--clr-text-muted); font-size: 11px;">Format tersimpan: YYYY-MM-DD • Tampilan: ${formatDateDisplay(log.maintenance_date)}</small>
+            <input type="date" id="mnt-form-date" class="form-input" required value="${log ? toDateInputValue(log.maintenance_date) : new Date().toISOString().split('T')[0]}" />
+            <small style="color: var(--clr-text-muted); font-size: 11px;">Format tersimpan: YYYY-MM-DD ${log ? `• Tampilan sebelumnya: ${formatDateDisplay(log.maintenance_date)}` : ''}</small>
           </div>
 
           <div class="form-group" style="grid-column: 1 / -1;">
-            <label for="edit-mnt-team" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
+            <label for="mnt-form-team" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
               Petugas / Tim Pelaksana: <span style="color: #ef4444;">*</span>
             </label>
-            <input type="text" id="edit-mnt-team" class="form-input" required placeholder="Contoh: Tim Silvikultur IKHW" value="${escapeHtml(log.officer_or_team || '')}" />
+            <input type="text" id="mnt-form-team" class="form-input" required placeholder="Contoh: Tim Silvikultur IKHW" value="${escapeHtml(log?.officer_or_team || 'Tim Silvikultur IKHW')}" />
           </div>
         </div>
       </div>
@@ -2491,40 +2183,40 @@ async function renderMaintenanceEditFormView(log, container) {
 
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
           <div class="form-group">
-            <label for="edit-mnt-action" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
+            <label for="mnt-form-action" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
               Jenis Tindakan Silvikultur: <span style="color: #ef4444;">*</span>
             </label>
-            <select id="edit-mnt-action" class="form-select" required>
-              <option value="penyiangan" ${log.action_type === 'penyiangan' ? 'selected' : ''}>Penyiangan (Pembersihan Gulma & Piringan)</option>
-              <option value="penyiraman" ${log.action_type === 'penyiraman' ? 'selected' : ''}>Penyiraman</option>
-              <option value="pemupukan" ${log.action_type === 'pemupukan' ? 'selected' : ''}>Pemupukan (Organik / NPK)</option>
-              <option value="perlindungan_bibit" ${log.action_type === 'perlindungan_bibit' ? 'selected' : ''}>Perlindungan Bibit / Ajir / Mulsa</option>
-              <option value="pengendalian_gangguan" ${log.action_type === 'pengendalian_gangguan' ? 'selected' : ''}>Pengendalian Hama / Gangguan</option>
-              <option value="penyulaman" ${log.action_type === 'penyulaman' ? 'selected' : ''}>Penyulaman (Tanam Pengganti Bibit Mati)</option>
+            <select id="mnt-form-action" class="form-select" required>
+              <option value="penyiangan" ${!log || log.action_type === 'penyiangan' ? 'selected' : ''}>Penyiangan (Pembersihan Gulma & Piringan)</option>
+              <option value="penyiraman" ${log?.action_type === 'penyiraman' ? 'selected' : ''}>Penyiraman</option>
+              <option value="pemupukan" ${log?.action_type === 'pemupukan' ? 'selected' : ''}>Pemupukan (Organik / NPK)</option>
+              <option value="perlindungan_bibit" ${log?.action_type === 'perlindungan_bibit' ? 'selected' : ''}>Perlindungan Bibit / Ajir / Mulsa</option>
+              <option value="pengendalian_gangguan" ${log?.action_type === 'pengendalian_gangguan' ? 'selected' : ''}>Pengendalian Hama / Gangguan</option>
+              <option value="penyulaman" ${log?.action_type === 'penyulaman' ? 'selected' : ''}>Penyulaman (Tanam Pengganti Bibit Mati)</option>
             </select>
           </div>
 
           <div class="form-group">
-            <label for="edit-mnt-handled" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
+            <label for="mnt-form-handled" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
               Jumlah Tanaman Ditangani:
             </label>
-            <input type="number" id="edit-mnt-handled" class="form-input" min="0" value="${log.plants_handled_count || 0}" />
+            <input type="number" id="mnt-form-handled" class="form-input" min="0" value="${log ? (log.plants_handled_count || 0) : 0}" />
             <small style="color: var(--clr-text-muted); font-size: 11px;">Jumlah batang pohon yang dirawat / disiangi / dipupuk.</small>
           </div>
 
           <div class="form-group">
-            <label for="edit-mnt-replacement" style="color: #f59e0b; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
+            <label for="mnt-form-replacement" style="color: #f59e0b; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
               Bibit Penyulaman (Bibit Baru Pengganti):
             </label>
-            <input type="number" id="edit-mnt-replacement" class="form-input" min="0" value="${log.replacement_plants_count || 0}" />
+            <input type="number" id="mnt-form-replacement" class="form-input" min="0" value="${log ? (log.replacement_plants_count || 0) : 0}" />
             <small style="color: #f59e0b; font-size: 11px;">⚠️ Bibit pengganti dicatat terpisah dan tidak menggabungkan bibit awal.</small>
           </div>
 
           <div class="form-group">
-            <label for="edit-mnt-cost" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
+            <label for="mnt-form-cost" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
               Estimasi Biaya Tindakan (Rp, opsional):
             </label>
-            <input type="number" min="0" id="edit-mnt-cost" class="form-input" placeholder="Contoh: 150000" value="${log.cost || ''}" />
+            <input type="number" min="0" id="mnt-form-cost" class="form-input" placeholder="Contoh: 150000" value="${log?.cost || ''}" />
           </div>
         </div>
       </div>
@@ -2539,17 +2231,17 @@ async function renderMaintenanceEditFormView(log, container) {
 
         <div style="display: flex; flex-direction: column; gap: 16px;">
           <div class="form-group">
-            <label for="edit-mnt-reason" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
+            <label for="mnt-form-reason" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
               Penyebab / Alasan Tindakan:
             </label>
-            <input type="text" id="edit-mnt-reason" class="form-input" placeholder="Gulma menutupi tajuk bibit / bibit mati kekeringan / pemupukan berkala..." value="${escapeHtml(log.action_reason || '')}" />
+            <input type="text" id="mnt-form-reason" class="form-input" placeholder="Gulma menutupi tajuk bibit / bibit mati kekeringan / pemupukan berkala..." value="${escapeHtml(log?.action_reason || '')}" />
           </div>
 
           <div class="form-group">
-            <label for="edit-mnt-notes" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
+            <label for="mnt-form-notes" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
               Catatan Tambahan & Dokumentasi:
             </label>
-            <textarea id="edit-mnt-notes" class="form-textarea" rows="3" placeholder="Kondisi pasca tindakan, rekomendasi pemantauan lanjutan...">${escapeHtml(log.notes || '')}</textarea>
+            <textarea id="mnt-form-notes" class="form-textarea" rows="3" placeholder="Kondisi pasca tindakan, rekomendasi pemantauan lanjutan...">${escapeHtml(log?.notes || '')}</textarea>
           </div>
         </div>
       </div>
@@ -2560,7 +2252,7 @@ async function renderMaintenanceEditFormView(log, container) {
           Batal
         </button>
         <button type="button" id="btn-save-mnt-bottom" class="btn-primary-action">
-          💾 Simpan Perubahan
+          💾 ${isEdit ? 'Simpan Perubahan' : 'Simpan Tindakan'}
         </button>
       </div>
     </form>
@@ -2578,20 +2270,20 @@ async function renderMaintenanceEditFormView(log, container) {
 
   // Save handler
   const handleSave = async () => {
-    const alertBox = document.getElementById('mnt-edit-alert');
+    const alertBox = document.getElementById('mnt-form-alert');
     alertBox.classList.add('hidden');
     alertBox.textContent = '';
 
-    const actId = document.getElementById('edit-mnt-act').value;
-    const rawDate = document.getElementById('edit-mnt-date').value;
+    const actId = document.getElementById('mnt-form-act').value;
+    const rawDate = document.getElementById('mnt-form-date').value;
     const date = parseDateForPayload(rawDate);
-    const action = document.getElementById('edit-mnt-action').value;
-    const team = document.getElementById('edit-mnt-team').value.trim();
-    const handledStr = document.getElementById('edit-mnt-handled').value;
-    const replStr = document.getElementById('edit-mnt-replacement').value;
-    const costStr = document.getElementById('edit-mnt-cost').value;
-    const reason = document.getElementById('edit-mnt-reason').value.trim() || null;
-    const notes = document.getElementById('edit-mnt-notes').value.trim() || null;
+    const action = document.getElementById('mnt-form-action').value;
+    const team = document.getElementById('mnt-form-team').value.trim();
+    const handledStr = document.getElementById('mnt-form-handled').value;
+    const replStr = document.getElementById('mnt-form-replacement').value;
+    const costStr = document.getElementById('mnt-form-cost').value;
+    const reason = document.getElementById('mnt-form-reason').value.trim() || null;
+    const notes = document.getElementById('mnt-form-notes').value.trim() || null;
 
     if (!actId) {
       alertBox.className = 'alert-banner alert-danger';
@@ -2658,23 +2350,27 @@ async function renderMaintenanceEditFormView(log, container) {
     });
 
     try {
-      await ApiService.saveTreeMaintenance(payload, log.id);
-      EcoToast.show({
-        type: 'success',
-        title: 'Berhasil diperbarui.',
-        message: 'Catatan perawatan dan penyulaman berhasil diperbarui.',
-      });
+      await ApiService.saveTreeMaintenance(payload, isEdit ? log.id : null);
+      if (isEdit) {
+        EcoToast.show({
+          type: 'success',
+          title: 'Berhasil diperbarui.',
+          message: 'Catatan perawatan dan penyulaman berhasil diperbarui.',
+        });
+      } else {
+        EcoToast.saved('Catatan perawatan dan penyulaman berhasil disimpan.');
+      }
       await renderMaintenanceTab(container);
     } catch (err) {
       alertBox.className = 'alert-banner alert-danger';
-      alertBox.textContent = `Gagal memperbarui catatan perawatan: ${err.message}. Seluruh data input tetap dipertahankan.`;
+      alertBox.textContent = `Gagal menyimpan catatan perawatan: ${err.message}. Seluruh data input tetap dipertahankan.`;
       alertBox.classList.remove('hidden');
       alertBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      EcoToast.error('✕ Gagal memperbarui perawatan', err.message);
+      EcoToast.error('✕ Gagal menyimpan perawatan', err.message);
       saveBtns.forEach((b) => {
         if (b) {
           b.disabled = false;
-          b.innerHTML = '💾 Simpan Perubahan';
+          b.innerHTML = isEdit ? '💾 Simpan Perubahan' : '💾 Simpan Tindakan';
         }
       });
     }
@@ -2683,6 +2379,8 @@ async function renderMaintenanceEditFormView(log, container) {
   document.getElementById('btn-save-mnt-top')?.addEventListener('click', handleSave);
   document.getElementById('btn-save-mnt-bottom')?.addEventListener('click', handleSave);
 }
+
+const renderMaintenanceEditFormView = renderMaintenanceFormView;
 
 // ─────────────────────────────────────────────────────────────
 // 6. LAPORAN PENANAMAN (CSV DOWNLOAD)
