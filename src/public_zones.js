@@ -34,22 +34,31 @@ export function updatePublicTotalArea(summaryOrZones) {
   const zoneCountEl = document.getElementById('stat-zones-count');
   const zoneDescEl = document.getElementById('stat-zones-desc');
 
+  const treeLabelEl = document.getElementById('stat-trees-label');
+  const treeCountEl = document.getElementById('stat-trees-count');
+  const treeDescEl = document.getElementById('stat-trees-desc');
+
   if (labelEl) {
     labelEl.textContent = 'Total Luas Kawasan';
   }
   if (zoneLabelEl) {
     zoneLabelEl.textContent = 'Jumlah Kawasan/Lahan';
   }
+  if (treeLabelEl) {
+    treeLabelEl.textContent = 'Bibit Awal Ditanam';
+  }
 
   let totalHa = 0;
   let totalM2 = 0;
   let totalZones = 0;
+  let totalTrees = 0;
 
   if (summaryOrZones && typeof summaryOrZones === 'object') {
     if ('total_area_ha' in summaryOrZones) {
       totalHa = Number(summaryOrZones.total_area_ha) || 0;
       totalM2 = Number(summaryOrZones.total_area_m2) || (totalHa * 10000);
       totalZones = Number(summaryOrZones.total_zones) || 0;
+      totalTrees = Number(summaryOrZones.total_trees ?? summaryOrZones.total_seedlings) || 0;
     } else if (Array.isArray(summaryOrZones)) {
       totalZones = summaryOrZones.length;
       totalHa = summaryOrZones.reduce((acc, z) => {
@@ -59,6 +68,9 @@ export function updatePublicTotalArea(summaryOrZones) {
         return acc + (isNaN(ha) ? 0 : ha);
       }, 0);
       totalM2 = totalHa * 10000;
+      totalTrees = summaryOrZones.reduce((acc, z) => {
+        return acc + (Number(z.total_initial_seedlings) || 0);
+      }, 0);
     }
   }
 
@@ -73,6 +85,12 @@ export function updatePublicTotalArea(summaryOrZones) {
   }
   if (zoneDescEl) {
     zoneDescEl.textContent = 'Total kawasan/lahan yang terdaftar dalam sistem.';
+  }
+  if (treeCountEl) {
+    treeCountEl.textContent = `${totalTrees.toLocaleString('id-ID')} Batang`;
+  }
+  if (treeDescEl) {
+    treeDescEl.textContent = 'Akumulasi seluruh kegiatan & lahan';
   }
 }
 

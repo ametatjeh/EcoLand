@@ -32,12 +32,23 @@ Route::get('/', function () {
     }
 
     $publishedZones = \App\Models\PlantingZone::published()->get();
+    $publishedZoneIds = $publishedZones->pluck('id');
     $totalAreaHa = (float) $publishedZones->sum(fn ($z) => $z->getAreaInHa());
     $totalAreaM2 = (float) round($totalAreaHa * 10000, 2);
+
+    $totalSeedlings = (int) \App\Models\PlantingActivityItem::whereHas('activity', function ($q) use ($publishedZoneIds) {
+        $q->whereIn('planting_zone_id', $publishedZoneIds);
+    })->sum('quantity');
+    if ($totalSeedlings === 0 && \App\Models\PlantingActivityItem::count() > 0) {
+        $totalSeedlings = (int) \App\Models\PlantingActivityItem::sum('quantity');
+    }
+
     $initialAreaSummary = [
         'total_area_ha' => round($totalAreaHa, 4),
         'total_area_m2' => $totalAreaM2,
         'total_zones' => $publishedZones->count(),
+        'total_trees' => $totalSeedlings,
+        'total_seedlings' => $totalSeedlings,
     ];
 
     if (view()->exists('app')) {

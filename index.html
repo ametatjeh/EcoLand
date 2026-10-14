@@ -136,37 +136,25 @@
 
             <!-- Stats Bar (Descriptive Only) -->
             <div class="stats-grid">
-              <div class="stat-card" id="stat-card-luas">
-                <span class="stat-label" id="stat-luas-label">Total Luas Kawasan</span>
-                <span class="stat-value" id="stat-luas">1,7 Hektare</span>
-                <span class="stat-desc" id="stat-luas-desc">17.000 m²</span>
-              </div>
               <div class="stat-card" id="stat-card-zones">
                 <span class="stat-label" id="stat-zones-label">Jumlah Kawasan/Lahan</span>
                 <span class="stat-value" id="stat-zones-count">1 Kawasan</span>
                 <span class="stat-desc" id="stat-zones-desc">Total kawasan/lahan yang terdaftar dalam sistem.</span>
+              </div>
+              <div class="stat-card" id="stat-card-luas">
+                <span class="stat-label" id="stat-luas-label">Total Luas Kawasan</span>
+                <span class="stat-value" id="stat-luas">1,7 Hektare</span>
+                <span class="stat-desc" id="stat-luas-desc">17.000 m²</span>
               </div>
               <div class="stat-card">
                 <span class="stat-label">Titik Panorama Lapangan</span>
                 <span class="stat-value">6 Titik Pantau</span>
                 <span class="stat-desc">Dokumentasi Go Street View</span>
               </div>
-              <div class="stat-card">
-                <span class="stat-label">Target Bibit Pohon</span>
-                <span class="stat-value">1.000+ Batang</span>
-                <span class="stat-desc">Spesies Kayu Endemik & Buah Hutan</span>
-              </div>
-            </div>
-
-            <!-- Peta Lokasi Titik Referensi Acuan (WGS84) di Beranda (Urutan di Atas Kawasan & Plot) -->
-            <div class="ref-map-container-box section-header-spacing">
-              <div class="ref-map-header">
-                <span>📍 Peta Lokasi Titik Referensi Acuan (WGS84)</span>
-                <span class="ref-coord-badge">5.4818556° N, 95.5840917° E</span>
-              </div>
-              <div id="home-ref-map" class="map-canvas-container"></div>
-              <div class="ref-map-info-text">
-                ℹ️ Peta menampilkan penanda lokasi titik acuan lapangan dan titik survei panorama 360°.
+              <div class="stat-card" id="stat-card-trees">
+                <span class="stat-label" id="stat-trees-label">Bibit Awal Ditanam</span>
+                <span class="stat-value" id="stat-trees-count">1.005 Batang</span>
+                <span class="stat-desc" id="stat-trees-desc">Akumulasi seluruh kegiatan & lahan</span>
               </div>
             </div>
 
@@ -185,6 +173,19 @@
 
             <div class="points-grid" id="home-zones-grid">
               <!-- Dynamically populated via JS -->
+            </div>
+
+
+            <!-- Peta Lokasi Titik Referensi Acuan (WGS84) di Beranda (Posisi Paling Bawah) -->
+            <div class="ref-map-container-box section-header-spacing">
+              <div class="ref-map-header">
+                <span>📍 Peta Lokasi Titik Referensi Acuan (WGS84)</span>
+                <span class="ref-coord-badge">5.4818556° N, 95.5840917° E</span>
+              </div>
+              <div id="home-ref-map" class="map-canvas-container"></div>
+              <div class="ref-map-info-text">
+                ℹ️ Peta menampilkan penanda lokasi titik acuan lapangan dan titik survei panorama 360°.
+              </div>
             </div>
           </div>
         </section>
