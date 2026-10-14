@@ -304,9 +304,14 @@ function setupNavigation() {
   // Non-dropdown tab buttons click
   tabs.forEach((tab) => {
     if (tab.classList.contains('nav-dropdown-trigger')) return;
-    tab.addEventListener('click', () => {
+    tab.addEventListener('click', (e) => {
       const target = tab.getAttribute('data-tab');
       if (target === 'admin') {
+        if (!checkAdminAuth()) {
+          // Allow default anchor navigation to /login
+          return;
+        }
+        e.preventDefault();
         openAdminView();
       } else {
         window.location.hash = target;
@@ -318,6 +323,10 @@ function setupNavigation() {
 
   if (desktopAdminBtn) {
     desktopAdminBtn.addEventListener('click', (e) => {
+      if (!checkAdminAuth()) {
+        // Allow default anchor navigation to /login
+        return;
+      }
       e.preventDefault();
       openAdminView();
     });
@@ -325,6 +334,9 @@ function setupNavigation() {
 
   if (footerAdminBtn) {
     footerAdminBtn.addEventListener('click', (e) => {
+      if (!checkAdminAuth()) {
+        return;
+      }
       e.preventDefault();
       openAdminView();
     });
@@ -401,8 +413,10 @@ export function updateHeaderAuthUI() {
   const isLoggedIn = checkAdminAuth();
   const desktopLoginBtn = document.getElementById('nav-btn-admin-desktop');
   const mobileLoginBtns = document.querySelectorAll('.btn-nav-login');
+  const targetHref = isLoggedIn ? '/#admin/dashboard' : '/login';
 
   if (desktopLoginBtn) {
+    desktopLoginBtn.setAttribute('href', targetHref);
     if (isLoggedIn) {
       desktopLoginBtn.setAttribute('title', 'Dashboard Eco Land');
       desktopLoginBtn.classList.add('is-authenticated');
@@ -429,6 +443,7 @@ export function updateHeaderAuthUI() {
   }
 
   mobileLoginBtns.forEach((btn) => {
+    btn.setAttribute('href', targetHref);
     const iconEl = btn.querySelector('.nav-icon');
     const textEl = btn.querySelector('.nav-text') || btn.querySelector('span:last-child');
     if (isLoggedIn) {
