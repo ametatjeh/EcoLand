@@ -435,27 +435,20 @@ function setupNavigation() {
 }
 
 export function isUserAuthenticated() {
-  if (typeof window !== 'undefined' && typeof window.ECO_SERVER_AUTH === 'boolean') {
-    if (!window.ECO_SERVER_AUTH) {
-      if (ApiService.isAuthenticated()) {
-        ApiService.clearSession();
-      }
-      return false;
-    }
+  // 1. Jika Bearer token Sanctum valid tersimpan di client, pengguna terautentikasi
+  if (ApiService.isAuthenticated()) {
     return true;
+  }
+
+  // 2. Periksa status sesi server jika disediakan oleh template Blade
+  if (typeof window !== 'undefined' && typeof window.ECO_SERVER_AUTH === 'boolean') {
+    return window.ECO_SERVER_AUTH;
   }
 
   if (typeof document !== 'undefined') {
     const metaAuth = document.querySelector('meta[name="eco-server-auth"]');
     if (metaAuth) {
-      const isServerAuth = metaAuth.getAttribute('content') === 'true';
-      if (!isServerAuth) {
-        if (ApiService.isAuthenticated()) {
-          ApiService.clearSession();
-        }
-        return false;
-      }
-      return true;
+      return metaAuth.getAttribute('content') === 'true';
     }
   }
 

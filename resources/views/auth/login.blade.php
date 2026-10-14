@@ -511,6 +511,9 @@
                         </svg>
                         <span id="btn-google-text">Masuk dengan Google</span>
                     </a>
+                    <p style="text-align: center; font-size: 11px; color: #64748b; margin-top: 8px;">
+                        Gunakan akun Google yang telah didaftarkan (Administrator atau Petugas Penanaman).
+                    </p>
                 </div>
             </form>
 

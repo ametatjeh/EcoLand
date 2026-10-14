@@ -16,10 +16,15 @@ class GoogleAuthController extends Controller
      */
     public function getRedirectUrl(): string
     {
-        $configured = config('services.google.redirect');
         $currentHost = request()->getHost();
+        $configured = config('services.google.redirect');
 
-        // Jika GOOGLE_REDIRECT_URI eksplisit di env dan host-nya cocok dengan host request saat ini, gunakan itu
+        // 1. Prioritas domain produksi utama Eco Land (selalu HTTPS dan tanpa port internal)
+        if ($currentHost === 'scooby.nagakecil.site') {
+            return 'https://scooby.nagakecil.site/auth/google/callback';
+        }
+
+        // 2. Jika konfigurasi eksplisit di .env memiliki host yang cocok dengan request host saat ini
         if (!empty($configured)) {
             $parsed = parse_url($configured);
             $configuredHost = $parsed['host'] ?? null;
@@ -29,11 +34,20 @@ class GoogleAuthController extends Controller
             }
         }
 
-        // Tentukan skema (HTTPS jika di balik Cloudflare / Reverse Proxy SSL)
+        // 3. Deteksi otomatis untuk lingkungan lokal / development
         $isHttps = request()->isSecure() || request()->header('x-forwarded-proto') === 'https';
-        $scheme = $isHttps ? 'https' : request()->getScheme();
-        $port = request()->getPort();
-        $isStandardPort = ($scheme === 'http' && $port == 80) || ($scheme === 'https' && $port == 443);
+        $scheme = $isHttps ? 'https' : 'http';
+        $port = (int) request()->getPort();
+
+        // Jangan sertakan port standar HTTP (80) atau HTTPS (443) atau port 0
+        $isStandardPort = ($scheme === 'http' && $port === 80) || ($scheme === 'https' && $port === 443) || $port === 0;
+
+        // Jika bukan host lokal, jangan pernah sertakan port (karena domain publik biasanya di balik reverse proxy)
+        $isLocalHost = in_array($currentHost, ['localhost', '127.0.0.1', '::1'], true) || str_ends_with($currentHost, '.local');
+        if (!$isLocalHost) {
+            $isStandardPort = true;
+        }
+
         $hostWithPort = $isStandardPort ? $currentHost : "{$currentHost}:{$port}";
 
         return "{$scheme}://{$hostWithPort}/auth/google/callback";
@@ -56,6 +70,7 @@ class GoogleAuthController extends Controller
         try {
             $redirectUrl = $this->getRedirectUrl();
             return Socialite::driver('google')
+                ->stateless()
                 ->redirectUrl($redirectUrl)
                 ->redirect();
         } catch (\Throwable $e) {
@@ -86,21 +101,17 @@ class GoogleAuthController extends Controller
 
         try {
             /** @var \Laravel\Socialite\Two\User $googleUser */
-            $googleUser = Socialite::driver('google')->redirectUrl($redirectUrl)->user();
-        } catch (InvalidStateException $e) {
-            Log::info('Google SSO session state dropped, attempting stateless fallback: ' . $e->getMessage());
-            try {
-                $googleUser = Socialite::driver('google')->redirectUrl($redirectUrl)->stateless()->user();
-            } catch (\Throwable $fallbackErr) {
-                Log::warning('Google SSO stateless fallback failure: ' . $fallbackErr->getMessage());
-                return redirect()->route('login')->with('error', 'Gagal memproses sesi autentikasi Google. Silakan coba kembali.');
-            }
+            $googleUser = Socialite::driver('google')
+                ->stateless()
+                ->redirectUrl($redirectUrl)
+                ->user();
         } catch (\Throwable $e) {
             Log::warning('Google SSO callback failure: ' . $e->getMessage(), [
                 'ip' => $request->ip(),
                 'user_agent' => $request->userAgent(),
+                'redirect_url' => $redirectUrl,
             ]);
-            return redirect()->route('login')->with('error', 'Gagal memproses respons autentikasi Google. Silakan coba kembali atau gunakan email dan kata sandi.');
+            return redirect()->route('login')->with('error', 'Gagal memproses respons autentikasi Google: ' . $e->getMessage());
         }
 
         $email = strtolower(trim((string) $googleUser->getEmail()));

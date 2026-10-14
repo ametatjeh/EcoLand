@@ -113,6 +113,7 @@ class AuthAndGoogleSsoTest extends TestCase
         $socialiteUser->shouldReceive('getAvatar')->andReturn(null);
 
         $provider = Mockery::mock(\Laravel\Socialite\Two\GoogleProvider::class);
+        $provider->shouldReceive('stateless')->andReturnSelf();
         $provider->shouldReceive('redirectUrl')->andReturnSelf();
         $provider->shouldReceive('user')->andReturn($socialiteUser);
 
@@ -153,6 +154,7 @@ class AuthAndGoogleSsoTest extends TestCase
         $socialiteUser->shouldReceive('getAvatar')->andReturn('https://google.com/avatar.jpg');
 
         $provider = Mockery::mock(\Laravel\Socialite\Two\GoogleProvider::class);
+        $provider->shouldReceive('stateless')->andReturnSelf();
         $provider->shouldReceive('redirectUrl')->andReturnSelf();
         $provider->shouldReceive('user')->andReturn($socialiteUser);
 
@@ -214,6 +216,7 @@ class AuthAndGoogleSsoTest extends TestCase
         $socialiteUser->shouldReceive('getAvatar')->andReturn(null);
 
         $provider = Mockery::mock(\Laravel\Socialite\Two\GoogleProvider::class);
+        $provider->shouldReceive('stateless')->andReturnSelf();
         $provider->shouldReceive('redirectUrl')->andReturnSelf();
         $provider->shouldReceive('user')->andReturn($socialiteUser);
 
@@ -227,9 +230,9 @@ class AuthAndGoogleSsoTest extends TestCase
     }
 
     /**
-     * Google SSO menangani sesi state terputus dengan stateless fallback.
+     * Google SSO menangani autentikasi Google stateless secara langsung.
      */
-    public function test_google_callback_handles_invalid_state_with_stateless_fallback(): void
+    public function test_google_callback_handles_stateless_authentication_smoothly(): void
     {
         config(['services.google.client_id' => 'dummy-id']);
         config(['services.google.client_secret' => 'dummy-secret']);
@@ -249,14 +252,9 @@ class AuthAndGoogleSsoTest extends TestCase
         $socialiteUser->shouldReceive('getAvatar')->andReturn(null);
 
         $provider = Mockery::mock(\Laravel\Socialite\Two\GoogleProvider::class);
-        $provider->shouldReceive('redirectUrl')->andReturnSelf();
         $provider->shouldReceive('stateless')->andReturnSelf();
-        $provider->shouldReceive('user')
-            ->andThrow(new \Laravel\Socialite\Two\InvalidStateException('State mismatch'))
-            ->once();
-        $provider->shouldReceive('user')
-            ->andReturn($socialiteUser)
-            ->once();
+        $provider->shouldReceive('redirectUrl')->andReturnSelf();
+        $provider->shouldReceive('user')->andReturn($socialiteUser);
 
         Socialite::shouldReceive('driver')->with('google')->andReturn($provider);
 
