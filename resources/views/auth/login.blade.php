@@ -156,37 +156,47 @@
             }
         }
 
-        /* Brand Header & Logo */
+        /* Brand Header & Logo (Horizontal Side-by-Side) */
         .brand-header {
-            text-align: center;
+            margin-top: 32px;
             margin-bottom: 24px;
+        }
+
+        .brand-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            text-decoration: none;
+            text-align: left;
         }
 
         .logo-wrap {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 78px;
-            height: 78px;
-            border-radius: 18px;
+            width: 58px;
+            height: 58px;
+            flex-shrink: 0;
+            border-radius: 16px;
             background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(255, 255, 255, 0.05) 100%);
             border: 1px solid rgba(16, 185, 129, 0.3);
             -webkit-backdrop-filter: blur(12px);
             backdrop-filter: blur(12px);
-            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.25);
-            margin-bottom: 14px;
+            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.25);
+            margin-bottom: 0;
             position: relative;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
 
-        .logo-wrap:hover {
-            transform: translateY(-3px) scale(1.05);
-            box-shadow: 0 16px 36px var(--primary-glow), inset 0 1px 1px rgba(255, 255, 255, 0.4);
+        .brand-link:hover .logo-wrap {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 14px 30px var(--primary-glow), inset 0 1px 1px rgba(255, 255, 255, 0.4);
         }
 
         .logo-icon-svg {
-            width: 44px;
-            height: 44px;
+            width: 32px;
+            height: 32px;
             color: #34d399;
             filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.35));
         }
@@ -195,18 +205,25 @@
             width: 100%;
             height: 100%;
             object-fit: contain;
-            padding: 8px;
+            padding: 5px;
             filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.35));
+        }
+
+        .brand-text-wrap {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            text-align: left;
         }
 
         .brand-title {
             font-family: 'Outfit', sans-serif;
-            font-size: 24px;
+            font-size: 22px;
             font-weight: 800;
             letter-spacing: -0.02em;
             color: #ffffff;
             line-height: 1.2;
-            margin-bottom: 5px;
+            margin-bottom: 3px;
             background: linear-gradient(135deg, #ffffff 40%, #a7f3d0 100%);
             -webkit-background-clip: text;
             background-clip: text;
@@ -214,9 +231,10 @@
         }
 
         .brand-subtitle {
-            font-size: 13px;
+            font-size: 12px;
             color: #94a3b8;
             font-weight: 400;
+            line-height: 1.35;
         }
 
         /* Back Button */
@@ -385,7 +403,7 @@
 
             <!-- Brand Header -->
             <div class="brand-header">
-                <a href="/" style="display: inline-block; text-decoration: none;">
+                <a href="/" class="brand-link" title="Kembali ke Beranda Eco Land">
                     <div class="logo-wrap">
                         @php
                             $currentLogo = $appLogo ?? \App\Models\AppSetting::getVal('app_logo');
@@ -398,9 +416,11 @@
                             </svg>
                         @endif
                     </div>
+                    <div class="brand-text-wrap">
+                        <h1 class="brand-title">Eco Land</h1>
+                        <p class="brand-subtitle">Land and Green Space Management System</p>
+                    </div>
                 </a>
-                <h1 class="brand-title">Eco Land</h1>
-                <p class="brand-subtitle">Land and Green Space Management System</p>
             </div>
 
             <!-- Session Status / Alerts -->
@@ -546,9 +566,6 @@
                         </svg>
                         <span id="btn-google-text">Masuk dengan Google</span>
                     </a>
-                    <p style="text-align: center; font-size: 11px; color: #64748b; margin-top: 8px;">
-                        Gunakan akun Google yang telah didaftarkan (Administrator atau Petugas Penanaman).
-                    </p>
                 </div>
             </form>
 
