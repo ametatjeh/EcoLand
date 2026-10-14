@@ -452,7 +452,7 @@
                 <!-- Input Email / Username -->
                 <div>
                     <label for="username" style="display: block; font-size: 12px; font-weight: 600; color: #a7f3d0; margin-bottom: 6px;">
-                        Alamat Email / Akun Administrator
+                        Email / User
                     </label>
                     <div style="position: relative; display: flex; align-items: center;">
                         <span style="position: absolute; left: 14px; z-index: 20; pointer-events: none; color: #34d399; display: flex; align-items: center;">
@@ -477,7 +477,7 @@
                 <!-- Input Kata Sandi -->
                 <div>
                     <label for="password" style="display: block; font-size: 12px; font-weight: 600; color: #a7f3d0; margin-bottom: 6px;">
-                        Kata Sandi
+                        Password
                     </label>
                     <div style="position: relative; display: flex; align-items: center;">
                         <span style="position: absolute; left: 14px; z-index: 20; pointer-events: none; color: #34d399; display: flex; align-items: center;">
