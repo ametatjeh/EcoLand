@@ -158,8 +158,8 @@
 
         /* Brand Header & Logo (Horizontal Side-by-Side) */
         .brand-header {
-            margin-top: 32px;
-            margin-bottom: 24px;
+            margin-top: 48px;
+            margin-bottom: 36px;
         }
 
         .brand-link {
