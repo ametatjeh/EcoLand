@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\PlantingZone;
+use App\Models\TreeSpecies;
 use App\Models\Scene;
 use App\Models\PlantingActivity;
 use App\Models\PlantingActivityItem;

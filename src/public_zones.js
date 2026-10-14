@@ -141,7 +141,6 @@ export async function initPublicZones(containerId, onOpenTourScene) {
   } catch (err) {
     console.warn('Gagal memuat kawasan publik:', err);
     cachedPublicZones = [];
-    updatePublicTotalArea({ total_area_ha: 0, total_area_m2: 0 });
   }
 
   renderPublicZones(container);
