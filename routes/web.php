@@ -91,6 +91,17 @@ Route::get('/monitoring-karbon', function () {
     return redirect('/#karbon');
 });
 
+Route::get('/tour', fn () => redirect('/#tour'));
+Route::get('/info', fn () => redirect('/#info'));
+Route::get('/galeri', fn () => redirect('/#galeri'));
+Route::get('/katalog', fn () => redirect('/#katalog'));
+Route::get('/tree-qr', fn () => redirect('/#tree-qr'));
+Route::get('/karbon', fn () => redirect('/#karbon'));
+
+Route::get('/admin/{any?}', function ($any = null) {
+    return redirect('/#admin/' . ($any ? ltrim($any, '/') : 'dashboard'));
+})->where('any', '.*');
+
 // ─────────────────────────────────────────────────────────────
 // Eco Land Authentication & Google OAuth Routes
 // ─────────────────────────────────────────────────────────────
