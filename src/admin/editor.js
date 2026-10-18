@@ -447,35 +447,86 @@ export class VisualHotspotEditor {
     const isPreview = this.mode === 'preview';
 
     const wrapper = document.createElement('div');
-    wrapper.className = `editor-hotspot-item ${isLink ? 'link-type' : 'info-type'}`;
+    wrapper.className = `hotspot ${isLink ? 'link-hotspot' : 'info-hotspot visible'} editor-hotspot-item ${isLink ? 'link-type' : 'info-type'}`;
     if (isSelected) wrapper.classList.add('selected');
     if (hs.status === 'draft') wrapper.classList.add('status-draft');
     if (hs.isActive === false) wrapper.classList.add('status-inactive');
     wrapper.setAttribute('data-id', hs.id);
+    wrapper.setAttribute('role', 'button');
+    wrapper.setAttribute('tabindex', '0');
 
-    // Render Icon Visual
+    // Render Hotspot Visual persis seperti mode pratinjau publik
     if (isLink) {
+      wrapper.setAttribute('aria-label', `Menuju ${hs.title || this.getSceneName(hs.target)}`);
+
+      const pulseWrapper = document.createElement('div');
+      pulseWrapper.className = 'link-hotspot-pulse';
+
       const icon = document.createElement('img');
       icon.src = '/img/link.png';
-      icon.className = 'editor-hs-icon link-icon';
+      icon.className = 'link-hotspot-icon';
       const rot = hs.rotation ?? 0;
       icon.style.transform = `rotate(${rot}rad)`;
-      wrapper.appendChild(icon);
+      icon.style.webkitTransform = `rotate(${rot}rad)`;
+      pulseWrapper.appendChild(icon);
 
-      const label = document.createElement('span');
-      label.className = 'editor-hs-tooltip';
-      label.textContent = hs.title || this.getSceneName(hs.target);
-      wrapper.appendChild(label);
+      const targetName = hs.title || this.getSceneName(hs.target);
+      const tooltip = document.createElement('div');
+      tooltip.className = 'hotspot-tooltip link-hotspot-tooltip editor-hs-tooltip';
+      tooltip.textContent = targetName || 'Lihat Lokasi';
+
+      wrapper.appendChild(pulseWrapper);
+      wrapper.appendChild(tooltip);
     } else {
+      wrapper.setAttribute('aria-label', hs.title || 'Informasi');
+
+      // Header container
+      const header = document.createElement('div');
+      header.className = 'info-hotspot-header';
+
+      // Icon wrapper & image
+      const iconWrapper = document.createElement('div');
+      iconWrapper.className = 'info-hotspot-icon-wrapper';
       const icon = document.createElement('img');
       icon.src = '/img/info.png';
-      icon.className = 'editor-hs-icon info-icon';
-      wrapper.appendChild(icon);
+      icon.className = 'info-hotspot-icon';
+      icon.alt = 'Info';
+      iconWrapper.appendChild(icon);
 
-      const label = document.createElement('span');
-      label.className = 'editor-hs-tooltip';
-      label.textContent = hs.title || 'Info';
-      wrapper.appendChild(label);
+      // Title wrapper & text
+      const titleWrapper = document.createElement('div');
+      titleWrapper.className = 'info-hotspot-title-wrapper';
+      const title = document.createElement('div');
+      title.className = 'info-hotspot-title editor-hs-tooltip';
+      title.textContent = hs.title || 'Informasi';
+      titleWrapper.appendChild(title);
+
+      // Close wrapper & image
+      const closeWrapper = document.createElement('div');
+      closeWrapper.className = 'info-hotspot-close-wrapper';
+      const closeIcon = document.createElement('img');
+      closeIcon.src = '/img/close.png';
+      closeIcon.className = 'info-hotspot-close-icon';
+      closeIcon.alt = 'Tutup / Buka';
+      closeWrapper.appendChild(closeIcon);
+
+      header.appendChild(iconWrapper);
+      header.appendChild(titleWrapper);
+      header.appendChild(closeWrapper);
+
+      // Text body dengan format yang sama persis seperti pratinjau
+      const text = document.createElement('div');
+      text.className = 'info-hotspot-text editor-hs-desc-body';
+      text.innerHTML = renderFormattedDescription(hs.text || hs.rawText || 'Tidak ada keterangan tambahan.');
+
+      wrapper.appendChild(header);
+      wrapper.appendChild(text);
+
+      // Toggle buka/tutup info card saat tombol tutup diklik di editor
+      closeWrapper.addEventListener('click', (e) => {
+        e.stopPropagation();
+        wrapper.classList.toggle('visible');
+      });
     }
 
     // Status Indicator Badge in editor mode
@@ -486,7 +537,7 @@ export class VisualHotspotEditor {
       wrapper.appendChild(badge);
     }
 
-    // Event Klik Hotspot pada mode editor
+    // Event Klik Hotspot pada mode editor untuk memilih hotspot
     wrapper.addEventListener('click', (e) => {
       e.stopPropagation();
       this.selectHotspot(hs.id);
@@ -505,6 +556,7 @@ export class VisualHotspotEditor {
 
     const onPointerDown = (e) => {
       if (this.mode === 'preview') return;
+      if (e.target.closest('.info-hotspot-close-wrapper')) return;
       e.stopPropagation();
 
       this.isDragging = true;
@@ -557,7 +609,7 @@ export class VisualHotspotEditor {
     element.addEventListener('pointerdown', onPointerDown);
   }
 
-  selectHotspot(hotspotId) {
+  selectHotspot(hotspotId, centerView = false) {
     this.selectedHotspotId = hotspotId;
     const hs = this.getHotspots().find((h) => h.id === hotspotId);
     if (!hs) return;
@@ -565,6 +617,11 @@ export class VisualHotspotEditor {
     // Jika hotspot berada di scene lain, ganti scene terlebih dahulu
     if (hs.sceneId !== this.currentSceneId) {
       this.setScene(hs.sceneId);
+    }
+
+    if (centerView && this.currentView && typeof hs.yaw === 'number' && typeof hs.pitch === 'number') {
+      this.currentView.setYaw(hs.yaw);
+      this.currentView.setPitch(hs.pitch);
     }
 
     this.renderHotspotsOnCurrentScene();
@@ -785,9 +842,13 @@ export class VisualHotspotEditor {
       if (previewTitle) previewTitle.textContent = val || (isLink ? 'Navigasi' : 'Informasi');
 
       // Update tooltip pada Marzipano 360 view secara langsung
-      const activeHsEl = document.querySelector(`.editor-hotspot-item[data-id="${hs.id}"] .editor-hs-tooltip`);
-      if (activeHsEl) {
-        activeHsEl.textContent = val || (isLink ? this.getSceneName(hs.target) : 'Info');
+      const activeLinkTooltip = document.querySelector(`.editor-hotspot-item[data-id="${hs.id}"] .link-hotspot-tooltip`);
+      if (activeLinkTooltip) {
+        activeLinkTooltip.textContent = val || this.getSceneName(hs.target);
+      }
+      const activeInfoTitle = document.querySelector(`.editor-hotspot-item[data-id="${hs.id}"] .info-hotspot-title`);
+      if (activeInfoTitle) {
+        activeInfoTitle.textContent = val || 'Informasi';
       }
 
       // Update baris pada tabel daftar hotspot
@@ -831,6 +892,10 @@ export class VisualHotspotEditor {
       }
       if (previewDesc) {
         previewDesc.innerHTML = renderFormattedDescription(val);
+      }
+      const activeDesc = document.querySelector(`.editor-hotspot-item[data-id="${hs.id}"] .info-hotspot-text`);
+      if (activeDesc) {
+        activeDesc.innerHTML = renderFormattedDescription(val);
       }
       this.hasUnsavedChanges = true;
     };
@@ -1014,11 +1079,25 @@ export class VisualHotspotEditor {
     }
 
     if (rotationSlider && rotationInput) {
+      const updateRotationLive = (degVal) => {
+        const deg = parseFloat(degVal) || 0;
+        const rotRad = (deg * Math.PI) / 180;
+        hs.rotation = rotRad;
+        const activeIcon = document.querySelector(`.editor-hotspot-item[data-id="${hs.id}"] .link-hotspot-icon`);
+        if (activeIcon) {
+          activeIcon.style.transform = `rotate(${rotRad}rad)`;
+          activeIcon.style.webkitTransform = `rotate(${rotRad}rad)`;
+        }
+        this.hasUnsavedChanges = true;
+      };
+
       rotationSlider.addEventListener('input', (e) => {
         rotationInput.value = e.target.value;
+        updateRotationLive(e.target.value);
       });
       rotationInput.addEventListener('input', (e) => {
         rotationSlider.value = e.target.value;
+        updateRotationLive(e.target.value);
       });
     }
 
@@ -1372,7 +1451,7 @@ export class VisualHotspotEditor {
     listContainer.querySelectorAll('.hs-list-row').forEach((row) => {
       row.addEventListener('click', () => {
         const id = row.getAttribute('data-id');
-        this.selectHotspot(id);
+        this.selectHotspot(id, true);
       });
     });
   }
