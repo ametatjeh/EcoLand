@@ -139,83 +139,85 @@ export async function renderPanoramaManagement({
     </div>
 
     <!-- Modal Edit Konfigurasi Scene -->
-    <div id="modal-config-scene" class="admin-modal-overlay hidden">
-      <div class="admin-modal-box" style="max-width: 600px;">
+    <div id="modal-config-scene" class="admin-modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modal-config-scene-title">
+      <div class="admin-modal-box" style="max-width: 620px;">
         <div class="admin-modal-header">
-          <h3 id="modal-config-scene-title" style="margin: 0; font-size: 16px; color: #fff;">Edit Konfigurasi Panorama</h3>
-          <button id="btn-close-config-scene-modal" class="icon-btn-sm">✕</button>
+          <h3 id="modal-config-scene-title">⚙️ Edit Konfigurasi Panorama</h3>
+          <button type="button" id="btn-close-config-scene-modal" class="icon-btn-sm" title="Tutup Popup">✕</button>
         </div>
-        <form id="form-config-scene" class="admin-modal-body" style="padding: 20px; display: flex; flex-direction: column; gap: 14px;">
-          <input type="hidden" id="cfg-scene-id" />
+        <form id="form-config-scene" style="display: flex; flex-direction: column; margin: 0; min-height: 0; overflow: hidden;">
+          <div class="admin-modal-body" style="display: flex; flex-direction: column; gap: 14px; max-height: calc(85vh - 130px); overflow-y: auto;">
+            <input type="hidden" id="cfg-scene-id" />
 
-          <div class="form-group">
-            <label style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 4px; display: block;">
-              Nama Tampilan Scene: <span style="color: #ef4444;">*</span>
-            </label>
-            <input type="text" id="cfg-scene-name" class="form-input" required />
-            <small style="color: var(--clr-text-muted); font-size: 11px;">Nama yang tampil di viewer dan daftar titik.</small>
-          </div>
-
-          <div class="form-group">
-            <label style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 4px; display: block;">
-              Deskripsi Scene:
-            </label>
-            <textarea id="cfg-scene-desc" class="form-textarea" rows="2"></textarea>
-          </div>
-
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
             <div class="form-group">
               <label style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 4px; display: block;">
-                Tautkan ke Kawasan:
+                Nama Tampilan Scene: <span style="color: #ef4444;">*</span>
               </label>
-              <select id="cfg-scene-zone" class="form-select">
-                <option value="">-- Tanpa Kawasan --</option>
-                ${cachedZones.map((z) => `<option value="${z.id}">${escapeHtml(z.name)}</option>`).join('')}
-              </select>
+              <input type="text" id="cfg-scene-name" class="form-input" required />
+              <small style="color: var(--clr-text-muted); font-size: 11px;">Nama yang tampil di viewer dan daftar titik.</small>
             </div>
 
             <div class="form-group">
               <label style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 4px; display: block;">
-                Status Scene:
+                Deskripsi Scene:
               </label>
-              <select id="cfg-scene-status" class="form-select">
-                <option value="tersedia">✓ Tersedia (Aktif)</option>
-                <option value="menunggu_foto">⏳ Menunggu Foto</option>
-                <option value="diarsipkan">📦 Diarsipkan</option>
-              </select>
+              <textarea id="cfg-scene-desc" class="form-textarea" rows="2"></textarea>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+              <div class="form-group">
+                <label style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 4px; display: block;">
+                  Tautkan ke Kawasan:
+                </label>
+                <select id="cfg-scene-zone" class="form-select">
+                  <option value="">-- Tanpa Kawasan --</option>
+                  ${cachedZones.map((z) => `<option value="${z.id}">${escapeHtml(z.name)}</option>`).join('')}
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 4px; display: block;">
+                  Status Scene:
+                </label>
+                <select id="cfg-scene-status" class="form-select">
+                  <option value="tersedia">✓ Tersedia (Aktif)</option>
+                  <option value="menunggu_foto">⏳ Menunggu Foto</option>
+                  <option value="diarsipkan">📦 Diarsipkan</option>
+                </select>
+              </div>
+            </div>
+
+            <div style="border-top: 1px solid var(--clr-border-subtle); padding-top: 12px;">
+              <label style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
+                Sudut Pandang Awal (Initial View Parameters):
+              </label>
+              <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+                <div>
+                  <label style="color: var(--clr-text-muted); font-size: 11px;">Initial Yaw (rad):</label>
+                  <input type="number" step="0.001" id="cfg-scene-yaw" class="form-input" />
+                </div>
+                <div>
+                  <label style="color: var(--clr-text-muted); font-size: 11px;">Initial Pitch (rad):</label>
+                  <input type="number" step="0.001" id="cfg-scene-pitch" class="form-input" />
+                </div>
+                <div>
+                  <label style="color: var(--clr-text-muted); font-size: 11px;">Initial FOV (rad):</label>
+                  <input type="number" step="0.001" id="cfg-scene-fov" class="form-input" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Hotspot List in Scene -->
+            <div style="border-top: 1px solid var(--clr-border-subtle); padding-top: 12px;">
+              <label style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
+                Hotspot Terpasang di Scene Ini:
+              </label>
+              <div id="cfg-scene-hotspots-list" style="max-height: 140px; overflow-y: auto; background: rgba(255,255,255,0.03); border-radius: 6px; padding: 8px; font-size: 12px; display: flex; flex-direction: column; gap: 4px;">
+              </div>
             </div>
           </div>
 
-          <div style="border-top: 1px solid var(--clr-border-subtle); padding-top: 12px;">
-            <label style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
-              Sudut Pandang Awal (Initial View Parameters):
-            </label>
-            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
-              <div>
-                <label style="color: var(--clr-text-muted); font-size: 11px;">Initial Yaw (rad):</label>
-                <input type="number" step="0.001" id="cfg-scene-yaw" class="form-input" />
-              </div>
-              <div>
-                <label style="color: var(--clr-text-muted); font-size: 11px;">Initial Pitch (rad):</label>
-                <input type="number" step="0.001" id="cfg-scene-pitch" class="form-input" />
-              </div>
-              <div>
-                <label style="color: var(--clr-text-muted); font-size: 11px;">Initial FOV (rad):</label>
-                <input type="number" step="0.001" id="cfg-scene-fov" class="form-input" />
-              </div>
-            </div>
-          </div>
-
-          <!-- Hotspot List in Scene -->
-          <div style="border-top: 1px solid var(--clr-border-subtle); padding-top: 12px;">
-            <label style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
-              Hotspot Terpasang di Scene Ini:
-            </label>
-            <div id="cfg-scene-hotspots-list" style="max-height: 140px; overflow-y: auto; background: rgba(255,255,255,0.03); border-radius: 6px; padding: 8px; font-size: 12px; display: flex; flex-direction: column; gap: 4px;">
-            </div>
-          </div>
-
-          <div class="admin-modal-footer" style="padding: 14px 0 0; display: flex; justify-content: flex-end; gap: 10px;">
+          <div class="admin-modal-footer">
             <button type="button" id="btn-cancel-config-scene" class="btn-secondary-action">Batal</button>
             <button type="submit" class="btn-primary-action">💾 Simpan Perubahan Scene</button>
           </div>
@@ -257,7 +259,7 @@ export async function renderPanoramaManagement({
       document.getElementById('cfg-scene-yaw').value = scene.initialViewParameters?.yaw ?? 0;
       document.getElementById('cfg-scene-pitch').value = scene.initialViewParameters?.pitch ?? 0;
       document.getElementById('cfg-scene-fov').value = scene.initialViewParameters?.fov ?? 1.395;
-      document.getElementById('modal-config-scene-title').textContent = `Edit Panorama: ${scene.name} (${scene.id})`;
+      document.getElementById('modal-config-scene-title').textContent = `⚙️ Edit Panorama: ${scene.name} (${scene.id})`;
 
       const stats = getSceneStats(scene.id);
       const hsListEl = document.getElementById('cfg-scene-hotspots-list');
@@ -277,11 +279,33 @@ export async function renderPanoramaManagement({
       }
 
       modal.classList.remove('hidden');
+      setTimeout(() => {
+        document.getElementById('cfg-scene-name')?.focus();
+      }, 50);
     });
   });
 
-  document.getElementById('btn-close-config-scene-modal')?.addEventListener('click', () => modal.classList.add('hidden'));
-  document.getElementById('btn-cancel-config-scene')?.addEventListener('click', () => modal.classList.add('hidden'));
+  const closeModal = () => modal?.classList.add('hidden');
+  document.getElementById('btn-close-config-scene-modal')?.addEventListener('click', closeModal);
+  document.getElementById('btn-cancel-config-scene')?.addEventListener('click', closeModal);
+
+  // Close when clicking backdrop
+  modal?.addEventListener('click', (e) => {
+    if (e.target === modal) closeModal();
+  });
+
+  // Global Escape key handler
+  if (!window._adminPanoModalEscAttached) {
+    window._adminPanoModalEscAttached = true;
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        const m = document.getElementById('modal-config-scene');
+        if (m && !m.classList.contains('hidden')) {
+          m.classList.add('hidden');
+        }
+      }
+    });
+  }
 
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
