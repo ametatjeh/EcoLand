@@ -34,6 +34,8 @@ dist-ssr
 /storage/framework/views/*
 /storage/logs/*
 /storage/app/public/*
+!/storage/app/public/settings/
+!/storage/app/public/settings/*
 /storage/app/backups/*
 *.sql
 /public/storage
