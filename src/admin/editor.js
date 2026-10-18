@@ -47,7 +47,6 @@ export class VisualHotspotEditor {
 
   init() {
     this.populateSceneDropdowns();
-    this.initViewer();
     this.bindToolbarEvents();
     this.bindFormEvents();
     this.bindSearchFilterEvents();
@@ -114,8 +113,11 @@ export class VisualHotspotEditor {
       // Auto-update Marzipano size whenever the container changes dimensions
       if (typeof ResizeObserver !== 'undefined') {
         const ro = new ResizeObserver(() => {
-          if (this.viewer) {
+          if (this.viewer && panoEl.clientWidth > 0 && panoEl.clientHeight > 0) {
             this.viewer.updateSize();
+            if (this.viewer.stage()) {
+              this.viewer.stage().render();
+            }
           }
         });
         ro.observe(panoEl);
@@ -123,9 +125,28 @@ export class VisualHotspotEditor {
     }
   }
 
-  setScene(sceneId) {
-    if (!sceneId || !this.viewer) return;
+  refreshViewerSize() {
+    const panoEl = document.getElementById('admin-editor-pano');
+    if (!this.viewer && panoEl) {
+      this.initViewer();
+    }
+    if (this.viewer) {
+      this.viewer.updateSize();
+      if (this.viewer.stage()) {
+        this.viewer.stage().render();
+      }
+    }
+  }
+
+  setScene(sceneId, forceRecreate = false) {
+    if (!sceneId) return;
     this.currentSceneId = sceneId;
+
+    const panoEl = document.getElementById('admin-editor-pano');
+    if (!this.viewer && panoEl) {
+      this.initViewer();
+    }
+    if (!this.viewer) return;
 
     const sceneData = this.scenes.find((s) => s.id === sceneId);
     if (!sceneData) return;
@@ -141,6 +162,14 @@ export class VisualHotspotEditor {
 
     // Get or create Marzipano Scene
     let entry = this.sceneMap.get(sceneId);
+    if (forceRecreate && entry) {
+      if (this.viewer.hasScene && this.viewer.hasScene(entry.scene)) {
+        try { this.viewer.destroyScene(entry.scene); } catch (e) {}
+      }
+      this.sceneMap.delete(sceneId);
+      entry = null;
+    }
+
     if (!entry) {
       let source = null;
       let geometry = null;
@@ -188,7 +217,12 @@ export class VisualHotspotEditor {
     this.currentMarzipanoScene = entry.scene;
     this.currentView = entry.view;
 
-    this.currentMarzipanoScene.switchTo({ transitionDuration: 300 });
+    // Switch scene instantly to avoid opacity stuck at 0
+    entry.scene.switchTo({ transitionDuration: 0 });
+    this.viewer.updateSize();
+    if (this.viewer.stage()) {
+      this.viewer.stage().render();
+    }
 
     // Render ulang hotspot dan sinkronkan viewport canvas
     setTimeout(() => {

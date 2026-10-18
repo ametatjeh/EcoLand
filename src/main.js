@@ -603,7 +603,7 @@ function handleHashRouting() {
   }
 
   if (hash === 'admin' || hash.startsWith('admin/')) {
-    if (ApiService.isAuthenticated()) {
+    if (isUserAuthenticated()) {
       switchTab('admin');
       handleAdminHashRoute(fullHash);
     } else {

@@ -1196,7 +1196,7 @@ body:has(#view-admin.active) #public-global-footer,
 }
 
 /* Empty State Overlay for Missing Panorama */
-.empty-state {
+#pano .empty-state {
   position: absolute;
   inset: 0;
   z-index: 10;
@@ -1209,7 +1209,7 @@ body:has(#view-admin.active) #public-global-footer,
   background: radial-gradient(circle at center, #13221b 0%, #0c1410 85%);
   color: var(--clr-text);
 }
-.empty-state-icon {
+#pano .empty-state-icon {
   width: 64px;
   height: 64px;
   border-radius: 50%;
@@ -1221,19 +1221,19 @@ body:has(#view-admin.active) #public-global-footer,
   color: var(--clr-primary-light);
   margin-bottom: 20px;
 }
-.empty-state h3 {
+#pano .empty-state h3 {
   font-size: 20px;
   font-weight: 700;
   margin-bottom: 10px;
 }
-.empty-state p {
+#pano .empty-state p {
   max-width: 520px;
   font-size: 13px;
   color: var(--clr-text-muted);
   line-height: 1.6;
   margin-bottom: 20px;
 }
-.empty-state code {
+#pano .empty-state code {
   background: rgba(0, 0, 0, 0.4);
   border: 1px solid var(--clr-border);
   padding: 3px 8px;
@@ -2848,8 +2848,8 @@ body:has(#view-admin.active) #public-global-footer,
 }
 .editor-canvas-wrapper {
   flex: 1;
-  min-width: 0;
-  min-height: 0;
+  min-width: 320px;
+  min-height: 380px;
   height: 100%;
   position: relative;
   background: #000;
@@ -2900,6 +2900,33 @@ body:has(#view-admin.active) #public-global-footer,
   overflow-y: auto;
   z-index: 10;
 }
+
+@media (max-width: 960px) {
+  #admin-pane-editor.active {
+    height: auto !important;
+    min-height: 850px;
+  }
+  .editor-body {
+    flex-direction: column;
+    height: auto;
+    min-height: 800px;
+  }
+  .editor-canvas-wrapper {
+    min-height: 480px;
+    height: 480px;
+    flex: none;
+    width: 100%;
+  }
+  .editor-sidebar-panel {
+    width: 100%;
+    flex: none;
+    height: auto;
+    max-height: 520px;
+    border-left: none;
+    border-top: 1px solid var(--clr-border);
+  }
+}
+
 .panel-section-box {
   border-bottom: 1px solid var(--clr-border-subtle);
 }
@@ -2929,9 +2956,19 @@ body:has(#view-admin.active) #public-global-footer,
 
 /* Properties Form */
 .editor-properties-panel {
+  position: static !important;
+  inset: auto !important;
+  width: 100% !important;
+  height: auto !important;
+  background: transparent !important;
   padding: 16px;
 }
 .editor-properties-panel.empty-state {
+  position: static !important;
+  inset: auto !important;
+  width: 100% !important;
+  height: auto !important;
+  background: transparent !important;
   padding: 24px 16px;
 }
 .prop-empty-notice {

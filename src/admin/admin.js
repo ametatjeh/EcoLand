@@ -152,8 +152,9 @@ export async function initAdminPanel({ onPublicTourUpdate, onExitAdminToTour }) 
   });
 
   editorInstance.init();
+  window.__editorInstance = editorInstance;
   if (scenes.length > 0) {
-    editorInstance.setScene(scenes[0].id);
+    editorInstance.currentSceneId = scenes[0].id;
   }
 
   // 5. Inisialisasi Tab Navigation Admin & Layout Toggles
@@ -180,7 +181,7 @@ export async function initAdminPanel({ onPublicTourUpdate, onExitAdminToTour }) 
   // Setup Topbar Zone Switcher Dropdown, Profile Dropdown & render initial tab HANYA jika sudah terautentikasi
   setupAdminProfileDropdown();
   updateAdminProfileUI();
-  if (ApiService.isAuthenticated()) {
+  if (checkAdminAuth()) {
     await setupTopbarZoneSwitcher();
     if (window.location.hash.startsWith('#admin')) {
       handleAdminHashRoute(window.location.hash);
@@ -462,7 +463,7 @@ export function updateTopbarBreadcrumbsAndTitle(tabName, subTab = null) {
 }
 
 async function setupTopbarZoneSwitcher() {
-  if (!ApiService.isAuthenticated()) return;
+  if (!checkAdminAuth()) return;
   const select = document.getElementById('topbar-zone-switcher');
   if (!select) return;
 
@@ -757,23 +758,18 @@ export function switchAdminSubmenu(tabName, subTab = null, updateHash = true) {
   if (tabName === 'editor' && editorInstance) {
     setTimeout(() => {
       window.dispatchEvent(new Event('resize'));
-      if (editorInstance.viewer) {
-        editorInstance.viewer.updateSize();
+      editorInstance.refreshViewerSize();
+      const targetScene = editorInstance.currentSceneId || (scenes.length > 0 ? scenes[0].id : null);
+      if (targetScene) {
+        editorInstance.setScene(targetScene);
       }
-      if (editorInstance.currentSceneId) {
-        editorInstance.setScene(editorInstance.currentSceneId);
-      } else if (scenes.length > 0) {
-        editorInstance.setScene(scenes[0].id);
-      }
-      editorInstance.renderHotspotsList();
-      editorInstance.renderHotspotsOnCurrentScene();
-    }, 50);
+    }, 100);
   }
 }
 
 function refreshActiveAdminTab() {
   updateAdminBadges();
-  if (!ApiService.isAuthenticated()) return;
+  if (!checkAdminAuth()) return;
 
   if (activeAdminTab === 'dashboard') {
     renderDashboard({
@@ -802,8 +798,15 @@ function refreshActiveAdminTab() {
       scenes,
       hotspots: cachedHotspots,
       onOpenEditorForScene: (sceneId) => {
+        if (editorInstance) {
+          editorInstance.currentSceneId = sceneId;
+        }
         switchAdminSubmenu('editor');
-        if (editorInstance) editorInstance.setScene(sceneId);
+        setTimeout(() => {
+          if (editorInstance) {
+            editorInstance.setScene(sceneId);
+          }
+        }, 120);
       },
       onPreviewScene: (sceneId) => {
         window.location.hash = 'tour';

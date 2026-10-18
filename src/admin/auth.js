@@ -127,5 +127,12 @@ export function closeLoginModal() {
 }
 
 export function checkAdminAuth() {
-  return ApiService.isAuthenticated();
+  if (ApiService.isAuthenticated()) return true;
+  if (typeof document !== 'undefined') {
+    const metaAuth = document.querySelector('meta[name="eco-server-auth"]');
+    if (metaAuth && metaAuth.getAttribute('content') === 'true') {
+      return true;
+    }
+  }
+  return false;
 }
