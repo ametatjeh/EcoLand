@@ -218,6 +218,19 @@ export const ApiService = {
     return { success: true };
   },
 
+  async getScenes() {
+    try {
+      const res = await fetch('/api/scenes');
+      if (res.ok) {
+        const data = await res.json();
+        return data.scenes || [];
+      }
+    } catch (e) {
+      console.warn('Gagal memuat /api/scenes:', e);
+    }
+    return [];
+  },
+
   async getCustomSceneNames() {
     try {
       const res = await fetch('/api/scenes/custom');
@@ -485,11 +498,20 @@ export const ApiService = {
   // ─── Manajemen Kawasan (Zones) ───
   async getZones(params = {}) {
     const query = new URLSearchParams(params).toString();
-    const res = await fetch(`/api/admin/zones?${query}`, {
-      headers: this.getAuthHeaders(),
-    });
-    if (!res.ok) throw new Error('Gagal memuat daftar kawasan');
-    return await res.json();
+    try {
+      const res = await fetch(`/api/admin/zones?${query}`, {
+        headers: this.getAuthHeaders(),
+      });
+      if (res.ok) return await res.json();
+    } catch (e) {}
+
+    // Fallback ke endpoint publik /api/zones jika token belum tersedia
+    try {
+      const pubRes = await fetch(`/api/zones?${query}`);
+      if (pubRes.ok) return await pubRes.json();
+    } catch (e) {}
+
+    throw new Error('Gagal memuat daftar kawasan');
   },
 
   async getZone(id) {

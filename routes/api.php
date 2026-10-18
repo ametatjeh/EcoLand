@@ -51,7 +51,7 @@ Route::get('/backup/export', [BackupController::class, 'export']);
 Route::post('/auth/login', [AuthController::class, 'login']);
 
 // ─── Protected Routes (Admin) ───────────────────────────────────
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum,web'])->group(function () {
     Route::get('/auth/verify', [AuthController::class, 'verify']);
     Route::post('/auth/logout', [AuthController::class, 'logout']);
 

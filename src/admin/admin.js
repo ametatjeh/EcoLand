@@ -124,15 +124,38 @@ export async function initAdminPanel({ onPublicTourUpdate, onExitAdminToTour }) 
     }
   });
 
-  // 2. Load custom scene names jika ada
+  // 2. Load latest scene metadata from server (names, descriptions, zones, initial views)
   try {
-    const customNames = await ApiService.getCustomSceneNames();
-    scenes.forEach((s) => {
-      if (customNames[s.id]) {
-        s.name = customNames[s.id];
-      }
-    });
-  } catch (e) {}
+    const [serverScenes, customNames] = await Promise.all([
+      ApiService.getScenes(),
+      ApiService.getCustomSceneNames().catch(() => ({})),
+    ]);
+    if (serverScenes && serverScenes.length > 0) {
+      serverScenes.forEach((srv) => {
+        const local = scenes.find((s) => s.id === srv.id);
+        if (local) {
+          local.name = customNames[srv.id] || srv.name || local.name;
+          local.description = srv.description ?? local.description;
+          local.planting_zone_id = srv.planting_zone_id ?? local.planting_zone_id;
+          local.status = srv.status ?? local.status;
+          if (srv.initialViewParameters) {
+            local.initialViewParameters = { ...local.initialViewParameters, ...srv.initialViewParameters };
+          }
+          if (srv.initialView) {
+            local.initialView = { ...local.initialView, ...srv.initialView };
+          }
+        }
+      });
+    } else if (customNames) {
+      scenes.forEach((s) => {
+        if (customNames[s.id]) {
+          s.name = customNames[s.id];
+        }
+      });
+    }
+  } catch (e) {
+    console.warn('Gagal sinkronisasi data scene server:', e);
+  }
 
   // 3. Muat Data Hotspots dari Server
   cachedHotspots = await ApiService.getHotspots();

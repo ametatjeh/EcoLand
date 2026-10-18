@@ -104,6 +104,13 @@ class SceneController extends Controller
             ], 404);
         }
 
+        if ($request->has('planting_zone_id')) {
+            $zoneVal = $request->input('planting_zone_id');
+            if ($zoneVal === '' || $zoneVal === 'null' || $zoneVal === 'undefined') {
+                $request->merge(['planting_zone_id' => null]);
+            }
+        }
+
         $validated = $request->validate([
             'name' => 'sometimes|string|max:255',
             'sequence' => 'sometimes|integer',
@@ -123,7 +130,7 @@ class SceneController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Metadata scene berhasil diperbarui.',
-                'scene' => $scene,
+                'scene' => $scene->fresh()->toMarzipanoArray(false),
             ]);
         });
     }

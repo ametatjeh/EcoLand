@@ -106,6 +106,7 @@ class Scene extends Model
             'name' => $this->name,
             'sequence' => $this->sequence,
             'status' => $this->status,
+            'planting_zone_id' => $this->planting_zone_id,
             'description' => $this->description,
             'panorama' => $this->panorama_path,
             'panorama_path' => $this->panorama_path,
@@ -115,6 +116,9 @@ class Scene extends Model
             'longitude' => $this->longitude,
             'faceSize' => $this->face_size,
             'levels' => $this->levels_json ?? [],
+            'initial_yaw' => (float) $this->initial_yaw,
+            'initial_pitch' => (float) $this->initial_pitch,
+            'initial_fov' => (float) $this->initial_fov,
             'initialViewParameters' => [
                 'yaw' => (float) $this->initial_yaw,
                 'pitch' => (float) $this->initial_pitch,

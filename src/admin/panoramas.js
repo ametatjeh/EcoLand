@@ -19,8 +19,31 @@ export async function renderPanoramaManagement({
   if (!container) return;
 
   try {
-    const zonesRes = await ApiService.getZones();
+    const [zonesRes, serverScenes] = await Promise.all([
+      ApiService.getZones().catch(() => ({ zones: [] })),
+      ApiService.getScenes().catch(() => []),
+    ]);
     cachedZones = zonesRes.zones || [];
+    if (serverScenes && serverScenes.length > 0) {
+      serverScenes.forEach((srv) => {
+        const local = scenes.find((s) => s.id === srv.id);
+        if (local) {
+          if (srv.planting_zone_id !== undefined) local.planting_zone_id = srv.planting_zone_id;
+          if (srv.name) local.name = srv.name;
+          if (srv.description !== undefined) local.description = srv.description;
+          if (srv.status) local.status = srv.status;
+          if (srv.initialViewParameters) {
+            local.initialViewParameters = { ...local.initialViewParameters, ...srv.initialViewParameters };
+          }
+          if (srv.initialView) {
+            local.initialView = { ...local.initialView, ...srv.initialView };
+          }
+          if (srv.initial_yaw !== undefined) local.initial_yaw = srv.initial_yaw;
+          if (srv.initial_pitch !== undefined) local.initial_pitch = srv.initial_pitch;
+          if (srv.initial_fov !== undefined) local.initial_fov = srv.initial_fov;
+        }
+      });
+    }
   } catch (e) {
     cachedZones = [];
   }
@@ -187,22 +210,39 @@ export async function renderPanoramaManagement({
               </div>
             </div>
 
-            <div style="border-top: 1px solid var(--clr-border-subtle); padding-top: 12px;">
-              <label style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
-                Sudut Pandang Awal (Initial View Parameters):
-              </label>
+            <div style="border-top: 1px solid var(--clr-border-subtle); padding-top: 14px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <label style="color: #fff; font-size: 13px; font-weight: 600; margin: 0;">
+                  Sudut Pandang Awal (Initial View Parameters):
+                </label>
+                <button type="button" id="btn-reset-view-params" class="btn-secondary-action btn-sm" style="padding: 3px 8px; font-size: 11px;">
+                  🔄 Reset Standar
+                </button>
+              </div>
               <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
                 <div>
-                  <label style="color: var(--clr-text-muted); font-size: 11px;">Initial Yaw (rad):</label>
-                  <input type="number" step="0.001" id="cfg-scene-yaw" class="form-input" />
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                    <label style="color: var(--clr-text-muted); font-size: 11px; font-weight: 600;">Yaw (Horizontal):</label>
+                    <span id="cfg-scene-yaw-deg" style="color: #10b981; font-size: 10px; font-weight: 600;">0.0°</span>
+                  </div>
+                  <input type="number" step="any" id="cfg-scene-yaw" class="form-input" placeholder="0.0 rad" />
+                  <small style="color: var(--clr-text-muted); font-size: 10px; display: block; margin-top: 2px;">Rentang: -3.14 s/d 3.14 rad</small>
                 </div>
                 <div>
-                  <label style="color: var(--clr-text-muted); font-size: 11px;">Initial Pitch (rad):</label>
-                  <input type="number" step="0.001" id="cfg-scene-pitch" class="form-input" />
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                    <label style="color: var(--clr-text-muted); font-size: 11px; font-weight: 600;">Pitch (Vertikal):</label>
+                    <span id="cfg-scene-pitch-deg" style="color: #10b981; font-size: 10px; font-weight: 600;">0.0°</span>
+                  </div>
+                  <input type="number" step="any" id="cfg-scene-pitch" class="form-input" placeholder="0.0 rad" />
+                  <small style="color: var(--clr-text-muted); font-size: 10px; display: block; margin-top: 2px;">Rentang: -1.57 s/d 1.57 rad</small>
                 </div>
                 <div>
-                  <label style="color: var(--clr-text-muted); font-size: 11px;">Initial FOV (rad):</label>
-                  <input type="number" step="0.001" id="cfg-scene-fov" class="form-input" />
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                    <label style="color: var(--clr-text-muted); font-size: 11px; font-weight: 600;">FOV (Zoom/Bidang):</label>
+                    <span id="cfg-scene-fov-deg" style="color: #10b981; font-size: 10px; font-weight: 600;">80.0°</span>
+                  </div>
+                  <input type="number" step="any" id="cfg-scene-fov" class="form-input" placeholder="1.395 rad" />
+                  <small style="color: var(--clr-text-muted); font-size: 10px; display: block; margin-top: 2px;">Default Marzipano: ~1.395 rad</small>
                 </div>
               </div>
             </div>
@@ -245,6 +285,36 @@ export async function renderPanoramaManagement({
   const modal = document.getElementById('modal-config-scene');
   const form = document.getElementById('form-config-scene');
 
+  const updateDegreeLabels = () => {
+    const yawVal = parseFloat(document.getElementById('cfg-scene-yaw')?.value || 0) || 0;
+    const pitchVal = parseFloat(document.getElementById('cfg-scene-pitch')?.value || 0) || 0;
+    const fovVal = parseFloat(document.getElementById('cfg-scene-fov')?.value || 1.394599) || 1.394599;
+
+    const yawDeg = ((yawVal * 180) / Math.PI).toFixed(1);
+    const pitchDeg = ((pitchVal * 180) / Math.PI).toFixed(1);
+    const fovDeg = ((fovVal * 180) / Math.PI).toFixed(1);
+
+    const degYawEl = document.getElementById('cfg-scene-yaw-deg');
+    if (degYawEl) degYawEl.textContent = `${yawDeg}°`;
+
+    const degPitchEl = document.getElementById('cfg-scene-pitch-deg');
+    if (degPitchEl) degPitchEl.textContent = `${pitchDeg}°`;
+
+    const degFovEl = document.getElementById('cfg-scene-fov-deg');
+    if (degFovEl) degFovEl.textContent = `${fovDeg}°`;
+  };
+
+  ['cfg-scene-yaw', 'cfg-scene-pitch', 'cfg-scene-fov'].forEach((id) => {
+    document.getElementById(id)?.addEventListener('input', updateDegreeLabels);
+  });
+
+  document.getElementById('btn-reset-view-params')?.addEventListener('click', () => {
+    document.getElementById('cfg-scene-yaw').value = 0;
+    document.getElementById('cfg-scene-pitch').value = 0;
+    document.getElementById('cfg-scene-fov').value = 1.394599;
+    updateDegreeLabels();
+  });
+
   container.querySelectorAll('.btn-config-scene').forEach((btn) => {
     btn.addEventListener('click', () => {
       const sceneId = btn.getAttribute('data-scene-id');
@@ -254,11 +324,25 @@ export async function renderPanoramaManagement({
       document.getElementById('cfg-scene-id').value = scene.id;
       document.getElementById('cfg-scene-name').value = scene.name;
       document.getElementById('cfg-scene-desc').value = scene.description || '';
-      document.getElementById('cfg-scene-zone').value = scene.planting_zone_id || '';
+      const zoneSelect = document.getElementById('cfg-scene-zone');
+      if (zoneSelect) {
+        zoneSelect.innerHTML = `
+          <option value="">-- Tanpa Kawasan --</option>
+          ${cachedZones.map((z) => `<option value="${z.id}" ${z.id === scene.planting_zone_id ? 'selected' : ''}>${escapeHtml(z.name)}</option>`).join('')}
+        `;
+        zoneSelect.value = scene.planting_zone_id || '';
+      }
       document.getElementById('cfg-scene-status').value = scene.status || 'tersedia';
-      document.getElementById('cfg-scene-yaw').value = scene.initialViewParameters?.yaw ?? 0;
-      document.getElementById('cfg-scene-pitch').value = scene.initialViewParameters?.pitch ?? 0;
-      document.getElementById('cfg-scene-fov').value = scene.initialViewParameters?.fov ?? 1.395;
+
+      const initialYaw = scene.initialViewParameters?.yaw ?? scene.initial_yaw ?? 0;
+      const initialPitch = scene.initialViewParameters?.pitch ?? scene.initial_pitch ?? 0;
+      const initialFov = scene.initialViewParameters?.fov ?? scene.initial_fov ?? 1.394599;
+
+      document.getElementById('cfg-scene-yaw').value = initialYaw;
+      document.getElementById('cfg-scene-pitch').value = initialPitch;
+      document.getElementById('cfg-scene-fov').value = initialFov;
+      updateDegreeLabels();
+
       document.getElementById('modal-config-scene-title').textContent = `⚙️ Edit Panorama: ${scene.name} (${scene.id})`;
 
       const stats = getSceneStats(scene.id);
@@ -313,14 +397,23 @@ export async function renderPanoramaManagement({
     const scene = scenes.find((s) => s.id === sceneId);
     if (!scene) return;
 
+    const parseCoordinate = (rawVal, defaultVal = 0) => {
+      if (rawVal === '' || rawVal === null || rawVal === undefined) return defaultVal;
+      const clean = String(rawVal).replace(',', '.').trim();
+      const num = parseFloat(clean);
+      return isNaN(num) ? defaultVal : num;
+    };
+
+    const selectedZone = document.getElementById('cfg-scene-zone').value || null;
+
     const payload = {
       name: document.getElementById('cfg-scene-name').value.trim(),
       description: document.getElementById('cfg-scene-desc').value.trim(),
-      planting_zone_id: document.getElementById('cfg-scene-zone').value || null,
+      planting_zone_id: selectedZone,
       status: document.getElementById('cfg-scene-status').value,
-      initial_yaw: parseFloat(document.getElementById('cfg-scene-yaw').value) || 0,
-      initial_pitch: parseFloat(document.getElementById('cfg-scene-pitch').value) || 0,
-      initial_fov: parseFloat(document.getElementById('cfg-scene-fov').value) || 1.395,
+      initial_yaw: parseCoordinate(document.getElementById('cfg-scene-yaw').value, 0),
+      initial_pitch: parseCoordinate(document.getElementById('cfg-scene-pitch').value, 0),
+      initial_fov: parseCoordinate(document.getElementById('cfg-scene-fov').value, 1.394599),
     };
 
     const submitBtn = form?.querySelector('button[type="submit"]');
@@ -335,10 +428,19 @@ export async function renderPanoramaManagement({
       scene.description = payload.description;
       scene.planting_zone_id = payload.planting_zone_id;
       scene.status = payload.status;
+      scene.initial_yaw = payload.initial_yaw;
+      scene.initial_pitch = payload.initial_pitch;
+      scene.initial_fov = payload.initial_fov;
+
       if (!scene.initialViewParameters) scene.initialViewParameters = {};
       scene.initialViewParameters.yaw = payload.initial_yaw;
       scene.initialViewParameters.pitch = payload.initial_pitch;
       scene.initialViewParameters.fov = payload.initial_fov;
+
+      if (!scene.initialView) scene.initialView = {};
+      scene.initialView.yaw = payload.initial_yaw;
+      scene.initialView.pitch = payload.initial_pitch;
+      scene.initialView.fov = payload.initial_fov;
 
       modal.classList.add('hidden');
       EcoToast.saved(`Konfigurasi scene '${scene.name}' berhasil disimpan.`);
