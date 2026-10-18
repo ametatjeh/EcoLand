@@ -15,7 +15,7 @@ export function showDefaultInfoModal(hotspot) {
  * @param {function} onClick — Callback saat hotspot diklik
  * @returns {HTMLElement}
  */
-function createLinkHotspotElement(hotspot, targetName, onClick) {
+export function createLinkHotspotElement(hotspot, targetName, onClick) {
   const wrapper = document.createElement('div');
   wrapper.className = 'hotspot link-hotspot';
   wrapper.setAttribute('role', 'button');
@@ -63,7 +63,7 @@ function createLinkHotspotElement(hotspot, targetName, onClick) {
  * @param {object} hotspot — { yaw, pitch, title, text }
  * @returns {HTMLElement}
  */
-function createInfoHotspotElement(hotspot) {
+export function createInfoHotspotElement(hotspot) {
   const wrapper = document.createElement('div');
   // Default terbuka di layar desktop (> 768px), sedangkan khusus tampilan mobile default tertutup
   const isDesktop = typeof window !== 'undefined' && window.innerWidth > 768;

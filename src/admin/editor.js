@@ -5,6 +5,7 @@
 import Marzipano from 'marzipano';
 import { ApiService } from '../services/api.js';
 import { EcoToast } from '../utils/toast.js';
+import { createLinkHotspotElement, createInfoHotspotElement } from '../hotspots.js';
 
 export class VisualHotspotEditor {
   constructor({ scenes, getHotspots, onHotspotsChanged, onSceneSwitchRequest }) {
@@ -21,6 +22,7 @@ export class VisualHotspotEditor {
 
     // Editor State
     this.mode = 'select'; // 'select' | 'add-link' | 'add-info' | 'move' | 'preview'
+    this.previewShowDrafts = false;
     this.selectedHotspotId = null;
     this.clipboardHotspot = null;
     this.isDragging = false;
@@ -163,10 +165,14 @@ export class VisualHotspotEditor {
     // Pastikan ukuran canvas sinkron dengan dimensi elemen saat ini
     this.viewer.updateSize();
 
-    // Update scene selector dropdown
+    // Update scene selector dropdowns
     const selectEl = document.getElementById('editor-scene-select');
     if (selectEl && selectEl.value !== sceneId) {
       selectEl.value = sceneId;
+    }
+    const previewSelectEl = document.getElementById('editor-preview-scene-select');
+    if (previewSelectEl && previewSelectEl.value !== sceneId) {
+      previewSelectEl.value = sceneId;
     }
 
     // Get or create Marzipano Scene
@@ -266,13 +272,43 @@ export class VisualHotspotEditor {
       btn.classList.toggle('active', btn.getAttribute('data-mode') === newMode);
     });
 
+    const layout = document.querySelector('.admin-editor-layout');
+    const previewBar = document.getElementById('editor-preview-bar');
     const panoEl = document.getElementById('admin-editor-pano');
+
     if (panoEl) {
       panoEl.classList.remove('mode-add', 'mode-move', 'mode-preview');
       if (newMode.startsWith('add-')) panoEl.classList.add('mode-add');
       if (newMode === 'move') panoEl.classList.add('mode-move');
       if (newMode === 'preview') panoEl.classList.add('mode-preview');
     }
+
+    if (newMode === 'preview') {
+      if (layout) layout.classList.add('preview-active');
+      if (previewBar) {
+        previewBar.classList.remove('hidden');
+        const previewSelect = document.getElementById('editor-preview-scene-select');
+        if (previewSelect && this.scenes) {
+          previewSelect.innerHTML = this.scenes
+            .map((s, idx) => `<option value="${s.id}" ${s.id === this.currentSceneId ? 'selected' : ''}>Titik ${s.sequence || (idx + 1)}: ${escapeHtml(s.name)}</option>`)
+            .join('');
+        }
+        const toggleDrafts = document.getElementById('preview-toggle-drafts');
+        if (toggleDrafts) toggleDrafts.checked = this.previewShowDrafts;
+      }
+
+      this.selectedHotspotId = null;
+      document.getElementById('mobile-info-modal')?.remove();
+      this.refreshViewerSize();
+      this.renderHotspotsOnCurrentScene();
+      this.showToast('Mode Pratinjau Pengunjung Aktif.');
+      return;
+    }
+
+    // Returning to normal editing mode
+    if (layout) layout.classList.remove('preview-active');
+    if (previewBar) previewBar.classList.add('hidden');
+    document.getElementById('mobile-info-modal')?.remove();
 
     const banner = document.getElementById('editor-mode-hint');
     if (banner) {
@@ -285,15 +321,14 @@ export class VisualHotspotEditor {
       } else if (newMode === 'move') {
         banner.innerHTML = '✋ <strong>Mode Pindahkan:</strong> Klik atau seret hotspot pada panorama untuk mengubah posisinya.';
         banner.classList.remove('hidden');
-      } else if (newMode === 'preview') {
-        banner.innerHTML = '👁️ <strong>Mode Pratinjau Pengunjung:</strong> Menampilkan tampilan bersih sesuai hak akses pengunjung.';
-        banner.classList.remove('hidden');
       } else {
         banner.classList.add('hidden');
       }
     }
 
+    this.refreshViewerSize();
     this.renderHotspotsOnCurrentScene();
+    this.renderHotspotsList();
   }
 
   /**
@@ -382,8 +417,22 @@ export class VisualHotspotEditor {
     const sceneHotspots = this.getHotspots().filter((h) => h.sceneId === this.currentSceneId);
 
     sceneHotspots.forEach((hs) => {
-      // Jika mode preview, jangan tampilkan hotspot inactive
-      if (this.mode === 'preview' && (hs.isActive === false || hs.status === 'inactive')) {
+      // Jika mode preview, gunakan elemen hotspot interaktif publik asli
+      if (this.mode === 'preview') {
+        if (hs.isActive === false || hs.status === 'inactive') return;
+        if (!this.previewShowDrafts && hs.status === 'draft') return;
+
+        if (hs.type === 'link') {
+          const targetScene = this.scenes.find((s) => s.id === hs.target);
+          const targetName = hs.title ? hs.title : (targetScene ? targetScene.name : hs.target);
+          const el = createLinkHotspotElement(hs, targetName, (targetId) => {
+            this.setScene(targetId);
+          });
+          container.createHotspot(el, { yaw: hs.yaw, pitch: hs.pitch });
+        } else {
+          const el = createInfoHotspotElement(hs);
+          container.createHotspot(el, { yaw: hs.yaw, pitch: hs.pitch });
+        }
         return;
       }
 
@@ -437,21 +486,9 @@ export class VisualHotspotEditor {
       wrapper.appendChild(badge);
     }
 
-    // Event Klik Hotspot
+    // Event Klik Hotspot pada mode editor
     wrapper.addEventListener('click', (e) => {
       e.stopPropagation();
-
-      if (this.mode === 'preview') {
-        // Pada mode preview, bertindak seperti pengunjung biasa
-        if (isLink && hs.target) {
-          this.setScene(hs.target);
-        } else {
-          alert(`[Informasi] ${hs.title}\n\n${(hs.text || '').replace(/<[^>]*>/g, '')}`);
-        }
-        return;
-      }
-
-      // Mode editor: Pilih hotspot ini
       this.selectHotspot(hs.id);
     });
 
@@ -1355,6 +1392,27 @@ export class VisualHotspotEditor {
     document.getElementById('tool-preview')?.addEventListener('click', () => {
       this.setMode(this.mode === 'preview' ? 'select' : 'preview');
     });
+
+    // Preview Mode Controls
+    document.getElementById('btn-exit-preview')?.addEventListener('click', () => {
+      this.setMode('select');
+    });
+
+    const previewSceneSelect = document.getElementById('editor-preview-scene-select');
+    if (previewSceneSelect) {
+      previewSceneSelect.addEventListener('change', (e) => {
+        this.setScene(e.target.value);
+      });
+    }
+
+    const previewToggleDrafts = document.getElementById('preview-toggle-drafts');
+    if (previewToggleDrafts) {
+      previewToggleDrafts.addEventListener('change', (e) => {
+        this.previewShowDrafts = e.target.checked;
+        this.renderHotspotsOnCurrentScene();
+        this.showToast(this.previewShowDrafts ? 'Hotspot draf disertakan dalam pratinjau.' : 'Hanya hotspot published yang ditampilkan.');
+      });
+    }
 
     // Undo / Redo
     document.getElementById('tool-undo')?.addEventListener('click', () => this.undo());

@@ -955,6 +955,29 @@
                     </div>
                   </div>
 
+                  <!-- Mode Pratinjau Toolbar Bar (Active only in Preview Mode) -->
+                  <div id="editor-preview-bar" class="editor-preview-bar hidden">
+                    <div class="preview-bar-left">
+                      <span class="preview-mode-tag">👁️ Mode Pratinjau Pengunjung</span>
+                      <span class="preview-mode-desc">Tampilan interaktif virtual tour persis seperti dilihat publik.</span>
+                    </div>
+                    <div class="preview-bar-center">
+                      <div class="preview-tool-item">
+                        <label for="editor-preview-scene-select" class="preview-label">Pindah Panorama:</label>
+                        <select id="editor-preview-scene-select" class="form-select preview-scene-dropdown"></select>
+                      </div>
+                      <label class="preview-toggle-label">
+                        <input type="checkbox" id="preview-toggle-drafts" />
+                        <span>Sertakan Hotspot Draf</span>
+                      </label>
+                    </div>
+                    <div class="preview-bar-right">
+                      <button type="button" id="btn-exit-preview" class="btn-exit-preview" title="Kembali ke Mode Edit">
+                        ✕ Keluar dari Pratinjau
+                      </button>
+                    </div>
+                  </div>
+
                   <div id="editor-mode-hint" class="editor-mode-hint hidden"></div>
 
                   <div class="editor-body">
