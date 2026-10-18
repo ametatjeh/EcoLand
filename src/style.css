@@ -1457,6 +1457,8 @@ body:has(#view-admin.active) #public-global-footer,
   font-size: 13px;
   color: var(--clr-text);
   line-height: 1.5;
+  white-space: pre-line;
+  word-break: break-word;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.6);
   display: none;
   max-height: 220px;
@@ -3132,6 +3134,136 @@ body:has(#view-admin.active) #public-global-footer,
   font-size: 14px;
 }
 .icon-btn-sm:hover { color: #ffffff; }
+
+/* Editor Live Properties Helper & Formatting Styles */
+.btn-xs-helper {
+  background: rgba(46, 204, 113, 0.12);
+  border: 1px solid rgba(46, 204, 113, 0.3);
+  color: #2ecc71;
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s ease;
+  margin-top: 4px;
+}
+.btn-xs-helper:hover {
+  background: rgba(46, 204, 113, 0.25);
+  border-color: #2ecc71;
+  color: #ffffff;
+}
+
+.editor-format-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  background: #0d1611;
+  border: 1px solid var(--clr-border);
+  border-bottom: none;
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+  padding: 5px 8px;
+  align-items: center;
+}
+.editor-format-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--clr-text-muted);
+  font-size: 11px;
+  padding: 3px 7px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  line-height: 1.2;
+}
+.editor-format-btn:hover {
+  background: rgba(46, 204, 113, 0.2);
+  border-color: rgba(46, 204, 113, 0.4);
+  color: #ffffff;
+}
+.editor-format-btn.btn-template {
+  color: #38bdf8;
+  border-color: rgba(56, 189, 248, 0.25);
+}
+.editor-format-btn.btn-template:hover {
+  background: rgba(56, 189, 248, 0.2);
+  color: #ffffff;
+}
+.editor-format-btn.btn-clean {
+  color: #eab308;
+  border-color: rgba(234, 179, 8, 0.25);
+}
+.editor-format-btn.btn-clean:hover {
+  background: rgba(234, 179, 8, 0.2);
+  color: #ffffff;
+}
+
+.prop-form-body .form-textarea.has-toolbar {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+.editor-info-preview-card {
+  margin-top: 10px;
+  background: rgba(13, 22, 17, 0.95);
+  border: 1px solid rgba(46, 204, 113, 0.25);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+}
+.editor-info-preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  background: rgba(46, 204, 113, 0.08);
+  border-bottom: 1px solid rgba(46, 204, 113, 0.15);
+}
+.preview-badge {
+  font-size: 10px;
+  font-weight: 700;
+  color: #2ecc71;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.btn-xs-text {
+  background: transparent;
+  border: none;
+  color: var(--clr-text-muted);
+  font-size: 10px;
+  cursor: pointer;
+  padding: 2px 4px;
+}
+.btn-xs-text:hover {
+  color: #ffffff;
+  text-decoration: underline;
+}
+.editor-info-preview-body {
+  padding: 10px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--clr-text);
+  max-height: 180px;
+  overflow-y: auto;
+}
+.editor-info-preview-body .preview-title {
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 4px;
+  font-size: 12.5px;
+}
+.editor-info-preview-body .preview-text {
+  color: #d1d5db;
+  font-size: 11.5px;
+  white-space: pre-line;
+  word-break: break-word;
+}
+
 
 /* Filter Controls */
 .editor-filters-bar {

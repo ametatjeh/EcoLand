@@ -79,14 +79,23 @@ export class VisualHotspotEditor {
 
   async loadTreeMetadata() {
     try {
-      const [spRes, actRes] = await Promise.all([
-        ApiService.getTreeSpecies({ per_page: 100 }),
-        ApiService.getPlantingActivities({ per_page: 100 }),
-      ]);
-      this.cachedTreeSpeciesList = spRes.data || [];
-      this.cachedPlantingActivitiesList = actRes.data || [];
+      let spRes;
+      try {
+        spRes = await ApiService.getTreeSpecies({ per_page: 100 });
+      } catch (err) {
+        const pub = await fetch('/api/tree-species');
+        spRes = await pub.json();
+      }
+      this.cachedTreeSpeciesList = spRes.species || spRes.data || (Array.isArray(spRes) ? spRes : []);
     } catch (e) {
-      // Non-fatal if offline or not logged in yet
+      console.warn('loadTreeMetadata species error:', e);
+    }
+
+    try {
+      const actRes = await ApiService.getPlantingActivities({ per_page: 100 });
+      this.cachedPlantingActivitiesList = actRes.activities || actRes.data || (Array.isArray(actRes) ? actRes : []);
+    } catch (e) {
+      console.warn('loadTreeMetadata activities error:', e);
     }
   }
 
@@ -549,6 +558,8 @@ export class VisualHotspotEditor {
       .map((s) => `<option value="${s.id}" ${s.id === hs.target ? 'selected' : ''}>${s.name} (${s.id})</option>`)
       .join('');
 
+    const initialDescText = htmlToPlainText(hs.text || hs.rawText || '');
+
     formCard.innerHTML = `
       <div class="prop-form-header">
         <div style="display: flex; align-items: center; gap: 8px;">
@@ -562,8 +573,20 @@ export class VisualHotspotEditor {
 
       <form id="hotspot-properties-form" class="prop-form-body">
         <div class="form-group">
-          <label for="prop-title">Judul / Nama Hotspot:</label>
-          <input type="text" id="prop-title" class="form-input" value="${escapeHtml(hs.title || '')}" required />
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <label for="prop-title" style="margin-bottom: 0;">Judul / Nama Hotspot:</label>
+            <span id="prop-title-counter" style="font-size: 10px; color: var(--clr-text-dim);">${(hs.title || '').length} karakter</span>
+          </div>
+          <input type="text" id="prop-title" class="form-input" value="${escapeHtml(hs.title || '')}" placeholder="Contoh: Pohon Trembesi / Menuju Titik 2" required />
+          ${
+            isLink
+              ? `
+            <button type="button" id="btn-sync-target-title" class="btn-xs-helper" title="Samakan judul dengan nama scene tujuan saat ini">
+              🔄 Gunakan Nama Scene Tujuan
+            </button>
+          `
+              : ''
+          }
         </div>
 
         ${
@@ -593,7 +616,7 @@ export class VisualHotspotEditor {
               <option value="latest_survey" ${hs.infoSourceType === 'latest_survey' ? 'selected' : ''}>🔍 Pemantauan Terkini Kelompok Tanam</option>
             </select>
             <small style="color: var(--clr-text-dim); display: block; margin-top: 4px;">
-              Pilih sumber informasi dari database penanaman pohon kawasan.
+              Pilih sumber informasi untuk mengisi judul & deskripsi secara otomatis.
             </small>
           </div>
 
@@ -614,8 +637,35 @@ export class VisualHotspotEditor {
           </div>
 
           <div class="form-group" id="group-prop-desc">
-            <label for="prop-desc">Deskripsi Informasi:</label>
-            <textarea id="prop-desc" class="form-textarea" rows="4">${escapeHtml(hs.text || hs.rawText || '')}</textarea>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+              <label for="prop-desc" style="margin-bottom: 0;">Deskripsi Informasi:</label>
+              <span id="prop-desc-counter" style="font-size: 10px; color: var(--clr-text-dim);">0 karakter</span>
+            </div>
+
+            <!-- Formatting Toolbar -->
+            <div class="editor-format-toolbar">
+              <button type="button" class="editor-format-btn" data-tag="b" title="Tebal / Bold"><b>B</b></button>
+              <button type="button" class="editor-format-btn" data-tag="i" title="Miring / Italic"><i>I</i></button>
+              <button type="button" class="editor-format-btn" data-tag="bullet" title="Daftar Poin / Bullet List">• List</button>
+              <button type="button" class="editor-format-btn" data-tag="nl" title="Baris Baru / Newline">↵ Baris</button>
+              <button type="button" class="editor-format-btn btn-template" id="btn-tpl-tree" title="Sisipkan Template Informasi Pohon">🌿 Template Pohon</button>
+              <button type="button" class="editor-format-btn btn-template" id="btn-tpl-activity" title="Sisipkan Template Kegiatan">📋 Template Kegiatan</button>
+              <button type="button" class="editor-format-btn btn-clean" id="btn-clean-html" title="Rapikan dan hilangkan tag HTML mentah">🧹 Rapikan Teks</button>
+            </div>
+
+            <textarea id="prop-desc" class="form-textarea has-toolbar" rows="5" placeholder="Tuliskan keterangan detail informasi pohon atau konservasi...">${escapeHtml(initialDescText)}</textarea>
+
+            <!-- Live Info Preview Box -->
+            <div class="editor-info-preview-card">
+              <div class="editor-info-preview-header">
+                <span class="preview-badge">👁️ Pratinjau Tampilan Info</span>
+                <button type="button" id="btn-toggle-preview" class="btn-xs-text">Sembunyikan</button>
+              </div>
+              <div id="editor-info-preview-content" class="editor-info-preview-body">
+                <div class="preview-title" id="preview-title-render">${escapeHtml(hs.title || 'Informasi')}</div>
+                <div class="preview-text" id="preview-desc-render">${renderFormattedDescription(initialDescText)}</div>
+              </div>
+            </div>
           </div>
         `
         }
@@ -669,18 +719,260 @@ export class VisualHotspotEditor {
     const btnDelete = document.getElementById('btn-delete-current');
     const btnClose = document.getElementById('btn-close-prop-form');
 
+    const titleInput = document.getElementById('prop-title');
+    const titleCounter = document.getElementById('prop-title-counter');
+    const previewTitle = document.getElementById('preview-title-render');
+
+    const descTextarea = document.getElementById('prop-desc');
+    const descCounter = document.getElementById('prop-desc-counter');
+    const previewDesc = document.getElementById('preview-desc-render');
+    const previewCard = document.getElementById('editor-info-preview-content');
+    const btnTogglePreview = document.getElementById('btn-toggle-preview');
+
     const rotationSlider = document.getElementById('prop-rotation-slider');
     const rotationInput = document.getElementById('prop-rotation');
 
     const infoSourceSelect = document.getElementById('prop-info-source');
     const groupSpecies = document.getElementById('group-select-tree-species');
     const groupActivity = document.getElementById('group-select-planting-activity');
+    const selectSpecies = document.getElementById('prop-tree-species');
+    const selectActivity = document.getElementById('prop-planting-activity');
 
+    const btnSyncTarget = document.getElementById('btn-sync-target-title');
+    const targetSelect = document.getElementById('prop-target');
+
+    // Live Title Updates
+    const updateTitleLive = (val) => {
+      hs.title = val;
+      if (titleCounter) titleCounter.textContent = `${val.length} karakter`;
+      if (previewTitle) previewTitle.textContent = val || (isLink ? 'Navigasi' : 'Informasi');
+
+      // Update tooltip pada Marzipano 360 view secara langsung
+      const activeHsEl = document.querySelector(`.editor-hotspot-item[data-id="${hs.id}"] .editor-hs-tooltip`);
+      if (activeHsEl) {
+        activeHsEl.textContent = val || (isLink ? this.getSceneName(hs.target) : 'Info');
+      }
+
+      // Update baris pada tabel daftar hotspot
+      const rowTitle = document.querySelector(`.editor-hotspots-table tr[data-id="${hs.id}"] .hs-row-title, .editor-hotspots-table div[data-id="${hs.id}"] .hs-row-title`);
+      if (rowTitle) {
+        rowTitle.textContent = val || hs.id;
+      }
+
+      this.hasUnsavedChanges = true;
+    };
+
+    titleInput?.addEventListener('input', (e) => {
+      updateTitleLive(e.target.value.trim());
+    });
+
+    if (btnSyncTarget && targetSelect && titleInput) {
+      btnSyncTarget.addEventListener('click', () => {
+        const selectedSceneName = this.getSceneName(targetSelect.value);
+        titleInput.value = selectedSceneName;
+        updateTitleLive(selectedSceneName);
+        this.showToast(`Judul disinkronkan ke: ${selectedSceneName}`);
+      });
+    }
+
+    if (targetSelect) {
+      targetSelect.addEventListener('change', () => {
+        if (isLink && (!titleInput.value || titleInput.value.startsWith('Menuju '))) {
+          const selectedSceneName = this.getSceneName(targetSelect.value);
+          titleInput.value = `Menuju ${selectedSceneName}`;
+          updateTitleLive(titleInput.value);
+        }
+      });
+    }
+
+    // Live Description Updates & Counter
+    const updateDescLive = (val) => {
+      hs.text = val;
+      if (descCounter) {
+        const lines = val ? val.split('\n').length : 0;
+        descCounter.textContent = `${val.length} karakter • ${lines} baris`;
+      }
+      if (previewDesc) {
+        previewDesc.innerHTML = renderFormattedDescription(val);
+      }
+      this.hasUnsavedChanges = true;
+    };
+
+    descTextarea?.addEventListener('input', (e) => {
+      updateDescLive(e.target.value);
+    });
+
+    if (descTextarea) {
+      const initVal = descTextarea.value;
+      const lines = initVal ? initVal.split('\n').length : 0;
+      if (descCounter) descCounter.textContent = `${initVal.length} karakter • ${lines} baris`;
+    }
+
+    if (btnTogglePreview && previewCard) {
+      btnTogglePreview.addEventListener('click', () => {
+        const isHidden = previewCard.classList.toggle('hidden');
+        btnTogglePreview.textContent = isHidden ? 'Tampilkan' : 'Sembunyikan';
+      });
+    }
+
+    // Formatting Toolbar Buttons
+    const insertFormatTag = (tag) => {
+      if (!descTextarea) return;
+      const start = descTextarea.selectionStart;
+      const end = descTextarea.selectionEnd;
+      const text = descTextarea.value;
+      const selected = text.substring(start, end);
+
+      let replacement = '';
+      let cursorOffset = 0;
+
+      if (tag === 'b') {
+        replacement = `<b>${selected || 'Teks Tebal'}</b>`;
+        cursorOffset = selected ? replacement.length : 3 + (selected || 'Teks Tebal').length;
+      } else if (tag === 'i') {
+        replacement = `<i>${selected || 'Teks Miring'}</i>`;
+        cursorOffset = selected ? replacement.length : 3 + (selected || 'Teks Miring').length;
+      } else if (tag === 'bullet') {
+        if (selected) {
+          replacement = selected
+            .split('\n')
+            .map((line) => (line.startsWith('• ') ? line : `• ${line}`))
+            .join('\n');
+        } else {
+          replacement = '• Item poin baru\n';
+        }
+        cursorOffset = replacement.length;
+      } else if (tag === 'nl') {
+        replacement = '\n';
+        cursorOffset = 1;
+      }
+
+      descTextarea.value = text.substring(0, start) + replacement + text.substring(end);
+      descTextarea.focus();
+      descTextarea.setSelectionRange(start + cursorOffset, start + cursorOffset);
+      updateDescLive(descTextarea.value);
+    };
+
+    form?.querySelectorAll('.editor-format-btn[data-tag]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        insertFormatTag(btn.getAttribute('data-tag'));
+      });
+    });
+
+    document.getElementById('btn-clean-html')?.addEventListener('click', () => {
+      if (!descTextarea) return;
+      const cleaned = htmlToPlainText(descTextarea.value);
+      descTextarea.value = cleaned;
+      updateDescLive(cleaned);
+      this.showToast('Format teks telah dirapikan.');
+    });
+
+    document.getElementById('btn-tpl-tree')?.addEventListener('click', () => {
+      if (!descTextarea) return;
+      const tpl = `Nama Lokal: -\nNama Ilmiah: -\nFamili: -\nStatus: Jenis Asli / Lokal\n\nFungsi Ekologis:\nPohon konservasi dan pengayaan vegetasi kawasan.\n\nManfaat:\nPeneduh alami, penahan erosi, dan penunjang mikroklimat.`;
+      descTextarea.value = (descTextarea.value ? descTextarea.value + '\n\n' : '') + tpl;
+      updateDescLive(descTextarea.value);
+      this.showToast('Template informasi pohon disisipkan.');
+    });
+
+    document.getElementById('btn-tpl-activity')?.addEventListener('click', () => {
+      if (!descTextarea) return;
+      const tpl = `Batch Penanaman: -\nZona: Blok Restorasi\nTanggal Tanam: -\nPelaksana: -\nTotal Bibit: 100 bibit\nKelangsungan Hidup: 95%`;
+      descTextarea.value = (descTextarea.value ? descTextarea.value + '\n\n' : '') + tpl;
+      updateDescLive(descTextarea.value);
+      this.showToast('Template kegiatan penanaman disisipkan.');
+    });
+
+    // Dynamic Tree & Activity Auto-population
     if (infoSourceSelect) {
       infoSourceSelect.addEventListener('change', (e) => {
         const val = e.target.value;
         if (groupSpecies) groupSpecies.classList.toggle('hidden', val !== 'tree_species');
         if (groupActivity) groupActivity.classList.toggle('hidden', val !== 'planting_activity' && val !== 'latest_survey');
+      });
+    }
+
+    if (selectSpecies) {
+      selectSpecies.addEventListener('change', (e) => {
+        const spId = e.target.value;
+        if (!spId) return;
+        const sp = this.cachedTreeSpeciesList.find((s) => String(s.id) === String(spId));
+        if (!sp) return;
+
+        // Auto-update Judul / Nama Hotspot
+        const autoTitle = sp.common_name + (sp.scientific_name ? ` (${sp.scientific_name})` : '');
+        if (titleInput) {
+          titleInput.value = autoTitle;
+          updateTitleLive(autoTitle);
+        }
+
+        // Auto-populate Deskripsi Informasi
+        const descParts = [
+          `Nama Lokal: ${sp.local_name || sp.common_name}`,
+          `Nama Ilmiah: ${sp.scientific_name || '-'}`,
+          `Famili: ${sp.family || '-'}`,
+          `Status Asal: ${sp.origin_status_label || sp.origin_status || 'Jenis Asli / Lokal'}`,
+        ];
+        if (sp.total_planted > 0) {
+          descParts.push(`Total Ditanam: ${sp.total_planted} bibit`);
+        }
+        descParts.push('');
+        descParts.push('Fungsi Ekologis:');
+        descParts.push(sp.ecological_function || 'Pohon konservasi dan pengayaan vegetasi alami.');
+        descParts.push('');
+        descParts.push('Manfaat & Karakteristik:');
+        descParts.push(sp.description || sp.benefits || 'Pohon konservasi pendukung ekosistem.');
+
+        const formattedDesc = descParts.join('\n');
+        if (descTextarea) {
+          descTextarea.value = formattedDesc;
+          updateDescLive(formattedDesc);
+        }
+
+        this.showToast(`Konten diisi dari spesies: ${sp.common_name}`);
+      });
+    }
+
+    if (selectActivity) {
+      selectActivity.addEventListener('change', (e) => {
+        const actId = e.target.value;
+        if (!actId) return;
+        const act = this.cachedPlantingActivitiesList.find((a) => String(a.id) === String(actId));
+        if (!act) return;
+
+        // Auto-update Judul / Nama Hotspot
+        const autoTitle = `[${act.batch_code}] ${act.name}`;
+        if (titleInput) {
+          titleInput.value = autoTitle;
+          updateTitleLive(autoTitle);
+        }
+
+        // Auto-populate Deskripsi Informasi
+        const descParts = [
+          `Kelompok / Batch: ${act.batch_code}`,
+          `Nama Kegiatan: ${act.name}`,
+          `Zona Lokasi: ${act.location_zone || '-'}`,
+          `Tanggal Tanam: ${act.activity_date || '-'}`,
+          `Penyelenggara: ${act.organizer || '-'} (PJ: ${act.person_in_charge || '-'})`,
+          `Total Bibit Awal: ${act.total_initial_seedlings || 0} bibit`,
+          `Tingkat Kelangsungan: ${act.survival_rate !== null && act.survival_rate !== undefined ? act.survival_rate + '%' : 'Dalam pemantauan'}`,
+        ];
+
+        if (Array.isArray(act.species_list) && act.species_list.length > 0) {
+          descParts.push('');
+          descParts.push('Komposisi Jenis Pohon:');
+          act.species_list.forEach((item) => {
+            descParts.push(`• ${item.common_name || item.species_id}: ${item.quantity} ${item.unit || 'bibit'}`);
+          });
+        }
+
+        const formattedDesc = descParts.join('\n');
+        if (descTextarea) {
+          descTextarea.value = formattedDesc;
+          updateDescLive(formattedDesc);
+        }
+
+        this.showToast(`Konten diisi dari kelompok: ${act.batch_code}`);
       });
     }
 
@@ -696,14 +988,14 @@ export class VisualHotspotEditor {
     const applyChanges = () => {
       this.saveHistorySnapshot('Edit Pengaturan Hotspot');
 
-      hs.title = document.getElementById('prop-title').value.trim();
-      hs.yaw = parseFloat(document.getElementById('prop-yaw').value) || 0;
-      hs.pitch = parseFloat(document.getElementById('prop-pitch').value) || 0;
-      hs.status = document.getElementById('prop-status').value;
-      hs.isActive = document.getElementById('prop-active').checked;
+      hs.title = document.getElementById('prop-title')?.value.trim() || '';
+      hs.yaw = parseFloat(document.getElementById('prop-yaw')?.value) || 0;
+      hs.pitch = parseFloat(document.getElementById('prop-pitch')?.value) || 0;
+      hs.status = document.getElementById('prop-status')?.value || 'published';
+      hs.isActive = document.getElementById('prop-active')?.checked !== false;
 
       if (isLink) {
-        hs.target = document.getElementById('prop-target').value;
+        hs.target = document.getElementById('prop-target')?.value;
         const deg = parseFloat(rotationInput?.value || 0);
         hs.rotation = (deg * Math.PI) / 180;
         hs.infoSourceType = 'manual';
@@ -712,8 +1004,8 @@ export class VisualHotspotEditor {
       } else {
         hs.text = document.getElementById('prop-desc')?.value || '';
         hs.infoSourceType = infoSourceSelect?.value || 'manual';
-        hs.treeSpeciesId = hs.infoSourceType === 'tree_species' ? (parseInt(document.getElementById('prop-tree-species')?.value) || null) : null;
-        hs.plantingActivityId = (hs.infoSourceType === 'planting_activity' || hs.infoSourceType === 'latest_survey') ? (parseInt(document.getElementById('prop-planting-activity')?.value) || null) : null;
+        hs.treeSpeciesId = hs.infoSourceType === 'tree_species' ? (document.getElementById('prop-tree-species')?.value || null) : null;
+        hs.plantingActivityId = (hs.infoSourceType === 'planting_activity' || hs.infoSourceType === 'latest_survey') ? (document.getElementById('prop-planting-activity')?.value || null) : null;
       }
 
       this.hasUnsavedChanges = true;
@@ -1180,3 +1472,31 @@ function escapeHtml(str) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
 }
+
+function htmlToPlainText(html) {
+  if (!html) return '';
+  if (!/<[a-z][\s\S]*>/i.test(html)) return String(html).trim();
+  let text = String(html);
+  text = text.replace(/<br\s*\/?>/gi, '\n');
+  text = text.replace(/<\/p>/gi, '\n\n');
+  text = text.replace(/<p[^>]*>/gi, '');
+  text = text.replace(/<[^>]+>/g, '');
+  text = text.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#039;/g, "'");
+  return text.trim();
+}
+
+function renderFormattedDescription(text) {
+  if (!text || !text.trim()) {
+    return '<span style="color: var(--clr-text-dim); font-style: italic;">(Belum ada deskripsi informasi)</span>';
+  }
+  let safe = escapeHtml(text);
+  safe = safe
+    .replace(/&lt;b&gt;(.*?)&lt;\/b&gt;/gi, '<b>$1</b>')
+    .replace(/&lt;strong&gt;(.*?)&lt;\/strong&gt;/gi, '<strong>$1</strong>')
+    .replace(/&lt;i&gt;(.*?)&lt;\/i&gt;/gi, '<i>$1</i>')
+    .replace(/&lt;em&gt;(.*?)&lt;\/em&gt;/gi, '<em>$1</em>')
+    .replace(/&lt;br\s*\/?&gt;/gi, '<br>')
+    .replace(/\n/g, '<br>');
+  return safe;
+}
+

@@ -213,7 +213,7 @@ export function addHotspots(scene, sceneData, allScenes, onNavigate, dynamicHots
     sceneItems.forEach((hs) => {
       if (hs.type === 'link') {
         const targetScene = allScenes.find((s) => s.id === hs.target);
-        const targetName = targetScene ? targetScene.name : (hs.title || hs.target);
+        const targetName = hs.title ? hs.title : (targetScene ? targetScene.name : hs.target);
         const element = createLinkHotspotElement(hs, targetName, onNavigate);
         container.createHotspot(element, { yaw: hs.yaw, pitch: hs.pitch });
       } else {
