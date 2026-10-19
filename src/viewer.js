@@ -38,12 +38,12 @@ export function getViewer() {
  * @param {object} sceneData — Objek scene dari scenes.js / APP_DATA
  * @returns {{ scene: Marzipano.Scene, view: Marzipano.RectilinearView }}
  */
-export function createScene(sceneData) {
+export function createScene(sceneData, customViewParams = null) {
   if (!viewer) throw new Error('Viewer belum diinisialisasi');
 
   let source = null;
   let geometry = null;
-  const initialParams = sceneData.initialViewParameters || sceneData.initialView || {};
+  const initialParams = customViewParams || sceneData.initialViewParameters || sceneData.initialView || {};
 
   if (sceneData.levels && sceneData.levels.length > 0) {
     // 1. Multiresolution CubeGeometry (Standar Marzipano Tool)
@@ -84,6 +84,18 @@ export function createScene(sceneData) {
   });
 
   return { scene, view };
+}
+
+/**
+ * Update orientasi view Marzipano.
+ * @param {Marzipano.RectilinearView} view
+ * @param {object} params
+ */
+export function setViewParameters(view, params) {
+  if (!view || !params) return;
+  if (typeof params.yaw === 'number') view.setYaw(params.yaw);
+  if (typeof params.pitch === 'number') view.setPitch(params.pitch);
+  if (typeof params.fov === 'number') view.setFov(params.fov);
 }
 
 /**

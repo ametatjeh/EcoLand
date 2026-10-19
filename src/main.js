@@ -12,6 +12,7 @@ import {
   zoomView,
   resetView,
   attachOrientationListener,
+  setViewParameters,
 } from './viewer.js';
 import { addHotspots, setInfoHotspotHandler, showDefaultInfoModal } from './hotspots.js';
 import { initSidebar, renderSceneList, setActiveScene } from './sidebar.js';
@@ -44,6 +45,109 @@ let currentTab = 'beranda';
 let locationMapInitialized = false;
 let dynamicHotspots = [];
 
+const STORAGE_KEY_LAST_SCENE = 'ecoland_last_tour_scene_id';
+const STORAGE_KEY_LAST_VIEW_PREFIX = 'ecoland_last_tour_view_';
+let viewSaveTimeout = null;
+
+function persistCurrentViewDebounced(sceneId, view) {
+  if (!view || !sceneId) return;
+  if (viewSaveTimeout) clearTimeout(viewSaveTimeout);
+  viewSaveTimeout = setTimeout(() => {
+    try {
+      const viewData = {
+        yaw: view.yaw(),
+        pitch: view.pitch(),
+        fov: view.fov(),
+      };
+      localStorage.setItem(STORAGE_KEY_LAST_VIEW_PREFIX + sceneId, JSON.stringify(viewData));
+    } catch (e) {}
+  }, 250);
+}
+
+function getSavedTourView(sceneId) {
+  if (!sceneId) return null;
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_LAST_VIEW_PREFIX + sceneId);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (
+      typeof parsed?.yaw === 'number' &&
+      typeof parsed?.pitch === 'number' &&
+      typeof parsed?.fov === 'number'
+    ) {
+      return parsed;
+    }
+  } catch (e) {}
+  return null;
+}
+
+function parseHash(fullHash) {
+  const clean = (fullHash || '').replace(/^#\/?/, '').trim();
+  const [routePart, queryPart] = clean.split('?');
+  const route = (routePart || '').toLowerCase();
+  const queryParams = new URLSearchParams(queryPart || '');
+
+  let sceneParam = queryParams.get('scene') || queryParams.get('titik') || null;
+  let tab = route || 'beranda';
+
+  if (route === 'tour' || route.startsWith('tour/')) {
+    tab = 'tour';
+    if (route.startsWith('tour/')) {
+      const sub = routePart.slice(5).trim();
+      if (sub) sceneParam = sub;
+    }
+  } else if (route === 'monitoring-karbon') {
+    tab = 'karbon';
+  }
+
+  return { tab, sceneParam, queryParams };
+}
+
+function getInitialSceneId() {
+  // 1. Check URL query string (?scene=... or ?titik=...)
+  if (typeof window !== 'undefined' && window.location.search) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const qScene = urlParams.get('scene') || urlParams.get('titik');
+    if (qScene) {
+      const found = scenes.find((s) => s.id === qScene || String(s.sequence) === qScene);
+      if (found) return found.id;
+    }
+  }
+
+  // 2. Check hash route / query parameter
+  if (typeof window !== 'undefined' && window.location.hash) {
+    const { sceneParam } = parseHash(window.location.hash);
+    if (sceneParam) {
+      const found = scenes.find((s) => s.id === sceneParam || String(s.sequence) === sceneParam);
+      if (found) return found.id;
+    }
+  }
+
+  // 3. Check localStorage for visitor's last visited point
+  try {
+    const savedSceneId = localStorage.getItem(STORAGE_KEY_LAST_SCENE);
+    if (savedSceneId) {
+      const found = scenes.find((s) => s.id === savedSceneId);
+      if (found) return found.id;
+    }
+  } catch (e) {
+    console.warn('LocalStorage error:', e);
+  }
+
+  // 4. Default to first scene
+  return scenes.length > 0 ? scenes[0].id : null;
+}
+
+function updateTourUrl(sceneId) {
+  if (!sceneId) return;
+  if (currentTab === 'tour') {
+    const newHash = `#tour?scene=${encodeURIComponent(sceneId)}`;
+    if (window.location.hash !== newHash) {
+      history.replaceState(null, '', newHash);
+    }
+  }
+}
+
 // ─── DOM Boot ───────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
   // 0. Load server-persisted hotspots
@@ -62,7 +166,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // 3. Render Points Grids & Public Zones (Home)
   renderHomePointsGrid();
   initPublicZones('home-zones-grid', (sceneId) => {
-    window.location.hash = 'tour';
+    window.location.hash = `tour?scene=${encodeURIComponent(sceneId)}`;
     switchScene(sceneId);
   });
 
@@ -152,7 +256,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Listener for preview-scene from Admin panel
   window.addEventListener('preview-scene', (e) => {
     if (e.detail && e.detail.sceneId) {
-      window.location.hash = 'tour';
+      window.location.hash = `tour?scene=${encodeURIComponent(e.detail.sceneId)}`;
       switchScene(e.detail.sceneId);
     }
   });
@@ -161,9 +265,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   handleHashRouting();
   window.addEventListener('hashchange', handleHashRouting);
 
-  // Pre-load first scene
-  if (scenes.length > 0) {
-    await switchScene(scenes[0].id);
+  // Pre-load / restore initial scene if not already loaded by handleHashRouting
+  if (scenes.length > 0 && !currentSceneId) {
+    const initialSceneId = getInitialSceneId();
+    if (initialSceneId) {
+      await switchScene(initialSceneId, getSavedTourView(initialSceneId));
+    }
   }
 });
 
@@ -560,13 +667,13 @@ function switchTab(tabId) {
   if (tabId === 'beranda') {
     refreshPublicTotalArea();
     initLocationMap('home-ref-map', (sceneId) => {
-      window.location.hash = 'tour';
+      window.location.hash = `tour?scene=${encodeURIComponent(sceneId)}`;
       switchScene(sceneId);
     });
     invalidateLocationMapSize();
   } else if (tabId === 'info') {
     initLocationMap('gis-map', (sceneId) => {
-      window.location.hash = 'tour';
+      window.location.hash = `tour?scene=${encodeURIComponent(sceneId)}`;
       switchScene(sceneId);
     });
     invalidateLocationMapSize();
@@ -574,7 +681,7 @@ function switchTab(tabId) {
     initPublicGallery('public-gallery-container');
   } else if (tabId === 'katalog') {
     initPublicTreeCatalog('public-tree-catalog-container', (sceneId) => {
-      window.location.hash = 'tour';
+      window.location.hash = `tour?scene=${encodeURIComponent(sceneId)}`;
       switchScene(sceneId);
     });
   } else if (tabId === 'tree-qr') {
@@ -583,7 +690,10 @@ function switchTab(tabId) {
     initPublicCarbon('public-carbon-container');
   } else if (tabId === 'tour') {
     window.dispatchEvent(new Event('resize'));
-    setTimeout(() => invalidateMinimapSize(), 200);
+    setTimeout(() => {
+      invalidateMinimapSize();
+      if (currentSceneId) updateMinimapScene(currentSceneId);
+    }, 200);
   } else if (tabId === 'admin') {
     window.dispatchEvent(new Event('resize'));
   }
@@ -591,18 +701,15 @@ function switchTab(tabId) {
 
 function handleHashRouting() {
   const fullHash = window.location.hash || '#beranda';
-  let hash = fullHash.replace(/^#\/?/, '').split('?')[0] || 'beranda';
-  if (hash === 'monitoring-karbon') {
-    hash = 'karbon';
-  }
+  const { tab, sceneParam } = parseHash(fullHash);
   const validTabs = ['beranda', 'tour', 'info', 'galeri', 'katalog', 'tree-qr', 'karbon', 'admin'];
 
-  if (hash === 'titik') {
+  if (tab === 'titik') {
     window.location.replace('#beranda');
     return;
   }
 
-  if (hash === 'admin' || hash.startsWith('admin/')) {
+  if (tab === 'admin' || tab.startsWith('admin/')) {
     if (isUserAuthenticated()) {
       switchTab('admin');
       handleAdminHashRoute(fullHash);
@@ -613,8 +720,34 @@ function handleHashRouting() {
     return;
   }
 
-  if (validTabs.includes(hash)) {
-    switchTab(hash);
+  if (tab === 'tour') {
+    switchTab('tour');
+
+    // If a specific scene is in URL / hash
+    if (sceneParam) {
+      const found = scenes.find((s) => s.id === sceneParam || String(s.sequence) === sceneParam);
+      if (found) {
+        if (found.id !== currentSceneId) {
+          switchScene(found.id, getSavedTourView(found.id));
+        }
+        return;
+      }
+    }
+
+    // If no scene specified in hash, load last visited scene if not yet initialized
+    if (!currentSceneId) {
+      const initialSceneId = getInitialSceneId();
+      if (initialSceneId) {
+        switchScene(initialSceneId, getSavedTourView(initialSceneId));
+      }
+    } else {
+      updateTourUrl(currentSceneId);
+    }
+    return;
+  }
+
+  if (validTabs.includes(tab)) {
+    switchTab(tab);
   } else {
     switchTab('beranda');
   }
@@ -658,7 +791,7 @@ function renderHomePointsGrid() {
   grid.querySelectorAll('.btn-card-explore').forEach((btn) => {
     btn.addEventListener('click', () => {
       const targetId = btn.getAttribute('data-scene-id');
-      window.location.hash = 'tour';
+      window.location.hash = `tour?scene=${encodeURIComponent(targetId)}`;
       switchScene(targetId);
     });
   });
@@ -680,11 +813,20 @@ function navigateNextScene() {
 }
 
 // ─── Scene Switching (Marzipano Core) ───────────────────
-export async function switchScene(sceneId) {
-  if (!sceneId || sceneId === currentSceneId) return;
+export async function switchScene(sceneId, customViewParams = null) {
+  if (!sceneId) return;
+  if (sceneId === currentSceneId && !customViewParams) return;
 
   const sceneData = scenes.find((s) => s.id === sceneId);
   if (!sceneData) return;
+
+  // Persist last visited scene in localStorage
+  try {
+    localStorage.setItem(STORAGE_KEY_LAST_SCENE, sceneId);
+  } catch (e) {}
+
+  // Keep tour URL synchronized when tour tab is active
+  updateTourUrl(sceneId);
 
   // Update UI & Sidebar
   updateTourBar(sceneData);
@@ -718,10 +860,13 @@ export async function switchScene(sceneId) {
     let cached = marzipanoScenes.get(sceneId);
 
     if (!cached && viewer) {
-      cached = createScene(sceneData);
+      cached = createScene(sceneData, customViewParams);
       addHotspots(cached.scene, sceneData, scenes, switchScene, dynamicHotspots);
       marzipanoScenes.set(sceneId, cached);
     } else if (cached) {
+      if (customViewParams) {
+        setViewParameters(cached.view, customViewParams);
+      }
       addHotspots(cached.scene, sceneData, scenes, switchScene, dynamicHotspots);
     }
 
@@ -731,11 +876,25 @@ export async function switchScene(sceneId) {
       currentView = cached.view;
       currentInitialView = sceneData.initialView;
 
-      // Attach compass needle listener
+      // Update compass needle immediately
       const needle = document.getElementById('compass-needle');
       if (needle) {
-        attachOrientationListener(cached.view, (deg) => {
-          needle.style.transform = `rotate(${deg}deg)`;
+        const yawRad = cached.view.yaw();
+        const yawDeg = -((yawRad * 180) / Math.PI);
+        needle.style.transform = `rotate(${yawDeg}deg)`;
+      }
+
+      // Attach single listener for compass & view persistence
+      if (!cached.view._hasPersistenceListener) {
+        cached.view._hasPersistenceListener = true;
+        cached.view.addEventListener('change', () => {
+          if (needle) {
+            const yawDeg = -((cached.view.yaw() * 180) / Math.PI);
+            needle.style.transform = `rotate(${yawDeg}deg)`;
+          }
+          if (currentSceneId) {
+            persistCurrentViewDebounced(currentSceneId, cached.view);
+          }
         });
       }
     }
