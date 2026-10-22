@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 340" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a" />
+      <stop offset="50%" stop-color="#1e293b" />
+      <stop offset="100%" stop-color="#090d16" />
+    </linearGradient>
+    <linearGradient id="emeraldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10b981" />
+      <stop offset="100%" stop-color="#059669" />
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#10b981" stop-opacity="0.15" />
+      <stop offset="100%" stop-color="#10b981" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="600" height="340" fill="url(#bg)" />
+  <rect width="600" height="340" fill="url(#glow)" />
+
+  <!-- Perspective Horizon & Guide Curves -->
+  <g stroke="#334155" stroke-width="1" opacity="0.4">
+    <ellipse cx="300" cy="180" rx="240" ry="60" fill="none" stroke-dasharray="4 4" />
+    <line x1="60" y1="180" x2="540" y2="180" />
+    <path d="M120 220 Q 300 240 480 220" fill="none" />
+    <path d="M160 140 Q 300 120 440 140" fill="none" />
+  </g>
+
+  <!-- 360 Sphere Icon -->
+  <g transform="translate(300, 140)">
+    <!-- Outer Glow Circle -->
+    <circle cx="0" cy="0" r="44" fill="#0f172a" stroke="#10b981" stroke-width="2" />
+    
+    <!-- Spherical Latitude & Longitude curves -->
+    <ellipse cx="0" cy="0" rx="44" ry="16" fill="none" stroke="#34d399" stroke-width="1.5" stroke-dasharray="3 3" />
+    <ellipse cx="0" cy="0" rx="20" ry="44" fill="none" stroke="#34d399" stroke-width="1.5" />
+    
+    <!-- 360 Arrows -->
+    <path d="M -30,-12 A 32,32 0 0,1 30,-12" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" />
+    <polygon points="32,-16 36,-10 28,-10" fill="#10b981" />
+    
+    <path d="M 30,12 A 32,32 0 0,1 -30,12" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" />
+    <polygon points="-32,16 -36,10 -28,10" fill="#10b981" />
+
+    <!-- Center Camera Icon / Dot -->
+    <circle cx="0" cy="0" r="6" fill="#10b981" />
+  </g>
+
+  <!-- Typography -->
+  <text x="300" y="222" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="700" fill="#f8fafc" text-anchor="middle" letter-spacing="1">
+    360° VIRTUAL PANORAMA
+  </text>
+  <text x="300" y="244" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" fill="#94a3b8" text-anchor="middle">
+    Preview ubin sedang diproses atau belum diunggah
+  </text>
+</svg>

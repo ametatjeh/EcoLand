@@ -25,6 +25,7 @@ class PlantingZoneController extends Controller
     {
         $zones = PlantingZone::published()
             ->withCount(['activities', 'scenes'])
+            ->with('photos')
             ->orderBy('created_at', 'asc')
             ->get();
 
@@ -50,7 +51,7 @@ class PlantingZoneController extends Controller
                 'species_count' => $zone->getUniqueSpeciesCount(),
                 'survival_rate' => $zone->calculateSurvivalRate(),
                 'scenes_count' => $zone->scenes_count,
-                'main_photo_path' => $zone->main_photo_path,
+                'main_photo_path' => $zone->main_photo_path ?? $zone->photos->firstWhere('is_cover', true)?->file_url ?? $zone->photos->first()?->file_url,
             ];
         });
 
@@ -97,7 +98,7 @@ class PlantingZoneController extends Controller
             ->where(function ($q) use ($id) {
                 $q->where('id', $id)->orWhere('zone_code', $id);
             })
-            ->with(['scenes' => fn($q) => $q->orderBy('sequence', 'asc')])
+            ->with(['scenes' => fn($q) => $q->orderBy('sequence', 'asc'), 'photos'])
             ->first();
 
         if (!$zone) {
@@ -145,7 +146,7 @@ class PlantingZoneController extends Controller
                 'area_in_ha' => $zone->getAreaInHa(),
                 'organization' => $zone->organization,
                 'person_in_charge' => $zone->person_in_charge,
-                'main_photo_path' => $zone->main_photo_path,
+                'main_photo_path' => $zone->main_photo_path ?? $zone->photos->firstWhere('is_cover', true)?->file_url ?? $zone->photos->first()?->file_url,
                 'gallery_photos' => $zone->gallery_photos ?? [],
                 'total_initial_seedlings' => $zone->getTotalInitialSeedlings(),
                 'species_count' => $plantedSpecies->count(),
@@ -166,7 +167,7 @@ class PlantingZoneController extends Controller
      */
     public function index(Request $request)
     {
-        $query = PlantingZone::withCount(['activities', 'scenes']);
+        $query = PlantingZone::withCount(['activities', 'scenes'])->with('photos');
 
         // Search
         if ($request->filled('search')) {
@@ -224,6 +225,7 @@ class PlantingZoneController extends Controller
                 'scenes_count' => $zone->scenes_count,
                 'person_in_charge' => $zone->person_in_charge,
                 'organization' => $zone->organization,
+                'main_photo_path' => $zone->main_photo_path ?? $zone->photos->firstWhere('is_cover', true)?->file_url ?? $zone->photos->first()?->file_url,
                 'is_published' => $zone->is_published,
                 'is_archived' => $zone->is_archived,
                 'created_at' => $zone->created_at->format('Y-m-d H:i'),
@@ -671,7 +673,7 @@ class PlantingZoneController extends Controller
                 'id' => $zone->id,
                 'zone_code' => $zone->zone_code,
                 'name' => $zone->name,
-                'main_photo_path' => $zone->main_photo_path,
+                'main_photo_path' => $zone->main_photo_path ?? $photos->firstWhere('is_cover', true)?->file_url ?? $photos->first()?->file_url,
             ],
             'total' => $photos->count(),
             'photos' => $photos,

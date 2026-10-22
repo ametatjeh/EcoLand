@@ -3,12 +3,15 @@
 namespace Database\Seeders;
 
 use App\Models\PlantingZone;
+use App\Models\PlantingZonePhoto;
 use App\Models\PlantingActivity;
 use App\Models\PlantingActivityItem;
 use App\Models\TreeSpecies;
 use App\Models\TreeSurvey;
 use App\Models\TreeMaintenanceLog;
 use App\Models\Hotspot;
+use App\Models\Scene;
+use App\Models\AppSetting;
 use App\Models\ActivityLog;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -80,6 +83,70 @@ class DemoSystemDataSeeder extends Seeder
                 ],
                 'is_published' => true,
             ]);
+        }
+
+        // 2b. Seed Foto Dokumentasi Galeri Kawasan (PlantingZonePhoto)
+        $photosData = [
+            [
+                'file_path' => '/storage/demo/kawasan_aceh.jpg',
+                'title' => 'Lanskap Kawasan Konservasi & Silvikultur Aceh',
+                'caption' => 'Pemandangan lanskap kawasan percontohan restorasi ekosistem seluas ±2 hektare di pesisir barat Aceh.',
+                'alt_text' => 'Lanskap kawasan penanaman silvikultur Aceh',
+                'category' => 'Lanskap & Topografi',
+                'is_cover' => true,
+                'sort_order' => 1,
+                'documented_at' => '2026-03-12',
+            ],
+            [
+                'file_path' => '/storage/demo/penanaman_batch1.jpg',
+                'title' => 'Kegiatan Penanaman Bibit Pohon Tahap Awal',
+                'caption' => 'Aktivitas penanaman perdana 1.000 bibit pohon lokal bersama Kelompok Tani Hutan Bina Lestari dan BPDASHL.',
+                'alt_text' => 'Dokumentasi penanaman bibit pohon tahap awal',
+                'category' => 'Kegiatan Penanaman',
+                'is_cover' => false,
+                'sort_order' => 2,
+                'documented_at' => '2026-03-12',
+            ],
+            [
+                'file_path' => '/storage/demo/merbau.jpg',
+                'title' => 'Bibit Pohon Merbau Aceh (Intsia bijuga)',
+                'caption' => 'Bibit merbau aceh berkualitas tinggi siap tanam pada Blok A lereng konservasi tanah.',
+                'alt_text' => 'Bibit pohon merbau aceh di lokasi tanam',
+                'category' => 'Bibit & Spesies',
+                'is_cover' => false,
+                'sort_order' => 3,
+                'documented_at' => '2026-04-10',
+            ],
+            [
+                'file_path' => '/storage/demo/trembesi.jpg',
+                'title' => 'Pohon Peneduh Trembesi (Samanea saman)',
+                'caption' => 'Pertumbuhan vegetasi kanopi peneduh untuk menyerap karbon dan menahan limpasan air hujan.',
+                'alt_text' => 'Pertumbuhan tajuk trembesi peneduh',
+                'category' => 'Pertumbuhan Vegetasi',
+                'is_cover' => false,
+                'sort_order' => 4,
+                'documented_at' => '2026-05-18',
+            ],
+        ];
+
+        foreach ($photosData as $pData) {
+            PlantingZonePhoto::updateOrCreate(
+                [
+                    'planting_zone_id' => $zoneId,
+                    'file_path' => $pData['file_path'],
+                ],
+                [
+                    'thumbnail_path' => $pData['file_path'],
+                    'title' => $pData['title'],
+                    'caption' => $pData['caption'],
+                    'alt_text' => $pData['alt_text'],
+                    'category' => $pData['category'],
+                    'is_cover' => $pData['is_cover'],
+                    'is_published' => true,
+                    'sort_order' => $pData['sort_order'],
+                    'documented_at' => $pData['documented_at'],
+                ]
+            );
         }
 
         // 3. Kegiatan Penanaman (Batch Awal 1.000 Bibit)
@@ -194,7 +261,23 @@ class DemoSystemDataSeeder extends Seeder
             $h->save();
         }
 
-        // 7. Audit Log / Jejak Aktivitas Riil
+        // 7. Pengaturan Logo & Identitas Aplikasi
+        $existingLogo = AppSetting::getVal('app_logo');
+        if (empty($existingLogo) || str_contains($existingLogo, '205509')) {
+            AppSetting::setVal('app_logo', '/storage/settings/app_logo_20261018_112619.png', 'general', 'Logo Aplikasi', 'image');
+        }
+        if (!AppSetting::getVal('app_name')) {
+            AppSetting::setVal('app_name', 'EcoLand - Virtual Tour 360°', 'general', 'Nama Aplikasi', 'text');
+        }
+        if (!AppSetting::getVal('organization_name')) {
+            AppSetting::setVal('organization_name', 'IKHW Aceh & Mitra Konservasi', 'general', 'Nama Lembaga', 'text');
+        }
+
+        // 8. Bersihkan dummy scene/hotspot uji jika ada
+        Hotspot::whereIn('scene_id', ['scene-01', 'scene-02'])->orWhere('id', 'hs-sebelum-backup')->delete();
+        Scene::whereIn('id', ['scene-01', 'scene-02'])->delete();
+
+        // 9. Audit Log / Jejak Aktivitas Riil
         ActivityLog::create([
             'user_name' => 'Administrator',
             'action' => 'Penyulaman Bibit Pohon',
