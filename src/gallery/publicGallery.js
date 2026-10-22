@@ -33,38 +33,12 @@ export async function initPublicGallery(containerId = 'public-gallery-container'
         </p>
       </div>
 
-      <!-- Filters & Search Toolbar -->
-      <div class="gallery-filter-toolbar bg-slate-900/80 backdrop-blur-xl border border-white/15 rounded-2xl p-5 sm:p-6 shadow-2xl flex flex-col md:flex-row gap-4 sm:gap-5 items-stretch md:items-center justify-between" style="margin-bottom: 36px;">
-        <div class="flex flex-wrap items-center gap-4 sm:gap-5">
-          <div class="flex items-center gap-2.5">
-            <label for="gallery-filter-zone" class="text-xs sm:text-sm text-slate-300 font-semibold uppercase tracking-wider flex items-center gap-2 shrink-0">
-              <span class="text-base">🏞️</span> Kawasan:
-            </label>
-            <select id="gallery-filter-zone" class="h-11 sm:h-12 bg-slate-950/90 hover:bg-slate-950 border border-white/15 hover:border-emerald-500/60 text-slate-100 text-sm font-medium rounded-xl px-4 py-2.5 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30 transition shadow-md cursor-pointer min-w-[190px]">
-              <option value="all">Semua Kawasan</option>
-            </select>
-          </div>
-
-          <div class="flex items-center gap-2.5">
-            <label for="gallery-filter-category" class="text-xs sm:text-sm text-slate-300 font-semibold uppercase tracking-wider flex items-center gap-2 shrink-0">
-              <span class="text-base">🏷️</span> Kategori:
-            </label>
-            <select id="gallery-filter-category" class="h-11 sm:h-12 bg-slate-950/90 hover:bg-slate-950 border border-white/15 hover:border-emerald-500/60 text-slate-100 text-sm font-medium rounded-xl pl-4 pr-10 py-2.5 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30 transition shadow-md cursor-pointer min-w-[200px]">
-              <option value="all">Semua Kategori</option>
-              <option value="Kondisi Kawasan">Kondisi Kawasan</option>
-              <option value="Kegiatan Penanaman">Kegiatan Penanaman</option>
-              <option value="Pertumbuhan Tanaman">Pertumbuhan Tanaman</option>
-              <option value="Pemantauan">Pemantauan</option>
-              <option value="Perawatan">Perawatan</option>
-              <option value="Fasilitas">Fasilitas</option>
-              <option value="Dokumentasi Lainnya">Dokumentasi Lainnya</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="relative min-w-[260px] md:max-w-sm w-full">
-          <span class="absolute left-4 top-1/2 -translate-y-1/2 flex items-center justify-center text-slate-400 pointer-events-none">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <!-- Filters & Search Toolbar (Modern & Proportionate) -->
+      <div class="gallery-filter-bar">
+        <!-- 1. Search Box -->
+        <div class="gallery-search-box">
+          <span class="gallery-search-icon">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="11" cy="11" r="8"></circle>
               <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             </svg>
@@ -73,8 +47,61 @@ export async function initPublicGallery(containerId = 'public-gallery-container'
             type="text"
             id="gallery-search-input"
             placeholder="Cari foto, judul, keterangan..."
-            class="h-11 sm:h-12 w-full bg-slate-950/90 hover:bg-slate-950 border border-white/15 hover:border-emerald-500/60 text-slate-100 text-sm font-medium rounded-xl pl-12 pr-4 py-2.5 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30 placeholder-slate-500 transition shadow-md"
+            class="gallery-search-field"
+            autocomplete="off"
           />
+          <button id="gallery-search-clear" class="gallery-search-clear" style="display: none;" title="Hapus pencarian">✕</button>
+        </div>
+
+        <!-- 2. Controls Group (Kawasan, Kategori, Counter, Reset) -->
+        <div class="gallery-filters-group">
+          <!-- Filter Kawasan -->
+          <div class="gallery-filter-pill" title="Filter berdasarkan kawasan penanaman">
+            <span class="gallery-pill-icon">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M8 3l4 8 5-5 5 15H2L8 3z"></path>
+              </svg>
+            </span>
+            <span class="gallery-pill-label">Kawasan:</span>
+            <select id="gallery-filter-zone" class="gallery-pill-select" aria-label="Filter Kawasan">
+              <option value="all">Semua Kawasan</option>
+            </select>
+            <span class="gallery-pill-chevron">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </span>
+          </div>
+
+          <!-- Filter Kategori -->
+          <div class="gallery-filter-pill" title="Filter berdasarkan kategori dokumentasi">
+            <span class="gallery-pill-icon">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                <circle cx="7" cy="7" r="1.5"></circle>
+              </svg>
+            </span>
+            <span class="gallery-pill-label">Kategori:</span>
+            <select id="gallery-filter-category" class="gallery-pill-select" aria-label="Filter Kategori">
+              <option value="all">Semua Kategori</option>
+            </select>
+            <span class="gallery-pill-chevron">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </span>
+          </div>
+
+          <!-- Counter Badge -->
+          <span class="gallery-count-badge" id="gallery-count-badge" title="Total foto yang ditampilkan">
+            <span id="gallery-count-num">0</span> Foto
+          </span>
+
+          <!-- Reset Filter Button -->
+          <button id="gallery-reset-btn" class="gallery-reset-btn" style="display: none;" title="Reset filter & pencarian">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            Reset
+          </button>
         </div>
       </div>
 
@@ -143,10 +170,12 @@ export async function initPublicGallery(containerId = 'public-gallery-container'
     cachedZones = zonesRes.zones || [];
     const zoneSelect = document.getElementById('gallery-filter-zone');
     if (zoneSelect && cachedZones.length > 0) {
+      zoneSelect.innerHTML = '<option value="all">Semua Kawasan</option>';
       cachedZones.forEach((z) => {
         const opt = document.createElement('option');
         opt.value = z.id;
-        opt.textContent = `${z.name} (${z.zone_code})`;
+        opt.textContent = z.name;
+        opt.title = `${z.name} (${z.zone_code})`;
         zoneSelect.appendChild(opt);
       });
     }
@@ -161,6 +190,8 @@ export async function initPublicGallery(containerId = 'public-gallery-container'
   const zoneSelect = document.getElementById('gallery-filter-zone');
   const catSelect = document.getElementById('gallery-filter-category');
   const searchInput = document.getElementById('gallery-search-input');
+  const clearBtn = document.getElementById('gallery-search-clear');
+  const resetBtn = document.getElementById('gallery-reset-btn');
 
   if (zoneSelect) {
     zoneSelect.addEventListener('change', (e) => {
@@ -183,6 +214,29 @@ export async function initPublicGallery(containerId = 'public-gallery-container'
     });
   }
 
+  if (clearBtn) {
+    clearBtn.addEventListener('click', () => {
+      if (searchInput) {
+        searchInput.value = '';
+        currentSearchTerm = '';
+        searchInput.focus();
+        applyFilters();
+      }
+    });
+  }
+
+  if (resetBtn) {
+    resetBtn.addEventListener('click', () => {
+      currentZoneFilter = 'all';
+      currentCategoryFilter = 'all';
+      currentSearchTerm = '';
+      if (zoneSelect) zoneSelect.value = 'all';
+      if (catSelect) catSelect.value = 'all';
+      if (searchInput) searchInput.value = '';
+      applyFilters();
+    });
+  }
+
   // Setup Lightbox bindings
   setupLightboxListeners();
 }
@@ -194,6 +248,10 @@ async function loadAndRenderPhotos() {
   try {
     const res = await ApiService.getAllPublicPhotos();
     cachedPublicPhotos = res.photos || [];
+
+    // Dynamically populate available categories
+    populateCategoryDropdown(cachedPublicPhotos);
+
     applyFilters();
   } catch (err) {
     console.error('Error loading gallery photos:', err);
@@ -204,6 +262,39 @@ async function loadAndRenderPhotos() {
       </div>
     `;
   }
+}
+
+function populateCategoryDropdown(photos) {
+  const catSelect = document.getElementById('gallery-filter-category');
+  if (!catSelect) return;
+
+  const currentVal = catSelect.value || 'all';
+  const categories = new Set();
+  photos.forEach((p) => {
+    if (p.category && p.category.trim()) {
+      categories.add(p.category.trim());
+    }
+  });
+
+  const defaultCats = [
+    'Lanskap & Topografi',
+    'Kegiatan Penanaman',
+    'Bibit & Spesies',
+    'Pertumbuhan Vegetasi',
+    'Pemantauan',
+    'Perawatan',
+    'Kondisi Kawasan',
+  ];
+  defaultCats.forEach((c) => categories.add(c));
+
+  catSelect.innerHTML = '<option value="all">Semua Kategori</option>';
+  Array.from(categories).sort().forEach((cat) => {
+    const opt = document.createElement('option');
+    opt.value = cat;
+    opt.textContent = cat;
+    if (cat === currentVal) opt.selected = true;
+    catSelect.appendChild(opt);
+  });
 }
 
 function applyFilters() {
@@ -228,6 +319,20 @@ function applyFilters() {
     }
     return true;
   });
+
+  const countNum = document.getElementById('gallery-count-num');
+  if (countNum) {
+    countNum.textContent = filteredPhotos.length;
+  }
+  const resetBtn = document.getElementById('gallery-reset-btn');
+  if (resetBtn) {
+    const hasFilter = currentZoneFilter !== 'all' || currentCategoryFilter !== 'all' || currentSearchTerm.length > 0;
+    resetBtn.style.display = hasFilter ? 'inline-flex' : 'none';
+  }
+  const clearBtn = document.getElementById('gallery-search-clear');
+  if (clearBtn) {
+    clearBtn.style.display = currentSearchTerm.length > 0 ? 'flex' : 'none';
+  }
 
   renderPhotoGrid();
 }
