@@ -6,6 +6,7 @@ import Marzipano from 'marzipano';
 import { ApiService } from '../services/api.js';
 import { EcoToast } from '../utils/toast.js';
 import { createLinkHotspotElement, createInfoHotspotElement } from '../hotspots.js';
+import { checkAdminAuth } from './auth.js';
 
 export class VisualHotspotEditor {
   constructor({ scenes, getHotspots, onHotspotsChanged, onSceneSwitchRequest }) {
@@ -80,12 +81,28 @@ export class VisualHotspotEditor {
   }
 
   async loadTreeMetadata() {
+    // Jika pengguna bukan administrator terautentikasi, gunakan endpoint katalog publik untuk species
+    // dan jangan lakukan panggilan ke endpoint privat admin activities
+    if (!checkAdminAuth()) {
+      try {
+        const pub = await fetch('/api/tree-species', { credentials: 'same-origin' });
+        if (pub.ok) {
+          const spRes = await pub.json();
+          this.cachedTreeSpeciesList = spRes.species || spRes.data || (Array.isArray(spRes) ? spRes : []);
+        }
+      } catch (e) {
+        console.warn('loadTreeMetadata public species fallback error:', e);
+      }
+      this.cachedPlantingActivitiesList = [];
+      return;
+    }
+
     try {
       let spRes;
       try {
         spRes = await ApiService.getTreeSpecies({ per_page: 100 });
       } catch (err) {
-        const pub = await fetch('/api/tree-species');
+        const pub = await fetch('/api/tree-species', { credentials: 'same-origin' });
         spRes = await pub.json();
       }
       this.cachedTreeSpeciesList = spRes.species || spRes.data || (Array.isArray(spRes) ? spRes : []);

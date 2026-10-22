@@ -101,8 +101,8 @@ const REPORT_SUBTAB_TITLES = {
 };
 
 export async function initAdminPanel({ onPublicTourUpdate, onExitAdminToTour }) {
-  // 1. Inisialisasi Auth
-  initAuth();
+  // 1. Inisialisasi Auth & sinkronisasi token sesi
+  await initAuth();
 
   // Inisialisasi Session Inactivity Timer jika admin sudah terautentikasi
   if (checkAdminAuth()) {
@@ -221,6 +221,9 @@ export async function initAdminPanel({ onPublicTourUpdate, onExitAdminToTour }) 
     } else {
       refreshActiveAdminTab();
     }
+  } else if (window.location.hash && window.location.hash.startsWith('#admin')) {
+    sessionStorage.setItem('admin_redirect_hash', window.location.hash);
+    window.location.href = '/login';
   }
   updateAdminBadges();
 }

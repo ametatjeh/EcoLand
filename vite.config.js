@@ -30,9 +30,10 @@ function virtualTourApiPlugin() {
       return next();
     }
 
-    // 0. Forward to Laravel 13 Backend if active on port 8000
+    // 0. Forward to Laravel 13 Backend if active
     try {
-      const laravelUrl = `http://127.0.0.1:8000${req.url}`;
+      const laravelBase = process.env.VITE_LARAVEL_URL || process.env.APP_URL || 'http://127.0.0.1:8000';
+      const laravelUrl = `${laravelBase.replace(/\/$/, '')}${req.url}`;
       const forwardHeaders = { ...req.headers };
       delete forwardHeaders['host'];
       delete forwardHeaders['content-length'];

@@ -3,6 +3,7 @@
  */
 import { ApiService } from '../services/api.js';
 import { EcoToast } from '../utils/toast.js';
+import { checkAdminAuth } from './auth.js';
 
 const SETTINGS_KEY = 'vtour_display_settings';
 
@@ -35,11 +36,13 @@ export async function initSettingsModule({ scenes = [], onSettingsUpdated } = {}
   const currentDisplay = getDisplaySettings();
   let serverSettings = {};
 
-  try {
-    const sRes = await ApiService.getSettings();
-    serverSettings = sRes.flat || {};
-  } catch (e) {
-    console.warn('Gagal memuat settings dari server:', e);
+  if (checkAdminAuth()) {
+    try {
+      const sRes = await ApiService.getSettings();
+      serverSettings = sRes.flat || {};
+    } catch (e) {
+      console.warn('Gagal memuat settings dari server:', e);
+    }
   }
 
   const sceneOptions = scenes

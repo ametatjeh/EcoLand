@@ -27,7 +27,9 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
     rel="stylesheet" />
+  <meta name="csrf-token" content="{{ csrf_token() }}" />
   <meta name="eco-server-auth" content="{{ $isLoggedInAdmin ? 'true' : 'false' }}" />
+  <meta name="eco-user" content="{{ $isLoggedInAdmin ? json_encode(['id' => Auth::id(), 'username' => Auth::user()->username, 'name' => Auth::user()->name, 'role' => Auth::user()->role]) : '' }}" />
   <meta name="admin-idle-timeout" content="{{ config('session.admin_idle_timeout', 30) }}" />
   <meta name="admin-idle-warning" content="{{ config('session.admin_idle_warning', 5) }}" />
 
@@ -38,7 +40,10 @@
         var h = window.location.hash || '';
         var p = window.location.pathname.replace(/^\/+/, '').split('/')[0] || '';
         var tab = 'beranda';
-        if (h.startsWith('#admin') || p === 'admin') tab = 'admin';
+        var isServerAuth = {{ $isLoggedInAdmin ? 'true' : 'false' }};
+        if (h.startsWith('#admin') || p === 'admin') {
+          tab = isServerAuth ? 'admin' : 'beranda';
+        }
         else if (h.startsWith('#tour') || p === 'tour') tab = 'tour';
         else if (h.startsWith('#galeri') || p === 'galeri') tab = 'galeri';
         else if (h.startsWith('#katalog') || p === 'katalog') tab = 'katalog';

@@ -18,12 +18,12 @@ return [
     |
     */
 
-    'stateful' => explode(',', env('SANCTUM_STATEFUL_DOMAINS', sprintf(
-        '%s%s',
-        'localhost,localhost:3000,127.0.0.1,127.0.0.1:8000,::1,ikhw.org,www.ikhw.org',
-        Sanctum::currentApplicationUrlWithPort(),
-        // Sanctum::currentRequestHost(),
-    ))),
+    'stateful' => array_values(array_filter(array_map('trim', explode(',', env('SANCTUM_STATEFUL_DOMAINS', sprintf(
+        '%s%s%s',
+        'localhost,localhost:8000,localhost:3000,127.0.0.1,127.0.0.1:8000,::1,ikhw.org,www.ikhw.org,scooby.nagakecil.site',
+        Sanctum::currentApplicationUrlWithPort() ? ','.Sanctum::currentApplicationUrlWithPort() : '',
+        Sanctum::currentRequestHost() ? ','.Sanctum::currentRequestHost() : '',
+    )))))),
 
     /*
     |--------------------------------------------------------------------------

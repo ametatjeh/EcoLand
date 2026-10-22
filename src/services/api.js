@@ -1,7 +1,7 @@
 /**
- * API Service for Virtual Tour
- * Handles server-side persistence for hotspots, authentication, and backups.
- * Works seamlessly with Vite backend middleware and DirectAdmin / Apache PHP hosting.
+ * API Service for Virtual Tour & Eco Land Administration
+ * Handles server-side persistence for hotspots, authentication, silviculture data, and backups.
+ * Fully compatible with Laravel 13 Sanctum and Session authentication (Redis & Stateful SPA).
  */
 
 const TOKEN_KEY = 'vtour_admin_token';
@@ -9,43 +9,180 @@ const USER_KEY = 'vtour_admin_user';
 
 export const ApiService = {
   getToken() {
-    return sessionStorage.getItem(TOKEN_KEY) || localStorage.getItem(TOKEN_KEY) || '';
+    try {
+      return sessionStorage.getItem(TOKEN_KEY) || localStorage.getItem(TOKEN_KEY) || '';
+    } catch {
+      return '';
+    }
   },
 
   setSession(token, user) {
-    sessionStorage.setItem(TOKEN_KEY, token);
-    localStorage.setItem(TOKEN_KEY, token);
-    if (user) {
-      sessionStorage.setItem(USER_KEY, JSON.stringify(user));
-      localStorage.setItem(USER_KEY, JSON.stringify(user));
-    }
+    try {
+      if (token) {
+        sessionStorage.setItem(TOKEN_KEY, token);
+        localStorage.setItem(TOKEN_KEY, token);
+      }
+      if (user) {
+        sessionStorage.setItem(USER_KEY, JSON.stringify(user));
+        localStorage.setItem(USER_KEY, JSON.stringify(user));
+      }
+    } catch {}
   },
 
   clearSession() {
-    sessionStorage.removeItem(TOKEN_KEY);
-    sessionStorage.removeItem(USER_KEY);
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(USER_KEY);
+    try {
+      sessionStorage.removeItem(TOKEN_KEY);
+      sessionStorage.removeItem(USER_KEY);
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(USER_KEY);
+    } catch {}
   },
 
   getUser() {
-    const raw = sessionStorage.getItem(USER_KEY) || localStorage.getItem(USER_KEY);
     try {
-      return raw ? JSON.parse(raw) : null;
-    } catch {
-      return null;
+      const raw = sessionStorage.getItem(USER_KEY) || localStorage.getItem(USER_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch {}
+
+    // Fallback: baca metadata pengguna dari tag meta server jika tersedia
+    if (typeof document !== 'undefined') {
+      const meta = document.querySelector('meta[name="eco-user"]');
+      if (meta && meta.getAttribute('content')) {
+        try {
+          const user = JSON.parse(meta.getAttribute('content'));
+          if (user && (user.username || user.email)) {
+            return user;
+          }
+        } catch {}
+      }
     }
+    return null;
   },
 
   isAuthenticated() {
-    return !!this.getToken();
+    if (!!this.getToken()) return true;
+    if (typeof document !== 'undefined') {
+      const metaAuth = document.querySelector('meta[name="eco-server-auth"]');
+      if (metaAuth && metaAuth.getAttribute('content') === 'true') {
+        return true;
+      }
+    }
+    return false;
   },
 
+  /**
+   * Dapatkan token proteksi CSRF Laravel dari meta tag atau cookie XSRF-TOKEN.
+   */
+  getCsrfToken() {
+    if (typeof document === 'undefined') return '';
+    const meta = document.querySelector('meta[name="csrf-token"]');
+    if (meta && meta.getAttribute('content')) {
+      return meta.getAttribute('content');
+    }
+    const match = document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]+)/);
+    return match ? decodeURIComponent(match[1]) : '';
+  },
+
+  /**
+   * Header autentikasi standar untuk JSON request.
+   */
+  getAuthHeaders(customHeaders = {}, isFormData = false) {
+    const token = this.getToken();
+    const csrfToken = this.getCsrfToken();
+    const headers = {
+      Accept: 'application/json',
+      'X-Requested-With': 'XMLHttpRequest',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(csrfToken ? { 'X-CSRF-TOKEN': csrfToken } : {}),
+      ...customHeaders,
+    };
+    if (!isFormData && !headers['Content-Type']) {
+      headers['Content-Type'] = 'application/json';
+    }
+    return headers;
+  },
+
+  getAuthHeadersMultipart(customHeaders = {}) {
+    return this.getAuthHeaders(customHeaders, true);
+  },
+
+  _isHandling401: false,
+
+  /**
+   * Penanganan respons 401 Unauthorized secara terpusat tanpa looping berulang.
+   */
+  handleUnauthorized(res, url) {
+    if (this._isHandling401) return;
+    this._isHandling401 = true;
+
+    // Lepaskan kunci throttling setelah jeda waktu singkat
+    setTimeout(() => {
+      this._isHandling401 = false;
+    }, 4000);
+
+    // Jangan lakukan tindakan jika sudah berada di halaman login
+    if (typeof window !== 'undefined' && window.location.pathname.includes('/login')) {
+      return;
+    }
+
+    console.warn(`[Eco Land ApiService] Akses tidak terotorisasi (401) pada: ${url}`);
+
+    // Bersihkan sesi client yang usang atau tidak sah
+    this.clearSession();
+
+    // Simpan rute hash dashboard yang sedang dibuka agar pengguna dapat diarahkan kembali pasca login
+    if (typeof window !== 'undefined' && window.location.hash && window.location.hash.startsWith('#admin')) {
+      try {
+        sessionStorage.setItem('admin_redirect_hash', window.location.hash);
+      } catch (e) {}
+
+      // Arahkan ke form login secara konsisten
+      setTimeout(() => {
+        window.location.href = '/login';
+      }, 300);
+    }
+  },
+
+  /**
+   * Central fetch wrapper: menyertakan credentials same-origin, header XMLHttpRequest,
+   * CSRF protection, bearer token (jika ada), dan penanganan status 401 secara terpusat.
+   */
+  async request(url, options = {}) {
+    const isFormData = options.body instanceof FormData;
+    const method = (options.method || 'GET').toUpperCase();
+
+    const headers = isFormData
+      ? this.getAuthHeadersMultipart(options.headers || {})
+      : this.getAuthHeaders(options.headers || {});
+
+    const fetchOptions = {
+      credentials: 'same-origin',
+      ...options,
+      method,
+      headers,
+    };
+
+    const res = await fetch(url, fetchOptions);
+
+    if (res.status === 401) {
+      this.handleUnauthorized(res, url);
+    }
+
+    return res;
+  },
+
+  // ─── Otentikasi Administrator ─────────────────────────────
   async login(username, password) {
     try {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+          ...(this.getCsrfToken() ? { 'X-CSRF-TOKEN': this.getCsrfToken() } : {}),
+        },
         body: JSON.stringify({ username, password }),
       });
       const data = await res.json();
@@ -59,7 +196,8 @@ export const ApiService = {
       try {
         const phpRes = await fetch('/api.php?action=login', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
           body: JSON.stringify({ username, password }),
         });
         const phpData = await phpRes.json();
@@ -75,19 +213,18 @@ export const ApiService = {
   },
 
   async logout() {
-    const token = this.getToken();
     try {
-      await fetch('/api/auth/logout', {
+      await this.request('/api/auth/logout', {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
       });
     } catch (e) {}
     this.clearSession();
   },
 
+  // ─── Hotspot & Virtual Tour Persistence ──────────────────
   async getHotspots() {
     try {
-      const res = await fetch('/api/hotspots');
+      const res = await fetch('/api/hotspots', { credentials: 'same-origin' });
       if (res.ok) {
         const data = await res.json();
         return Array.isArray(data.hotspots) ? data.hotspots : [];
@@ -110,23 +247,14 @@ export const ApiService = {
   },
 
   async saveHotspots(hotspotsList) {
-    const token = this.getToken();
-    if (!token) {
-      throw new Error('Akses ditolak: Anda harus login sebagai admin');
-    }
-
     const payload = {
       version: '1.1.0',
       hotspots: hotspotsList,
     };
 
     try {
-      const res = await fetch('/api/hotspots', {
+      const res = await this.request('/api/hotspots', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
         body: JSON.stringify(payload),
       });
 
@@ -135,17 +263,14 @@ export const ApiService = {
         throw new Error(errData.message || `HTTP Error ${res.status}`);
       }
 
-      const result = await res.json();
-      return result;
+      return await res.json();
     } catch (err) {
       // Try php endpoint fallback
       try {
         const phpRes = await fetch('/api.php?action=save_hotspots', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
+          credentials: 'same-origin',
+          headers: this.getAuthHeaders(),
           body: JSON.stringify(payload),
         });
         if (phpRes.ok) {
@@ -157,11 +282,8 @@ export const ApiService = {
   },
 
   async exportBackup() {
-    const token = this.getToken();
     try {
-      const res = await fetch('/api/backup/export', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await this.request('/api/backup/export');
       if (res.ok) return await res.json();
     } catch (e) {}
 
@@ -182,15 +304,8 @@ export const ApiService = {
   },
 
   async importBackup(backupJson) {
-    const token = this.getToken();
-    if (!token) throw new Error('Akses ditolak: Memerlukan login admin');
-
-    const res = await fetch('/api/backup/import', {
+    const res = await this.request('/api/backup/import', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
       body: JSON.stringify(backupJson),
     });
 
@@ -203,14 +318,9 @@ export const ApiService = {
   },
 
   async saveSceneCustomName(sceneId, newName) {
-    const token = this.getToken();
     try {
-      const res = await fetch('/api/scenes/rename', {
+      const res = await this.request('/api/scenes/rename', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
         body: JSON.stringify({ sceneId, newName }),
       });
       if (res.ok) return await res.json();
@@ -220,7 +330,7 @@ export const ApiService = {
 
   async getScenes() {
     try {
-      const res = await fetch('/api/scenes');
+      const res = await fetch('/api/scenes', { credentials: 'same-origin' });
       if (res.ok) {
         const data = await res.json();
         return data.scenes || [];
@@ -233,16 +343,15 @@ export const ApiService = {
 
   async getCustomSceneNames() {
     try {
-      const res = await fetch('/api/scenes/custom');
+      const res = await fetch('/api/scenes/custom', { credentials: 'same-origin' });
       if (res.ok) return await res.json();
     } catch (e) {}
     return {};
   },
 
   async updateScene(id, payload) {
-    const res = await fetch(`/api/admin/scenes/${id}`, {
+    const res = await this.request(`/api/admin/scenes/${id}`, {
       method: 'PUT',
-      headers: this.getAuthHeaders(),
       body: JSON.stringify(payload),
     });
     const result = await res.json();
@@ -251,37 +360,16 @@ export const ApiService = {
   },
 
   // ─── Modul Data Penanaman dan Pemantauan Pohon ─────────────
-  getAuthHeaders() {
-    const token = this.getToken();
-    return {
-      'Content-Type': 'application/json',
-      Accept: 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    };
-  },
-
-  getAuthHeadersMultipart() {
-    const token = this.getToken();
-    return {
-      Accept: 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    };
-  },
-
   async getTreeDashboard(zoneId = null) {
     const query = (zoneId && zoneId !== 'all') ? `?planting_zone_id=${encodeURIComponent(zoneId)}` : '';
-    const res = await fetch(`/api/admin/trees/dashboard${query}`, {
-      headers: this.getAuthHeaders(),
-    });
+    const res = await this.request(`/api/admin/trees/dashboard${query}`);
     if (!res.ok) throw new Error('Gagal memuat dashboard penanaman');
     return await res.json();
   },
 
   async getTreeSpecies(params = {}) {
     const query = new URLSearchParams(params).toString();
-    const res = await fetch(`/api/admin/trees/species?${query}`, {
-      headers: this.getAuthHeaders(),
-    });
+    const res = await this.request(`/api/admin/trees/species?${query}`);
     if (!res.ok) throw new Error('Gagal memuat daftar jenis pohon');
     return await res.json();
   },
@@ -293,13 +381,8 @@ export const ApiService = {
     if (isFormData && id) {
       data.append('_method', 'PUT');
     }
-    const headers = { ...this.getAuthHeaders() };
-    if (isFormData) {
-      delete headers['Content-Type'];
-    }
-    const res = await fetch(url, {
+    const res = await this.request(url, {
       method,
-      headers,
       body: isFormData ? data : JSON.stringify(data),
     });
     const result = await res.json();
@@ -308,9 +391,8 @@ export const ApiService = {
   },
 
   async deleteTreeSpecies(id) {
-    const res = await fetch(`/api/admin/trees/species/${id}`, {
+    const res = await this.request(`/api/admin/trees/species/${id}`, {
       method: 'DELETE',
-      headers: this.getAuthHeaders(),
     });
     const result = await res.json();
     if (!res.ok) throw new Error(result.message || 'Gagal menghapus jenis pohon');
@@ -318,22 +400,20 @@ export const ApiService = {
   },
 
   async getPublicTreeSpecies() {
-    const res = await fetch('/api/tree-species');
+    const res = await fetch('/api/tree-species', { credentials: 'same-origin' });
     if (!res.ok) throw new Error('Gagal memuat katalog publik jenis pohon');
     return await res.json();
   },
 
   async getPublicTreeSpeciesDetail(id) {
-    const res = await fetch(`/api/tree-species/${id}`);
+    const res = await fetch(`/api/tree-species/${id}`, { credentials: 'same-origin' });
     if (!res.ok) throw new Error('Gagal memuat detail jenis pohon');
     return await res.json();
   },
 
   async getPlantingActivities(params = {}) {
     const query = new URLSearchParams(params).toString();
-    const res = await fetch(`/api/admin/trees/activities?${query}`, {
-      headers: this.getAuthHeaders(),
-    });
+    const res = await this.request(`/api/admin/trees/activities?${query}`);
     if (!res.ok) throw new Error('Gagal memuat kegiatan penanaman');
     return await res.json();
   },
@@ -341,9 +421,8 @@ export const ApiService = {
   async savePlantingActivity(data, id = null) {
     const url = id ? `/api/admin/trees/activities/${id}` : '/api/admin/trees/activities';
     const method = id ? 'PUT' : 'POST';
-    const res = await fetch(url, {
+    const res = await this.request(url, {
       method,
-      headers: this.getAuthHeaders(),
       body: JSON.stringify(data),
     });
     const result = await res.json();
@@ -357,17 +436,14 @@ export const ApiService = {
   },
 
   async getPlantingActivity(id) {
-    const res = await fetch(`/api/admin/trees/activities/${id}`, {
-      headers: this.getAuthHeaders(),
-    });
+    const res = await this.request(`/api/admin/trees/activities/${id}`);
     if (!res.ok) throw new Error('Gagal memuat detail kegiatan penanaman');
     return await res.json();
   },
 
   async deletePlantingActivity(id) {
-    const res = await fetch(`/api/admin/trees/activities/${id}`, {
+    const res = await this.request(`/api/admin/trees/activities/${id}`, {
       method: 'DELETE',
-      headers: this.getAuthHeaders(),
     });
     const result = await res.json();
     if (!res.ok) throw new Error(result.message || 'Gagal menghapus kegiatan penanaman');
@@ -375,9 +451,8 @@ export const ApiService = {
   },
 
   async correctPlantingActivityItem(itemId, newQuantity, reason) {
-    const res = await fetch(`/api/admin/trees/activities/items/${itemId}/correct`, {
+    const res = await this.request(`/api/admin/trees/activities/items/${itemId}/correct`, {
       method: 'POST',
-      headers: this.getAuthHeaders(),
       body: JSON.stringify({ new_quantity: newQuantity, reason }),
     });
     const result = await res.json();
@@ -387,17 +462,13 @@ export const ApiService = {
 
   async getTreeSurveys(params = {}) {
     const query = new URLSearchParams(params).toString();
-    const res = await fetch(`/api/admin/trees/surveys?${query}`, {
-      headers: this.getAuthHeaders(),
-    });
+    const res = await this.request(`/api/admin/trees/surveys?${query}`);
     if (!res.ok) throw new Error('Gagal memuat catatan survei pemantauan');
     return await res.json();
   },
 
   async getTreeSurveyDetail(id) {
-    const res = await fetch(`/api/admin/trees/surveys/${id}`, {
-      headers: this.getAuthHeaders(),
-    });
+    const res = await this.request(`/api/admin/trees/surveys/${id}`);
     if (!res.ok) throw new Error('Gagal memuat detail survei pemantauan');
     return await res.json();
   },
@@ -405,9 +476,8 @@ export const ApiService = {
   async saveTreeSurvey(data, id = null) {
     const url = id ? `/api/admin/trees/surveys/${id}` : '/api/admin/trees/surveys';
     const method = id ? 'PUT' : 'POST';
-    const res = await fetch(url, {
+    const res = await this.request(url, {
       method,
-      headers: this.getAuthHeaders(),
       body: JSON.stringify(data),
     });
     const result = await res.json();
@@ -416,9 +486,8 @@ export const ApiService = {
   },
 
   async deleteTreeSurvey(id) {
-    const res = await fetch(`/api/admin/trees/surveys/${id}`, {
+    const res = await this.request(`/api/admin/trees/surveys/${id}`, {
       method: 'DELETE',
-      headers: this.getAuthHeaders(),
     });
     const result = await res.json();
     if (!res.ok) throw new Error(result.message || 'Gagal menghapus survei');
@@ -427,17 +496,13 @@ export const ApiService = {
 
   async getTreeMaintenance(params = {}) {
     const query = new URLSearchParams(params).toString();
-    const res = await fetch(`/api/admin/trees/maintenance?${query}`, {
-      headers: this.getAuthHeaders(),
-    });
+    const res = await this.request(`/api/admin/trees/maintenance?${query}`);
     if (!res.ok) throw new Error('Gagal memuat catatan perawatan');
     return await res.json();
   },
 
   async getTreeMaintenanceDetail(id) {
-    const res = await fetch(`/api/admin/trees/maintenance/${id}`, {
-      headers: this.getAuthHeaders(),
-    });
+    const res = await this.request(`/api/admin/trees/maintenance/${id}`);
     if (!res.ok) throw new Error('Gagal memuat detail catatan perawatan');
     return await res.json();
   },
@@ -445,9 +510,8 @@ export const ApiService = {
   async saveTreeMaintenance(data, id = null) {
     const url = id ? `/api/admin/trees/maintenance/${id}` : '/api/admin/trees/maintenance';
     const method = id ? 'PUT' : 'POST';
-    const res = await fetch(url, {
+    const res = await this.request(url, {
       method,
-      headers: this.getAuthHeaders(),
       body: JSON.stringify(data),
     });
     const result = await res.json();
@@ -456,9 +520,8 @@ export const ApiService = {
   },
 
   async deleteTreeMaintenance(id) {
-    const res = await fetch(`/api/admin/trees/maintenance/${id}`, {
+    const res = await this.request(`/api/admin/trees/maintenance/${id}`, {
       method: 'DELETE',
-      headers: this.getAuthHeaders(),
     });
     const result = await res.json();
     if (!res.ok) throw new Error(result.message || 'Gagal menghapus catatan perawatan');
@@ -470,13 +533,8 @@ export const ApiService = {
     formData.append('file', file);
     formData.append('type', type);
 
-    const token = this.getToken();
-    const res = await fetch('/api/admin/trees/import/preview', {
+    const res = await this.request('/api/admin/trees/import/preview', {
       method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
       body: formData,
     });
     const result = await res.json();
@@ -485,9 +543,8 @@ export const ApiService = {
   },
 
   async executeTreeImport(type, data) {
-    const res = await fetch('/api/admin/trees/import/execute', {
+    const res = await this.request('/api/admin/trees/import/execute', {
       method: 'POST',
-      headers: this.getAuthHeaders(),
       body: JSON.stringify({ type, data, confirm: true }),
     });
     const result = await res.json();
@@ -495,19 +552,17 @@ export const ApiService = {
     return result;
   },
 
-  // ─── Manajemen Kawasan (Zones) ───
+  // ─── Manajemen Kawasan (Zones) ───────────────────────────
   async getZones(params = {}) {
     const query = new URLSearchParams(params).toString();
     try {
-      const res = await fetch(`/api/admin/zones?${query}`, {
-        headers: this.getAuthHeaders(),
-      });
+      const res = await this.request(`/api/admin/zones?${query}`);
       if (res.ok) return await res.json();
     } catch (e) {}
 
-    // Fallback ke endpoint publik /api/zones jika token belum tersedia
+    // Fallback ke endpoint publik /api/zones jika permintaan admin ditolak
     try {
-      const pubRes = await fetch(`/api/zones?${query}`);
+      const pubRes = await fetch(`/api/zones?${query}`, { credentials: 'same-origin' });
       if (pubRes.ok) return await pubRes.json();
     } catch (e) {}
 
@@ -515,9 +570,7 @@ export const ApiService = {
   },
 
   async getZone(id) {
-    const res = await fetch(`/api/admin/zones/${id}`, {
-      headers: this.getAuthHeaders(),
-    });
+    const res = await this.request(`/api/admin/zones/${id}`);
     if (!res.ok) throw new Error('Gagal memuat detail kawasan');
     return await res.json();
   },
@@ -525,9 +578,8 @@ export const ApiService = {
   async saveZone(data, id = null) {
     const url = id ? `/api/admin/zones/${id}` : '/api/admin/zones';
     const method = id ? 'PUT' : 'POST';
-    const res = await fetch(url, {
+    const res = await this.request(url, {
       method,
-      headers: this.getAuthHeaders(),
       body: JSON.stringify(data),
     });
     const result = await res.json();
@@ -536,9 +588,8 @@ export const ApiService = {
   },
 
   async deleteZone(id) {
-    const res = await fetch(`/api/admin/zones/${id}`, {
+    const res = await this.request(`/api/admin/zones/${id}`, {
       method: 'DELETE',
-      headers: this.getAuthHeaders(),
     });
     const result = await res.json();
     if (!res.ok) throw new Error(result.message || 'Gagal menghapus kawasan');
@@ -546,9 +597,8 @@ export const ApiService = {
   },
 
   async archiveZone(id) {
-    const res = await fetch(`/api/admin/zones/${id}/archive`, {
+    const res = await this.request(`/api/admin/zones/${id}/archive`, {
       method: 'POST',
-      headers: this.getAuthHeaders(),
     });
     const result = await res.json();
     if (!res.ok) throw new Error(result.message || 'Gagal mengubah status arsip');
@@ -556,9 +606,8 @@ export const ApiService = {
   },
 
   async linkZoneScenes(id, sceneIds) {
-    const res = await fetch(`/api/admin/zones/${id}/link-scenes`, {
+    const res = await this.request(`/api/admin/zones/${id}/link-scenes`, {
       method: 'POST',
-      headers: this.getAuthHeaders(),
       body: JSON.stringify({ scene_ids: sceneIds }),
     });
     const result = await res.json();
@@ -567,31 +616,28 @@ export const ApiService = {
   },
 
   async getPublicZones() {
-    const res = await fetch('/api/zones');
+    const res = await fetch('/api/zones', { credentials: 'same-origin' });
     if (!res.ok) throw new Error('Gagal memuat kawasan publik');
     return await res.json();
   },
 
   async getPublicZone(id) {
-    const res = await fetch(`/api/zones/${id}`);
+    const res = await fetch(`/api/zones/${id}`, { credentials: 'same-origin' });
     if (!res.ok) throw new Error('Gagal memuat detail kawasan publik');
     return await res.json();
   },
 
-  // ─── Galeri Foto Kawasan (Admin & Public) ───
+  // ─── Galeri Foto Kawasan (Admin & Public) ─────────────────
   async getZonePhotos(zoneId, params = {}) {
     const query = new URLSearchParams(params).toString();
-    const res = await fetch(`/api/admin/zones/${zoneId}/photos?${query}`, {
-      headers: this.getAuthHeaders(),
-    });
+    const res = await this.request(`/api/admin/zones/${zoneId}/photos?${query}`);
     if (!res.ok) throw new Error('Gagal memuat galeri foto kawasan');
     return await res.json();
   },
 
   async uploadZonePhotos(zoneId, formData) {
-    const res = await fetch(`/api/admin/zones/${zoneId}/photos`, {
+    const res = await this.request(`/api/admin/zones/${zoneId}/photos`, {
       method: 'POST',
-      headers: this.getAuthHeadersMultipart(),
       body: formData,
     });
     const result = await res.json();
@@ -603,17 +649,14 @@ export const ApiService = {
     const isFormData = dataOrFormData instanceof FormData;
     let method = 'PUT';
     let body = dataOrFormData;
-    let headers = this.getAuthHeaders();
     if (isFormData) {
       method = 'POST';
       dataOrFormData.append('_method', 'PUT');
-      headers = this.getAuthHeadersMultipart();
     } else {
       body = JSON.stringify(dataOrFormData);
     }
-    const res = await fetch(`/api/admin/zones/${zoneId}/photos/${photoId}`, {
+    const res = await this.request(`/api/admin/zones/${zoneId}/photos/${photoId}`, {
       method,
-      headers,
       body,
     });
     const result = await res.json();
@@ -622,9 +665,8 @@ export const ApiService = {
   },
 
   async deleteZonePhoto(zoneId, photoId) {
-    const res = await fetch(`/api/admin/zones/${zoneId}/photos/${photoId}`, {
+    const res = await this.request(`/api/admin/zones/${zoneId}/photos/${photoId}`, {
       method: 'DELETE',
-      headers: this.getAuthHeaders(),
     });
     const result = await res.json();
     if (!res.ok) throw new Error(result.message || 'Gagal menghapus foto kawasan');
@@ -632,9 +674,8 @@ export const ApiService = {
   },
 
   async setZoneCoverPhoto(zoneId, photoId) {
-    const res = await fetch(`/api/admin/zones/${zoneId}/photos/${photoId}/set-cover`, {
+    const res = await this.request(`/api/admin/zones/${zoneId}/photos/${photoId}/set-cover`, {
       method: 'POST',
-      headers: this.getAuthHeaders(),
     });
     const result = await res.json();
     if (!res.ok) throw new Error(result.message || 'Gagal menjadikan foto sebagai sampul');
@@ -642,9 +683,8 @@ export const ApiService = {
   },
 
   async reorderZonePhotos(zoneId, photoIds) {
-    const res = await fetch(`/api/admin/zones/${zoneId}/photos/reorder`, {
+    const res = await this.request(`/api/admin/zones/${zoneId}/photos/reorder`, {
       method: 'POST',
-      headers: this.getAuthHeaders(),
       body: JSON.stringify({ photo_ids: photoIds }),
     });
     const result = await res.json();
@@ -653,40 +693,35 @@ export const ApiService = {
   },
 
   async getPublicZonePhotos(zoneId) {
-    const res = await fetch(`/api/zones/${zoneId}/photos`);
+    const res = await fetch(`/api/zones/${zoneId}/photos`, { credentials: 'same-origin' });
     if (!res.ok) throw new Error('Gagal memuat galeri foto publik kawasan');
     return await res.json();
   },
 
   async getAllPublicPhotos(params = {}) {
     const query = new URLSearchParams(params).toString();
-    const res = await fetch(`/api/photos?${query}`);
+    const res = await fetch(`/api/photos?${query}`, { credentials: 'same-origin' });
     if (!res.ok) throw new Error('Gagal memuat galeri foto kawasan publik');
     return await res.json();
   },
 
-  // ─── Log Aktivitas & Pengaturan & Pengguna ───
+  // ─── Log Aktivitas, Pengaturan & Manajemen Pengguna ───────
   async getActivityLogs(params = {}) {
     const query = new URLSearchParams(params).toString();
-    const res = await fetch(`/api/admin/activity-logs?${query}`, {
-      headers: this.getAuthHeaders(),
-    });
+    const res = await this.request(`/api/admin/activity-logs?${query}`);
     if (!res.ok) throw new Error('Gagal memuat log aktivitas');
     return await res.json();
   },
 
   async getSettings() {
-    const res = await fetch('/api/admin/settings', {
-      headers: this.getAuthHeaders(),
-    });
+    const res = await this.request('/api/admin/settings');
     if (!res.ok) throw new Error('Gagal memuat pengaturan aplikasi');
     return await res.json();
   },
 
   async saveSettings(settingsData) {
-    const res = await fetch('/api/admin/settings', {
+    const res = await this.request('/api/admin/settings', {
       method: 'POST',
-      headers: this.getAuthHeaders(),
       body: JSON.stringify({ settings: settingsData }),
     });
     const result = await res.json();
@@ -695,9 +730,8 @@ export const ApiService = {
   },
 
   async uploadLogo(formData) {
-    const res = await fetch('/api/admin/settings/logo', {
+    const res = await this.request('/api/admin/settings/logo', {
       method: 'POST',
-      headers: this.getAuthHeadersMultipart(),
       body: formData,
     });
     const result = await res.json();
@@ -706,9 +740,8 @@ export const ApiService = {
   },
 
   async removeLogo() {
-    const res = await fetch('/api/admin/settings/logo', {
+    const res = await this.request('/api/admin/settings/logo', {
       method: 'DELETE',
-      headers: this.getAuthHeaders(),
     });
     const result = await res.json();
     if (!res.ok) throw new Error(result.message || 'Gagal menghapus logo aplikasi');
@@ -716,9 +749,7 @@ export const ApiService = {
   },
 
   async getUsers() {
-    const res = await fetch('/api/admin/users', {
-      headers: this.getAuthHeaders(),
-    });
+    const res = await this.request('/api/admin/users');
     if (!res.ok) throw new Error('Gagal memuat daftar pengguna');
     return await res.json();
   },
@@ -726,9 +757,8 @@ export const ApiService = {
   async saveUser(userData, id = null) {
     const url = id ? `/api/admin/users/${id}` : '/api/admin/users';
     const method = id ? 'PUT' : 'POST';
-    const res = await fetch(url, {
+    const res = await this.request(url, {
       method,
-      headers: this.getAuthHeaders(),
       body: JSON.stringify(userData),
     });
     const result = await res.json();
@@ -737,13 +767,11 @@ export const ApiService = {
   },
 
   async deleteUser(id) {
-    const res = await fetch(`/api/admin/users/${id}`, {
+    const res = await this.request(`/api/admin/users/${id}`, {
       method: 'DELETE',
-      headers: this.getAuthHeaders(),
     });
     const result = await res.json();
     if (!res.ok) throw new Error(result.message || 'Gagal menghapus pengguna');
     return result;
   },
 };
-

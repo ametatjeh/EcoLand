@@ -89,8 +89,16 @@ class AuthController extends Controller
         $user = $request->user();
 
         if ($user) {
+            $token = null;
+            if (!$request->bearerToken() && method_exists($user, 'createToken')) {
+                // Bersihkan token lama (>24 jam) tanpa menghapus token aktif yang mungkin sedang dipakai tab/request lain
+                $user->tokens()->where('name', 'admin_session')->where('created_at', '<', now()->subHours(24))->delete();
+                $token = $user->createToken('admin_session', ['admin'])->plainTextToken;
+            }
+
             return response()->json([
                 'authenticated' => true,
+                'token' => $token,
                 'user' => [
                     'id' => $user->id,
                     'username' => $user->username,

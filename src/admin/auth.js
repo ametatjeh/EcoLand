@@ -22,7 +22,7 @@ function notifyAuthChange(isLoggedIn) {
   });
 }
 
-export function initAuth() {
+export async function initAuth() {
   const modal = document.getElementById('admin-login-modal');
   const form = document.getElementById('admin-login-form');
   const errorEl = document.getElementById('admin-login-error');
@@ -81,6 +81,38 @@ export function initAuth() {
   document.querySelectorAll('.btn-sidebar-quick-logout').forEach((btn) => {
     btn.addEventListener('click', handleLogout);
   });
+
+  // Sinkronisasi status sesi Laravel web dan token Sanctum saat startup
+  await syncAdminSessionToken();
+}
+
+export async function syncAdminSessionToken() {
+  if (typeof document === 'undefined') return null;
+  const metaAuth = document.querySelector('meta[name="eco-server-auth"]');
+  const isServerAuth = metaAuth && metaAuth.getAttribute('content') === 'true';
+  const existingToken = ApiService.getToken();
+
+  // Sinkronkan jika server menyatakan sesi web aktif, atau verifikasi token tersimpan
+  if (isServerAuth || existingToken) {
+    try {
+      const res = await ApiService.request('/api/auth/verify');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.authenticated) {
+          if (data.token) {
+            ApiService.setSession(data.token, data.user);
+          } else if (data.user && !existingToken) {
+            ApiService.setSession('', data.user);
+          }
+          return data.user;
+        }
+      } else if (res.status === 401 && !isServerAuth) {
+        // Token client sudah kedaluwarsa dan server tidak memiliki sesi web aktif
+        ApiService.clearSession();
+      }
+    } catch (e) {}
+  }
+  return null;
 }
 
 export function performLogout() {
