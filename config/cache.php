@@ -2,6 +2,19 @@
 
 use Illuminate\Support\Str;
 
+$defaultCacheStore = env('CACHE_STORE', 'file');
+
+// Jika cache store diset ke redis tapi ekstensi phpredis belum tersedia di runtime PHP server,
+// fallback secara aman ke 'file' agar tidak menyebabkan HTTP 500 fatal
+if ($defaultCacheStore === 'redis' && ! extension_loaded('redis') && ! class_exists(\Predis\Client::class)) {
+    $defaultCacheStore = 'file';
+}
+
+$fileCacheDataPath = storage_path('framework/cache/data');
+if (! is_dir($fileCacheDataPath)) {
+    @mkdir($fileCacheDataPath, 0775, true);
+}
+
 return [
 
     /*
@@ -15,7 +28,7 @@ return [
     |
     */
 
-    'default' => env('CACHE_STORE', 'file'),
+    'default' => $defaultCacheStore,
 
     /*
     |--------------------------------------------------------------------------

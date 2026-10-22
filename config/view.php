@@ -1,5 +1,12 @@
 <?php
 
+$compiledPath = env('VIEW_COMPILED_PATH') ?: storage_path('framework/views');
+
+// Pastikan direktori cache kompilasi Blade tersedia di filesystem
+if (! is_dir($compiledPath)) {
+    @mkdir($compiledPath, 0775, true);
+}
+
 return [
 
     /*
@@ -28,9 +35,6 @@ return [
     |
     */
 
-    'compiled' => env(
-        'VIEW_COMPILED_PATH',
-        realpath(storage_path('framework/views')) ?: storage_path('framework/views')
-    ),
+    'compiled' => realpath($compiledPath) ?: $compiledPath,
 
 ];

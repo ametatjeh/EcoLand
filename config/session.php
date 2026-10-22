@@ -2,6 +2,19 @@
 
 use Illuminate\Support\Str;
 
+$sessionDriver = env('SESSION_DRIVER', 'file');
+
+// Jika driver diset ke redis tapi ekstensi phpredis belum tersedia di runtime PHP server,
+// fallback secara aman ke 'file' agar tidak menyebabkan HTTP 500 fatal
+if ($sessionDriver === 'redis' && ! extension_loaded('redis') && ! class_exists(\Predis\Client::class)) {
+    $sessionDriver = 'file';
+}
+
+$sessionFilesPath = storage_path('framework/sessions');
+if ($sessionDriver === 'file' && ! is_dir($sessionFilesPath)) {
+    @mkdir($sessionFilesPath, 0775, true);
+}
+
 return [
 
     /*
@@ -17,7 +30,7 @@ return [
     |            "redis", "dynamodb", "array"
     |
     */
-    'driver' => env('SESSION_DRIVER', 'redis'),
+    'driver' => $sessionDriver,
 
     /*
     |--------------------------------------------------------------------------

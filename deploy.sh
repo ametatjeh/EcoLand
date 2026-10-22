@@ -183,9 +183,16 @@ log_success "Build aset frontend selesai (tersimpan di public/build)."
 log_info "Memastikan direktori framework dan cache tersedia..."
 mkdir -p storage/framework/cache/data storage/framework/views storage/framework/sessions storage/framework/testing bootstrap/cache
 
+# Sesuaikan kepemilikan sebelum perintah artisan dijalankan
+if [ "$(id -u)" -eq 0 ]; then
+    chown -R "${WEB_USER}:${WEB_GROUP}" storage bootstrap/cache
+    find storage bootstrap/cache -type d -exec chmod 775 {} \;
+fi
+
 log_info "Membersihkan cache lama dan mengoptimalkan framework Laravel..."
 "${PHP_BIN}" artisan optimize:clear
 "${PHP_BIN}" artisan optimize
+"${PHP_BIN}" artisan view:cache || true
 log_success "Konfigurasi, events, routes, dan views berhasil di-cache."
 
 # ==============================================================================
@@ -199,7 +206,7 @@ else
     log_info "Symbolic link public/storage sudah tersedia."
 fi
 
-# Perbaikan permission aman (hanya jika dijalankan dengan hak akses root/sudo)
+# Perbaikan permission menyeluruh untuk semua file hasil build dan cache
 if [ "$(id -u)" -eq 0 ]; then
     log_info "Menyesuaikan kepemilikan dan hak akses (user: ${WEB_USER}:${WEB_GROUP})..."
     chown -R "${WEB_USER}:${WEB_GROUP}" storage bootstrap/cache
