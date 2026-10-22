@@ -15,7 +15,7 @@ return [
     |
     */
 
-    'default' => env('CACHE_STORE', 'database'),
+    'default' => env('CACHE_STORE', 'file'),
 
     /*
     |--------------------------------------------------------------------------
@@ -68,8 +68,8 @@ return [
             'driver' => 'memcached',
             'persistent_id' => env('MEMCACHED_PERSISTENT_ID'),
             'sasl' => [
-                env('MEMCACHED_USERNAME_SASL', env('MEMCACHED_USERNAME')),
-                env('MEMCACHED_PASSWORD_SASL', env('MEMCACHED_PASSWORD')),
+                env('MEMCACHED_USERNAME'),
+                env('MEMCACHED_PASSWORD'),
             ],
             'options' => [
                 // Memcached::OPT_CONNECT_TIMEOUT => 2000,
@@ -77,7 +77,7 @@ return [
             'servers' => [
                 [
                     'host' => env('MEMCACHED_HOST', '127.0.0.1'),
-                    'port' => (int) env('MEMCACHED_PORT', 11211),
+                    'port' => env('MEMCACHED_PORT', 11211),
                     'weight' => 100,
                 ],
             ],

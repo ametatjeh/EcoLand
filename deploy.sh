@@ -180,6 +180,9 @@ log_success "Build aset frontend selesai (tersimpan di public/build)."
 # ==============================================================================
 # TAHAP 5: LARAVEL OPTIMIZATION & CACHE
 # ==============================================================================
+log_info "Memastikan direktori framework dan cache tersedia..."
+mkdir -p storage/framework/cache/data storage/framework/views storage/framework/sessions storage/framework/testing bootstrap/cache
+
 log_info "Membersihkan cache lama dan mengoptimalkan framework Laravel..."
 "${PHP_BIN}" artisan optimize:clear
 "${PHP_BIN}" artisan optimize
@@ -257,7 +260,16 @@ $app = require_once "bootstrap/app.php";
 $app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
 $cacheStore = config("cache.default");
 echo "Cache Driver Aktif: " . $cacheStore . "\n";
-if ($cacheStore === "redis") {
+if ($cacheStore === "file") {
+    Illuminate\Support\Facades\Cache::store("file")->put("health_test", "ok", 10);
+    $res = Illuminate\Support\Facades\Cache::store("file")->get("health_test");
+    if ($res === "ok") {
+        echo "File Cache Test: BERHASIL (Read/Write OK)\n";
+    } else {
+        echo "File Cache Test: GAGAL membaca nilai dari file cache!\n";
+        exit(1);
+    }
+} elseif ($cacheStore === "redis") {
     Illuminate\Support\Facades\Cache::store("redis")->put("health_test", "ok", 10);
     $res = Illuminate\Support\Facades\Cache::store("redis")->get("health_test");
     if ($res === "ok") {
