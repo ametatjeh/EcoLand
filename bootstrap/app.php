@@ -19,6 +19,16 @@ return Application::configure(basePath: dirname(__DIR__))
             }
             return '/#admin';
         });
+
+        $middleware->statefulApi();
+
+        $middleware->alias([
+            'admin.session.active' => \App\Http\Middleware\EnsureAdminSessionActive::class,
+        ]);
+
+        $middleware->web(append: [
+            \App\Http\Middleware\EnsureAdminSessionActive::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

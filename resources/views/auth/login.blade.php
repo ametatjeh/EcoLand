@@ -377,6 +377,11 @@
 
     <!-- Three.js Library for Interactive Particle & Breath Mesh Animation (Offline Local First + CDN Fallback) -->
     <script src="{{ asset('vendor/three/three.min.js') }}" onerror="this.onerror=null;this.src='https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';"></script>
+
+    @if(!empty($recaptchaEnabled) && !empty($recaptchaSiteKey))
+        <!-- Google reCAPTCHA v3 (Invisible) -->
+        <script src="https://www.google.com/recaptcha/api.js?render={{ urlencode($recaptchaSiteKey) }}" async defer></script>
+    @endif
 </head>
 <body>
     <!-- Interactive WebGL Particle Breath Mesh (PMB UNIDA Inspired Halo Effect) -->
@@ -448,6 +453,7 @@
             <!-- Formulir Login Biasa -->
             <form id="form-login" method="POST" action="{{ route('login.post') }}" style="display: flex; flex-direction: column; gap: 16px;">
                 @csrf
+                <input type="hidden" name="recaptcha_token" id="recaptcha_token" value="" />
 
                 <!-- Input Email / Username -->
                 <div>
@@ -542,6 +548,13 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                         </svg>
                     </button>
+                    @if(!empty($recaptchaEnabled) && !empty($recaptchaSiteKey))
+                        <div style="font-size: 11px; color: #64748b; text-align: center; line-height: 1.4; margin-top: 8px;">
+                            Dilindungi oleh reCAPTCHA dan Google 
+                            <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" style="color: #34d399; text-decoration: underline;">Kebijakan Privasi</a> serta 
+                            <a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer" style="color: #34d399; text-decoration: underline;">Ketentuan Layanan</a> berlaku.
+                        </div>
+                    @endif
                 </div>
 
                 <!-- Pemisah "Atau masuk dengan" -->
@@ -592,13 +605,47 @@
             });
         }
 
-        // Form Submit Loading State
+        // Form Submit Loading State & reCAPTCHA v3 Execution
         const formLogin = document.getElementById('form-login');
         const btnLoginSubmit = document.getElementById('btn-login-submit');
         const btnLoginText = document.getElementById('btn-login-text');
+        const recaptchaTokenInput = document.getElementById('recaptcha_token');
+        const recaptchaSiteKey = @json($recaptchaSiteKey ?? '');
+        const recaptchaEnabled = @json(!empty($recaptchaEnabled) && !empty($recaptchaSiteKey));
 
         if (formLogin && btnLoginSubmit) {
-            formLogin.addEventListener('submit', () => {
+            formLogin.addEventListener('submit', function (e) {
+                if (recaptchaEnabled && recaptchaSiteKey && typeof window.grecaptcha !== 'undefined') {
+                    // Check if token is already generated in this submit cycle
+                    if (!recaptchaTokenInput.value) {
+                        e.preventDefault();
+                        btnLoginSubmit.disabled = true;
+                        btnLoginText.textContent = 'Memverifikasi keamanan...';
+
+                        try {
+                            window.grecaptcha.ready(function () {
+                                window.grecaptcha.execute(recaptchaSiteKey, { action: 'login' })
+                                    .then(function (token) {
+                                        recaptchaTokenInput.value = token;
+                                        formLogin.submit();
+                                    })
+                                    .catch(function (err) {
+                                        console.error('reCAPTCHA execution error:', err);
+                                        btnLoginSubmit.disabled = false;
+                                        btnLoginText.textContent = 'Masuk ke Eco Land';
+                                        alert('Gagal memverifikasi keamanan reCAPTCHA. Silakan muat ulang halaman atau coba beberapa saat lagi.');
+                                    });
+                            });
+                        } catch (err) {
+                            console.error('reCAPTCHA ready error:', err);
+                            btnLoginSubmit.disabled = false;
+                            btnLoginText.textContent = 'Masuk ke Eco Land';
+                            alert('Gagal memverifikasi keamanan. Silakan coba lagi.');
+                        }
+                        return;
+                    }
+                }
+
                 btnLoginSubmit.disabled = true;
                 btnLoginText.textContent = 'Memverifikasi...';
             });

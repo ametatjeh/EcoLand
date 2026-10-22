@@ -84,8 +84,16 @@ function getSavedTourView(sceneId) {
 function parseHash(fullHash) {
   const clean = (fullHash || '').replace(/^#\/?/, '').trim();
   const [routePart, queryPart] = clean.split('?');
-  const route = (routePart || '').toLowerCase();
+  let route = (routePart || '').toLowerCase();
   const queryParams = new URLSearchParams(queryPart || '');
+
+  // If hash is empty, check pathname for direct navigation like /tour, /galeri, /admin
+  if (!route && typeof window !== 'undefined' && window.location.pathname) {
+    const pathCandidate = window.location.pathname.replace(/^\/+/, '').split('/')[0].toLowerCase();
+    if (pathCandidate && ['tour', 'info', 'galeri', 'katalog', 'tree-qr', 'karbon', 'admin'].includes(pathCandidate)) {
+      route = pathCandidate;
+    }
+  }
 
   let sceneParam = queryParams.get('scene') || queryParams.get('titik') || null;
   let tab = route || 'beranda';
@@ -150,20 +158,25 @@ function updateTourUrl(sceneId) {
 
 // ─── DOM Boot ───────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
-  // 0. Load server-persisted hotspots
-  try {
-    dynamicHotspots = await ApiService.getHotspots();
-  } catch (err) {
-    console.warn('Failed loading hotspots:', err);
+  // 1. Setup Navigation & Hash Tabs immediately (0ms instant route resolution)
+  setupNavigation();
+  handleHashRouting();
+  window.addEventListener('hashchange', handleHashRouting);
+
+  // Clear data-initial-tab if set by inline boot script
+  if (typeof document !== 'undefined') {
+    document.documentElement.removeAttribute('data-initial-tab');
   }
 
-  // 1. Populate Configurable Project Identity in UI
+  // 2. Load server-persisted hotspots asynchronously in background
+  ApiService.getHotspots()
+    .then((hs) => { dynamicHotspots = hs || []; })
+    .catch((err) => { console.warn('Failed loading hotspots:', err); });
+
+  // 3. Populate Configurable Project Identity in UI
   populateProjectIdentity();
 
-  // 2. Setup Navigation & Hash Tabs
-  setupNavigation();
-
-  // 3. Render Points Grids & Public Zones (Home)
+  // 4. Render Points Grids & Public Zones (Home)
   renderHomePointsGrid();
   initPublicZones('home-zones-grid', (sceneId) => {
     window.location.hash = `tour?scene=${encodeURIComponent(sceneId)}`;
@@ -260,10 +273,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       switchScene(e.detail.sceneId);
     }
   });
-
-  // 11. Load Initial Hash Route
-  handleHashRouting();
-  window.addEventListener('hashchange', handleHashRouting);
 
   // Pre-load / restore initial scene if not already loaded by handleHashRouting
   if (scenes.length > 0 && !currentSceneId) {
@@ -661,6 +670,21 @@ function switchTab(tabId) {
   // Reset scroll to top when changing views
   if (tabId !== 'tour') {
     window.scrollTo(0, 0);
+  }
+
+  // Update dynamic document title based on tab
+  const tabTitles = {
+    beranda: 'Eco Land — Virtual Tour & Sistem Informasi Restorasi Kawasan | IKHW Aceh',
+    tour: 'Virtual Tour 360° — Eco Land',
+    info: 'Informasi Kawasan — Eco Land',
+    galeri: 'Galeri Foto Kawasan — Eco Land',
+    katalog: 'Data & Katalog Pohon — Eco Land',
+    'tree-qr': 'Tree QR Code Kawasan — Eco Land',
+    karbon: 'Monitoring Karbon — Eco Land',
+    admin: 'Dashboard Administrator — Eco Land',
+  };
+  if (tabTitles[tabId]) {
+    document.title = tabTitles[tabId];
   }
 
   // Specific triggers

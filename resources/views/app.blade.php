@@ -9,24 +9,69 @@
     name="description"
     content="Eco Land — Sistem Informasi Pengelolaan Kawasan dan Restorasi Silvikultur IKHW Aceh. Jelajahi Virtual Tour 360°, inventarisasi data pohon, dan monitoring karbon berkala." />
   <title>Eco Land — Virtual Tour & Sistem Informasi Restorasi Kawasan | IKHW Aceh</title>
-  <link rel="canonical" href="https://ikhw.org/" />
+  @php
+    $isLoggedInAdmin = \Illuminate\Support\Facades\Auth::check() && \Illuminate\Support\Facades\Auth::user()->isAdmin();
+    $adminTargetUrl = $isLoggedInAdmin ? '/#admin/dashboard' : '/login';
+    $canonicalUrl = app()->environment('production') ? 'https://ikhw.org/' : url('/');
+  @endphp
+  <link rel="canonical" href="{{ $canonicalUrl }}" />
   <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://ikhw.org/" />
+  <meta property="og:url" content="{{ $canonicalUrl }}" />
   <meta property="og:title" content="Eco Land — Virtual Tour & Sistem Informasi Restorasi Kawasan | IKHW Aceh" />
   <meta property="og:description" content="Eco Land — Sistem Informasi Pengelolaan Kawasan dan Restorasi Silvikultur IKHW Aceh. Jelajahi Virtual Tour 360°, inventarisasi data pohon, dan monitoring karbon berkala." />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:domain" content="ikhw.org" />
-  <meta name="twitter:url" content="https://ikhw.org/" />
+  <meta name="twitter:domain" content="{{ parse_url($canonicalUrl, PHP_URL_HOST) ?? 'ikhw.org' }}" />
+  <meta name="twitter:url" content="{{ $canonicalUrl }}" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
     href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
     rel="stylesheet" />
-  @php
-    $isLoggedInAdmin = \Illuminate\Support\Facades\Auth::check() && \Illuminate\Support\Facades\Auth::user()->isAdmin();
-    $adminTargetUrl = $isLoggedInAdmin ? url('/#admin/dashboard') : route('login');
-  @endphp
   <meta name="eco-server-auth" content="{{ $isLoggedInAdmin ? 'true' : 'false' }}" />
+  <meta name="admin-idle-timeout" content="{{ config('session.admin_idle_timeout', 30) }}" />
+  <meta name="admin-idle-warning" content="{{ config('session.admin_idle_warning', 5) }}" />
+
+  <!-- Instant Route Pre-paint Guard: Mencegah flash tampilan Beranda saat refresh di tab lain -->
+  <script>
+    (function () {
+      try {
+        var h = window.location.hash || '';
+        var p = window.location.pathname.replace(/^\/+/, '').split('/')[0] || '';
+        var tab = 'beranda';
+        if (h.startsWith('#admin') || p === 'admin') tab = 'admin';
+        else if (h.startsWith('#tour') || p === 'tour') tab = 'tour';
+        else if (h.startsWith('#galeri') || p === 'galeri') tab = 'galeri';
+        else if (h.startsWith('#katalog') || p === 'katalog') tab = 'katalog';
+        else if (h.startsWith('#tree-qr') || p === 'tree-qr') tab = 'tree-qr';
+        else if (h.startsWith('#karbon') || p === 'karbon' || p === 'monitoring-karbon') tab = 'karbon';
+        else if (h.startsWith('#info') || p === 'info') tab = 'info';
+        if (tab !== 'beranda') {
+          document.documentElement.setAttribute('data-initial-tab', tab);
+        }
+      } catch (e) {}
+    })();
+  </script>
+  <style>
+    html[data-initial-tab="admin"] #view-beranda,
+    html[data-initial-tab="tour"] #view-beranda,
+    html[data-initial-tab="galeri"] #view-beranda,
+    html[data-initial-tab="katalog"] #view-beranda,
+    html[data-initial-tab="tree-qr"] #view-beranda,
+    html[data-initial-tab="karbon"] #view-beranda,
+    html[data-initial-tab="info"] #view-beranda {
+      display: none !important;
+    }
+    html[data-initial-tab="admin"] #view-admin,
+    html[data-initial-tab="tour"] #view-tour,
+    html[data-initial-tab="galeri"] #view-galeri,
+    html[data-initial-tab="katalog"] #view-katalog,
+    html[data-initial-tab="tree-qr"] #view-tree-qr,
+    html[data-initial-tab="karbon"] #view-karbon,
+    html[data-initial-tab="info"] #view-info {
+      display: block !important;
+    }
+  </style>
+
   @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
@@ -823,6 +868,12 @@
                 Sinkron
               </span>
 
+              <!-- Indikator Sesi Administrator Aktif & Warning Countdown -->
+              <div id="admin-session-indicator" class="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 whitespace-nowrap cursor-default" title="Sesi Administrator Aktif (Batas inaktivitas 30 menit)">
+                <span id="admin-session-dot" class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                <span id="admin-session-text">Sesi Aktif</span>
+              </div>
+
               <!-- Tombol Pratinjau Tampilan Publik -->
               <button id="btn-admin-view-public" class="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-medium text-slate-200 bg-slate-800/90 hover:bg-slate-700 hover:text-white border border-slate-700/80 active:scale-95 transition" title="Lihat Tampilan Pengunjung (Public Virtual Tour)">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1228,6 +1279,41 @@
   @if(session('error'))
   <div id="laravel-flash-error" class="hidden" data-message="{{ session('error') }}"></div>
   @endif
+
+  <!-- Modal Peringatan Inaktivitas Sesi Administrator (Auto Logout Warning) -->
+  <div id="admin-session-warning-modal" class="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/80 backdrop-blur-md hidden transition-all duration-300 p-4" role="dialog" aria-modal="true" aria-labelledby="session-warning-title">
+    <div class="w-full max-w-md bg-slate-900 border border-amber-500/30 rounded-2xl p-6 shadow-2xl text-center relative overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+      <div class="absolute -top-12 -left-12 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl pointer-events-none"></div>
+      <div class="absolute -bottom-12 -right-12 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl pointer-events-none"></div>
+
+      <div class="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center mx-auto mb-4 text-2xl shadow-inner">
+        ⏳
+      </div>
+
+      <h3 id="session-warning-title" class="text-lg font-bold text-white mb-2">Sesi Anda akan berakhir</h3>
+      <p class="text-xs text-slate-300 mb-4 leading-relaxed">
+        Anda tidak melakukan aktivitas selama beberapa waktu.<br />
+        Demi keamanan akun administrator, sesi akan berakhir dalam:
+      </p>
+
+      <div class="bg-slate-950/70 border border-amber-500/40 rounded-xl py-3 px-4 mb-5 inline-block min-w-[160px] shadow-inner">
+        <span id="session-warning-timer" class="text-3xl font-mono font-extrabold text-amber-400 tracking-wider">
+          05:00
+        </span>
+      </div>
+
+      <p class="text-xs text-slate-400 mb-6">Apakah Anda masih ingin melanjutkan?</p>
+
+      <div class="flex items-center justify-center gap-3">
+        <button id="btn-session-keep-alive" type="button" class="flex-1 py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-lg shadow-emerald-900/30 active:scale-95 transition cursor-pointer">
+          Tetap Login
+        </button>
+        <button id="btn-session-logout-now" type="button" class="py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 text-xs font-semibold active:scale-95 transition cursor-pointer">
+          Logout
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- Main Module Script -->
 

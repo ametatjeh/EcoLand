@@ -4,10 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\AppSetting;
 use App\Models\User;
+use App\Services\RecaptchaService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
@@ -54,6 +58,15 @@ class AuthController extends Controller
         // Buat token Sanctum baru
         $token = $user->createToken('admin_session', ['admin'])->plainTextToken;
 
+        // Inisialisasi timestamp aktivitas admin di session & Redis
+        $now = time();
+        if ($request->hasSession()) {
+            $request->session()->put('admin_last_activity', $now);
+        }
+        try {
+            \Illuminate\Support\Facades\Cache::put("admin_last_activity:{$user->id}", $now, 1920);
+        } catch (\Throwable $e) {}
+
         return response()->json([
             'success' => true,
             'message' => 'Login berhasil',
@@ -96,8 +109,19 @@ class AuthController extends Controller
      */
     public function logout(Request $request)
     {
-        if ($request->user()) {
-            $request->user()->currentAccessToken()->delete();
+        $user = $request->user();
+        if ($user) {
+            $token = $user->currentAccessToken();
+            if ($token && is_object($token) && method_exists($token, 'delete')) {
+                $token->delete();
+            }
+            try {
+                \Illuminate\Support\Facades\Cache::forget("admin_last_activity:{$user->id}");
+            } catch (\Throwable $e) {}
+        }
+
+        if ($request->hasSession()) {
+            $request->session()->forget('admin_last_activity');
         }
 
         return response()->json([
@@ -109,52 +133,110 @@ class AuthController extends Controller
     /**
      * Tampilkan halaman login visual Eco Land.
      */
-    public function showLoginForm()
+    public function showLoginForm(RecaptchaService $recaptchaService)
     {
         if (Auth::check() && Auth::user()->isAdmin()) {
             return redirect('/#admin/dashboard');
         }
 
         $appLogo = AppSetting::getVal('app_logo');
+        $recaptchaEnabled = $recaptchaService->isEnabled();
+        $recaptchaSiteKey = $recaptchaService->getSiteKey();
 
-        return view('auth.login', compact('appLogo'));
+        return view('auth.login', compact('appLogo', 'recaptchaEnabled', 'recaptchaSiteKey'));
     }
 
     /**
-     * Proses autentikasi formulir web login Eco Land.
+     * Proses autentikasi formulir web login Eco Land dengan proteksi reCAPTCHA v3 & Rate Limiting.
      */
-    public function loginWeb(Request $request)
+    public function loginWeb(Request $request, RecaptchaService $recaptchaService)
     {
+        $username = trim((string) $request->input('username', ''));
+        $throttleKey = Str::transliterate(Str::lower($username) . '|' . $request->ip());
+
+        // 1. Rate Limiting: Maksimal 5 percobaan gagal per 60 detik
+        if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
+            $seconds = RateLimiter::availableIn($throttleKey);
+
+            Log::warning('login_rate_limited', [
+                'ip' => $request->ip(),
+                'identifier' => Str::mask($username, '*', 2, -2),
+                'available_in' => $seconds,
+                'timestamp' => now()->toIso8601String(),
+            ]);
+
+            return back()->withInput($request->only('username'))
+                ->with('error', "Terlalu banyak percobaan masuk yang gagal. Silakan coba kembali dalam {$seconds} detik.");
+        }
+
+        // 2. Validasi input form
         $validator = Validator::make($request->all(), [
             'username' => 'required|string',
             'password' => 'required|string',
+            'recaptcha_token' => 'nullable|string',
         ], [
             'username.required' => 'Email atau username administrator wajib diisi.',
             'password.required' => 'Kata sandi wajib diisi.',
         ]);
 
         if ($validator->fails()) {
-            return back()->withInput($request->only('username', 'remember'))
+            RateLimiter::hit($throttleKey, 60);
+            return back()->withInput($request->only('username'))
                 ->with('error', $validator->errors()->first());
         }
 
-        $user = User::where('username', $request->username)
-            ->orWhere('email', $request->username)
+        // 3. Verifikasi Google reCAPTCHA v3 Server-Side
+        if ($recaptchaService->isEnabled()) {
+            $recaptchaToken = $request->input('recaptcha_token') ?: $request->input('g-recaptcha-response');
+            $recaptchaResult = $recaptchaService->verify($recaptchaToken, $request->ip(), 'login');
+
+            if (!($recaptchaResult['success'] ?? false)) {
+                RateLimiter::hit($throttleKey, 60);
+
+                Log::warning('recaptcha_login_failed', [
+                    'ip' => $request->ip(),
+                    'identifier' => Str::mask($username, '*', 2, -2),
+                    'action' => $recaptchaResult['action'] ?? null,
+                    'score_category' => isset($recaptchaResult['score']) ? ($recaptchaResult['score'] < 0.5 ? 'low' : 'acceptable') : 'none',
+                    'reason_code' => $recaptchaResult['error_code'] ?? 'verification_failed',
+                    'timestamp' => now()->toIso8601String(),
+                ]);
+
+                return back()->withInput($request->only('username'))
+                    ->with('error', 'Verifikasi keamanan gagal. Silakan coba lagi.');
+            }
+        }
+
+        // 4. Autentikasi Kredensial Administrator
+        $user = User::where('username', $username)
+            ->orWhere('email', $username)
             ->first();
 
         if (!$user || !Hash::check($request->password, $user->password)) {
-            return back()->withInput($request->only('username', 'remember'))
-                ->with('error', 'Username / email atau kata sandi tidak valid.');
+            RateLimiter::hit($throttleKey, 60);
+            return back()->withInput($request->only('username'))
+                ->with('error', 'Email atau kata sandi tidak valid.');
         }
 
         if (!$user->isAdmin()) {
-            return back()->withInput($request->only('username', 'remember'))
+            RateLimiter::hit($throttleKey, 60);
+            return back()->withInput($request->only('username'))
                 ->with('error', 'Akses ditolak: Akun Anda tidak memiliki hak akses administrator Eco Land.');
         }
 
-        // Login ke Web Session Laravel
-        Auth::login($user, $request->boolean('remember'));
+        // 5. Autentikasi Sukses: Bersihkan Rate Limiter
+        RateLimiter::clear($throttleKey);
+
+        // Login ke Web Session Laravel (Remember Me dinonaktifkan demi kepatuhan keamanan sesi Admin)
+        Auth::login($user, false);
         $request->session()->regenerate();
+
+        // Inisialisasi timestamp aktivitas administrator di session & Redis
+        $now = time();
+        $request->session()->put('admin_last_activity', $now);
+        try {
+            \Illuminate\Support\Facades\Cache::put("admin_last_activity:{$user->id}", $now, 1920);
+        } catch (\Throwable $e) {}
 
         // Buat token Sanctum untuk sinkronisasi SPA
         $user->tokens()->where('name', 'admin_session')->delete();
@@ -177,13 +259,60 @@ class AuthController extends Controller
      */
     public function logoutWeb(Request $request)
     {
-        if (Auth::check()) {
+        $user = Auth::user();
+        if ($user) {
+            try {
+                \Illuminate\Support\Facades\Cache::forget("admin_last_activity:{$user->id}");
+            } catch (\Throwable $e) {}
             Auth::logout();
         }
 
+        $request->session()->forget('admin_last_activity');
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
         return redirect()->route('login')->with('success', 'Anda telah keluar dari sesi administrator Eco Land.');
+    }
+
+    /**
+     * Perpanjang durasi sesi administrator aktif (Keep-Alive Ping).
+     */
+    public function keepAlive(Request $request)
+    {
+        $user = $request->user() ?: Auth::user();
+
+        if (!$user || !method_exists($user, 'isAdmin') || !$user->isAdmin()) {
+            return response()->json([
+                'success' => false,
+                'authenticated' => false,
+                'message' => 'Unauthenticated or not an administrator',
+            ], 401);
+        }
+
+        $timeoutMinutes = (int) config('session.admin_idle_timeout', 30);
+        $warningMinutes = (int) config('session.admin_idle_warning', 5);
+        $now = time();
+
+        if ($request->hasSession()) {
+            $request->session()->put('admin_last_activity', $now);
+        }
+
+        try {
+            \Illuminate\Support\Facades\Cache::put(
+                "admin_last_activity:{$user->id}",
+                $now,
+                ($timeoutMinutes * 60) + 120
+            );
+        } catch (\Throwable $e) {}
+
+        return response()->json([
+            'success' => true,
+            'authenticated' => true,
+            'message' => 'Sesi administrator berhasil diperpanjang.',
+            'idle_timeout_minutes' => $timeoutMinutes,
+            'idle_warning_minutes' => $warningMinutes,
+            'last_activity' => $now,
+            'expires_at' => $now + ($timeoutMinutes * 60),
+        ]);
     }
 }

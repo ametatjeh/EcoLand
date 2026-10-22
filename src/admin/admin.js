@@ -21,6 +21,7 @@ import { initZonesModule, switchZoneSubTab } from './zones.js';
 import { initReportsModule, switchReportSubTab } from './reports.js';
 import { initUsersModule } from './users.js';
 import { initActivityLogsModule } from './activity_logs.js';
+import { initSessionTimer, stopSessionTimer, resetSessionTimer } from './session_timer.js';
 
 let activeAdminTab = 'dashboard';
 let activeTreeSubTab = null;
@@ -103,8 +104,14 @@ export async function initAdminPanel({ onPublicTourUpdate, onExitAdminToTour }) 
   // 1. Inisialisasi Auth
   initAuth();
 
+  // Inisialisasi Session Inactivity Timer jika admin sudah terautentikasi
+  if (checkAdminAuth()) {
+    initSessionTimer();
+  }
+
   onAuthChange(async (isLoggedIn) => {
     if (isLoggedIn) {
+      initSessionTimer();
       const redirectHash = sessionStorage.getItem('admin_redirect_hash');
       sessionStorage.removeItem('admin_redirect_hash');
       await setupTopbarZoneSwitcher();
@@ -120,7 +127,10 @@ export async function initAdminPanel({ onPublicTourUpdate, onExitAdminToTour }) 
         switchAdminSubmenu('dashboard', null, false);
       }
     } else {
-      window.location.hash = 'beranda';
+      stopSessionTimer();
+      if (window.location.hash && window.location.hash.startsWith('#admin')) {
+        window.location.hash = 'beranda';
+      }
     }
   });
 
@@ -723,6 +733,7 @@ function setupAdminSubmenuTabs(onExitAdminToTour) {
 
 export function switchAdminSubmenu(tabName, subTab = null, updateHash = true) {
   activeAdminTab = tabName;
+  resetSessionTimer();
 
   if (tabName === 'trees') {
     activeTreeSubTab = subTab;
