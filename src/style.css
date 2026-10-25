@@ -893,6 +893,31 @@ body:has(#view-admin.active) #public-global-footer,
   transform: translateX(4px);
 }
 
+.btn-view-album {
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #ecfdf5;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-view-album:hover,
+.gallery-album-card:hover .btn-view-album {
+  background: rgba(16, 185, 129, 0.9) !important;
+  border-color: #34d399 !important;
+  color: #04120a !important;
+  box-shadow: 0 8px 20px -4px rgba(16, 185, 129, 0.45), 0 0 16px rgba(16, 185, 129, 0.3) !important;
+  transform: translateY(-2px);
+}
+
+.gallery-album-card:hover .btn-view-album span:last-child,
+.btn-view-album:hover span:last-child {
+  transform: translateX(5px);
+}
+
+.btn-view-album:active {
+  transform: translateY(0) scale(0.98);
+}
+
 .gallery-img-box {
   aspect-ratio: 16 / 10;
 }

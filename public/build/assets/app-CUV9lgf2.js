@@ -6437,9 +6437,9 @@ File foto dan catatannya akan dihapus jika tidak digunakan di album/fitur lain.`
             <div style="padding: 12px 18px 16px; border-top: 1px solid rgba(255, 255, 255, 0.08);">
               <button
                 type="button"
-                class="btn-view-album"
+                class="btn-view-album cursor-pointer"
                 data-album-slug="${e.slug||e.id}"
-                style="width: 100%; display: flex; justify-content: center; align-items: center; gap: 8px; font-weight: 600; font-size: 13px; padding: 9px 14px; border-radius: 10px; background: rgba(16, 185, 129, 0.12); color: #ecfdf5; border: 1px solid rgba(16, 185, 129, 0.3); cursor: pointer; transition: all 0.2s ease;"
+                style="width: 100%; display: flex; justify-content: center; align-items: center; gap: 8px; font-weight: 600; font-size: 13px; padding: 10px 16px; border-radius: 10px;"
               >
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                   <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
