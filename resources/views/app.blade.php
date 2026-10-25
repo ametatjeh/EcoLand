@@ -623,7 +623,7 @@
              VIEW G: KATALOG DATA PENANAMAN POHON (PUBLIK)
              ========================================== -->
       <section id="view-katalog" class="view-pane">
-        <div class="home-wrapper" id="public-tree-catalog-container">
+        <div id="public-tree-catalog-container">
           <!-- Dynamically populated via public tree catalog handler -->
         </div>
       </section>
