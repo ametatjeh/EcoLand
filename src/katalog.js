@@ -666,7 +666,23 @@ function renderSpeciesDetailView(container, sp) {
             </div>
           </div>
 
-          <!-- Posisi Box Faktual: Total Bibit Ditanam & Kegiatan Penanaman -->
+          <!-- Tabel Identitas Ringkas -->
+          <div style="background: rgba(0, 0, 0, 0.32); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 14px 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; font-size: 13px;">
+            <div>
+              <span style="color: var(--clr-text-dim); display: block; font-size: 11px; text-transform: uppercase; font-weight: 600;">Nama Daerah / Lokal</span>
+              <strong style="color: #f1f5f9; font-weight: 600;">${escapeHtml(sp.local_name || 'Data belum tersedia')}</strong>
+            </div>
+            <div>
+              <span style="color: var(--clr-text-dim); display: block; font-size: 11px; text-transform: uppercase; font-weight: 600;">Klasifikasi Famili</span>
+              <span style="color: #e2e8f0;">${escapeHtml(sp.family || 'Data belum tersedia')}</span>
+            </div>
+            <div>
+              <span style="color: var(--clr-text-dim); display: block; font-size: 11px; text-transform: uppercase; font-weight: 600;">Status Asal Spesies</span>
+              <span style="color: #e2e8f0;">${escapeHtml(originLabel)}</span>
+            </div>
+          </div>
+
+          <!-- Posisi Box Faktual: Total Bibit Ditanam & Kegiatan Penanaman (di bawah) -->
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px;">
             <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 10px; padding: 12px 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
               <span style="font-size: 11px; color: var(--clr-text-muted); display: block; margin-bottom: 3px; font-weight: 500;">Total Bibit Ditanam</span>
@@ -690,22 +706,6 @@ function renderSpeciesDetailView(container, sp) {
                 </strong>
               </div>
             ` : ''}
-          </div>
-
-          <!-- Tabel Identitas Ringkas -->
-          <div style="background: rgba(0, 0, 0, 0.32); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 14px 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; font-size: 13px;">
-            <div>
-              <span style="color: var(--clr-text-dim); display: block; font-size: 11px; text-transform: uppercase; font-weight: 600;">Nama Daerah / Lokal</span>
-              <strong style="color: #f1f5f9; font-weight: 600;">${escapeHtml(sp.local_name || 'Data belum tersedia')}</strong>
-            </div>
-            <div>
-              <span style="color: var(--clr-text-dim); display: block; font-size: 11px; text-transform: uppercase; font-weight: 600;">Klasifikasi Famili</span>
-              <span style="color: #e2e8f0;">${escapeHtml(sp.family || 'Data belum tersedia')}</span>
-            </div>
-            <div>
-              <span style="color: var(--clr-text-dim); display: block; font-size: 11px; text-transform: uppercase; font-weight: 600;">Status Asal Spesies</span>
-              <span style="color: #e2e8f0;">${escapeHtml(originLabel)}</span>
-            </div>
           </div>
         </div>
       </div>
