@@ -1204,7 +1204,14 @@ function updateLightboxContent() {
     date.innerHTML = `<span>📅</span> <span>${escapeHtml(docDate)}</span>`;
   }
   if (counter) counter.textContent = `Foto ${currentLightboxIndex + 1} dari ${filteredPhotos.length}`;
-  if (catBadge) catBadge.textContent = photo.category || 'Dokumentasi';
+  
+  if (catBadge) {
+    const albumTitle = (currentAlbumData && currentAlbumData.title) || (photo.album && photo.album.title) || '';
+    catBadge.textContent = albumTitle || photo.category || 'Dokumentasi';
+    if (albumTitle) {
+      catBadge.title = `Album: ${albumTitle}`;
+    }
+  }
 
   if (coverBadge) {
     if (photo.is_cover) {
