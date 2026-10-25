@@ -1,0 +1,575 @@
+/* ======================================================================
+   Eco Land — Modals & Dialog System (Public & Admin Popups)
+   ====================================================================== */
+
+/* ---------- INFO MODAL (FOR INFO HOTSPOT) ---------- */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: rgba(0, 0, 0, 0.7);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.modal-card {
+  background: var(--clr-surface);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-lg);
+  width: 100%;
+  max-width: 480px;
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8);
+}
+.modal-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--clr-border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.modal-header h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #ffffff;
+}
+.modal-body {
+  padding: 20px;
+}
+.modal-footer {
+  padding: 12px 20px;
+  border-top: 1px solid var(--clr-border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+/* ---------- ADMIN MODAL SYSTEM (POPUPS & DIALOGS) ---------- */
+.admin-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2500;
+  background: rgba(3, 7, 5, 0.82);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  box-sizing: border-box;
+  opacity: 1;
+  transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.admin-modal-overlay.hidden {
+  display: none !important;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.admin-modal-box {
+  background: #0d1712;
+  background: linear-gradient(180deg, #13241a 0%, #0d1712 100%);
+  border: 1px solid rgba(46, 204, 113, 0.3);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 620px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9), 0 0 35px rgba(16, 185, 129, 0.15);
+  animation: adminModalScaleIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
+}
+
+@keyframes adminModalScaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.admin-modal-header {
+  padding: 16px 22px;
+  background: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.admin-modal-header h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-modal-body {
+  padding: 20px 22px;
+  overflow-y: auto;
+  flex: 1;
+  box-sizing: border-box;
+}
+
+.admin-modal-footer {
+  padding: 14px 22px;
+  background: rgba(0, 0, 0, 0.28);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.modal-card-admin-login {
+  max-width: 420px;
+}
+.modal-header-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.modal-header-icon {
+  font-size: 24px;
+}
+.modal-header-icon-lg {
+  font-size: 26px;
+}
+.modal-header-title {
+  margin: 0;
+  font-size: 17px;
+}
+.modal-header-title-lg {
+  margin: 0;
+  font-size: 18px;
+}
+.modal-header-sub {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--clr-text-muted);
+}
+.modal-header-badge {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--clr-primary-light);
+}
+.modal-body-login {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.modal-footer-login {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+.btn-login-submit {
+  padding: 9px 20px;
+}
+.modal-card-public-zone {
+  max-width: 720px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.modal-footer-right {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.modal-card-admin-login {
+  max-width: 440px;
+  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(6, 20, 14, 0.94);
+  -webkit-backdrop-filter: blur(24px);
+  backdrop-filter: blur(24px);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 25px rgba(16, 185, 129, 0.2);
+}
+
+.modal-header-admin-login {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 16px;
+}
+
+.modal-header-brand-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.modal-brand-badge {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #34d399;
+}
+
+.modal-brand-badge svg {
+  width: 24px;
+  height: 24px;
+}
+
+.modal-title-gradient {
+  font-size: 18px;
+  font-weight: 800;
+  color: #fff;
+  margin: 0;
+  background: linear-gradient(135deg, #ffffff 40%, #a7f3d0 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.modal-title-desc {
+  font-size: 12px;
+  color: #94a3b8;
+  margin: 2px 0 0;
+}
+
+.modal-body-login-box {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-top: 16px;
+}
+
+.login-error-alert-box {
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: rgba(153, 27, 27, 0.45);
+  border: 1px solid rgba(239, 68, 68, 0.45);
+  color: #fecaca;
+  font-size: 13px;
+}
+
+.login-field-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #a7f3d0;
+  margin-bottom: 5px;
+}
+
+.login-field-input {
+  width: 100%;
+  border-radius: 10px;
+  background: rgba(3, 14, 8, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  padding: 10px 14px;
+  outline: none;
+}
+
+.login-field-input:focus {
+  border-color: #10b981;
+}
+
+.login-btn-container {
+  padding-top: 4px;
+}
+
+.btn-login-submit-action {
+  width: 100%;
+  height: 44px;
+  border-radius: 12px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.login-divider-row {
+  position: relative;
+  margin: 4px 0;
+  display: flex;
+  align-items: center;
+}
+
+.login-divider-line {
+  flex-grow: 1;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.login-divider-text {
+  flex-shrink: 0;
+  margin: 0 12px;
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.btn-google-login {
+  width: 100%;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #e2e8f0;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+
+.btn-google-login:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.btn-google-login svg {
+  width: 18px;
+  height: 18px;
+}
+
+.login-full-page-wrap {
+  text-align: center;
+  margin-top: 4px;
+}
+
+.login-full-page-link {
+  font-size: 11px;
+  color: #34d399;
+  text-decoration: none;
+}
+
+.login-full-page-link:hover {
+  text-decoration: underline;
+}
+
+/* ======================================================================
+   EcoModal — Modern Confirmation Dialog System
+   ====================================================================== */
+.ecomodal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(3, 7, 5, 0.85);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  box-sizing: border-box;
+  opacity: 1;
+  transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ecomodal-overlay.hidden {
+  display: none !important;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.ecomodal-card {
+  background: #0f172a;
+  background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 18px;
+  width: 100%;
+  max-width: 480px;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.85), 0 0 30px rgba(239, 68, 68, 0.12);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: ecoModalIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
+}
+
+@keyframes ecoModalIn {
+  from {
+    opacity: 0;
+    transform: scale(0.94) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.ecomodal-header {
+  padding: 18px 22px;
+  background: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.ecomodal-icon-wrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+.ecomodal-icon-wrap.ecomodal-type-danger {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #ef4444;
+}
+
+.ecomodal-icon-wrap.ecomodal-type-warning {
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  color: #f59e0b;
+}
+
+.ecomodal-icon-wrap.ecomodal-type-info {
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  color: #38bdf8;
+}
+
+.ecomodal-icon-wrap.ecomodal-type-success {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  color: #10b981;
+}
+
+.ecomodal-title-wrap {
+  flex: 1;
+  min-width: 0;
+}
+
+.ecomodal-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1.25;
+}
+
+.ecomodal-subtitle {
+  font-size: 11.5px;
+  color: #94a3b8;
+  display: block;
+  margin-top: 2px;
+}
+
+.ecomodal-close-btn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+}
+
+.ecomodal-close-btn:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.ecomodal-body {
+  padding: 22px;
+  color: #cbd5e1;
+  font-size: 13.5px;
+  line-height: 1.6;
+}
+
+.ecomodal-message p:last-child {
+  margin-bottom: 0 !important;
+}
+
+.ecomodal-footer {
+  padding: 14px 22px;
+  background: rgba(0, 0, 0, 0.32);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.ecomodal-btn {
+  padding: 9px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+}
+
+.ecomodal-btn-cancel {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: #e2e8f0;
+}
+
+.ecomodal-btn-cancel:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+
+.ecomodal-btn-danger {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  border-color: rgba(248, 113, 113, 0.4);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+}
+
+.ecomodal-btn-danger:hover {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  box-shadow: 0 6px 16px rgba(220, 38, 38, 0.45);
+  transform: translateY(-1px);
+}
+
+.ecomodal-btn-warning {
+  background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+  border-color: rgba(251, 191, 36, 0.4);
+  color: #ffffff;
+}
+
+.ecomodal-btn-warning:hover {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  transform: translateY(-1px);
+}
+
+.ecomodal-btn-info,
+.ecomodal-btn-success {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  border-color: rgba(52, 211, 153, 0.4);
+  color: #ffffff;
+}

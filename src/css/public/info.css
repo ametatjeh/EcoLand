@@ -1,0 +1,884 @@
+/* ---------- VIEW D: INFORMASI KAWASAN ---------- */
+.info-grid {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+.info-main-content h3 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 28px 0 12px;
+}
+.info-main-content p {
+  color: var(--clr-text-muted);
+  line-height: 1.7;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+/* Reference Map Box (No Polygon) */
+.ref-map-container-box {
+  background: var(--clr-surface);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  margin: 20px 0 28px;
+}
+
+/* Modern Jadwal Silvikultur */
+.silvikultur-modern-container {
+  background: rgba(14, 28, 22, 0.85);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(16, 185, 129, 0.22);
+  border-radius: 20px;
+  padding: 26px 24px;
+  margin: 24px 0 32px;
+  box-shadow: 0 16px 36px -8px rgba(0, 0, 0, 0.55), inset 0 1px 1px rgba(255, 255, 255, 0.08);
+}
+
+.silvikultur-header {
+  margin-bottom: 22px;
+}
+
+.silvikultur-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  margin-bottom: 10px;
+}
+
+.silvikultur-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 6px;
+  letter-spacing: -0.01em;
+}
+
+.silvikultur-desc {
+  font-size: 13px;
+  color: #94a3b8;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.silvikultur-timeline-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.silvikultur-step-card {
+  background: rgba(10, 24, 20, 0.85);
+  border: 1px solid rgba(16, 185, 129, 0.22);
+  border-radius: 16px;
+  padding: 20px 18px;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 8px 20px -6px rgba(0, 0, 0, 0.45);
+}
+
+.silvikultur-step-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(16, 185, 129, 0.5);
+  box-shadow: 0 14px 28px -6px rgba(16, 185, 129, 0.2);
+  background: rgba(14, 32, 26, 0.95);
+}
+
+.step-badge-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.step-period-badge {
+  display: inline-block;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.25) 0%, rgba(5, 150, 105, 0.35) 100%);
+  color: #6ee7b7;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  letter-spacing: 0.01em;
+}
+
+.step-icon-wrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+
+.step-emoji {
+  font-size: 22px;
+  line-height: 1;
+}
+
+.step-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #f8fafc;
+  margin: 0 0 8px;
+  line-height: 1.35;
+}
+
+.step-desc {
+  font-size: 12.5px;
+  color: #94a3b8;
+  line-height: 1.6;
+  margin: 0 0 16px;
+  flex: 1;
+}
+
+.step-footer-tag {
+  font-size: 11px;
+  font-weight: 600;
+  color: #34d399;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding-top: 10px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.08);
+}
+
+@media (max-width: 900px) {
+  .silvikultur-timeline-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+}
+.ref-map-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+/* Leaflet Custom Pins */
+.ref-location-pin {
+  position: relative;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ref-pin-core {
+  width: 14px;
+  height: 14px;
+  background: #f59e0b;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 0 12px #f59e0b;
+}
+.ref-pin-ring {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  border: 2px solid #f59e0b;
+  border-radius: 50%;
+  animation: radar-pulse 2s infinite ease-out;
+}
+
+.scene-pin-badge {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #059669;
+  border: 2px solid #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 11px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+.scene-pin-badge:hover {
+  transform: scale(1.15);
+  background: #10b981;
+}
+
+.location-popup-card {
+  color: #1f2937;
+  font-family: var(--font);
+  font-size: 12px;
+  line-height: 1.4;
+}
+.popup-badge {
+  display: inline-block;
+  background: #d1fae5;
+  color: #065f46;
+  font-weight: 700;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-bottom: 6px;
+}
+.popup-badge.ref-badge {
+  background: #fef3c7;
+  color: #92400e;
+}
+.btn-popup-explore {
+  width: 100%;
+  background: #059669;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 6px;
+  transition: background 0.2s;
+}
+.btn-popup-explore:hover {
+  background: #047857;
+}
+
+.species-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin: 20px 0 32px;
+  background: rgba(14, 28, 22, 0.75);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid rgba(16, 185, 129, 0.18);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+}
+.species-table th,
+.species-table td {
+  padding: 14px 18px;
+  text-align: left;
+  font-size: 13px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+.species-table th {
+  background: rgba(16, 185, 129, 0.12);
+  color: var(--clr-primary-light);
+  font-weight: 700;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.species-table tr:hover td {
+  background: rgba(16, 185, 129, 0.06);
+}
+.species-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Gallery Grid */
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 18px;
+  margin: 20px 0 32px;
+}
+.gallery-card {
+  background: rgba(14, 28, 22, 0.75);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(16, 185, 129, 0.18);
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 20px -4px rgba(0, 0, 0, 0.5);
+  transition: all 0.25s var(--ease);
+}
+.gallery-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(16, 185, 129, 0.45);
+  box-shadow: 0 14px 28px -6px rgba(0, 0, 0, 0.65), 0 0 16px rgba(16, 185, 129, 0.15);
+}
+.gallery-card-img {
+  width: 100%;
+  height: 150px;
+  background: linear-gradient(135deg, #0e1c15 0%, #173225 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--clr-primary-light);
+}
+.gallery-card-caption {
+  padding: 14px 16px;
+  font-size: 12.5px;
+  color: var(--clr-text-muted);
+  line-height: 1.5;
+}
+
+/* Info Sidebar */
+.info-sidebar-card {
+  background: rgba(14, 28, 22, 0.75);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(16, 185, 129, 0.18);
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+}
+.info-sidebar-card h4 {
+  font-size: 15px;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 14px;
+  letter-spacing: -0.01em;
+}
+.info-sidebar-card ul {
+  list-style: none;
+}
+.info-sidebar-card li {
+  font-size: 13px;
+  color: var(--clr-text-muted);
+  margin-bottom: 11px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  line-height: 1.5;
+}
+
+/* ---------- VIEW E: GO STREET VIEW GUIDE ---------- */
+.gsv-guide-wrapper {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 40px 24px 80px;
+}
+
+.gsv-header {
+  margin-bottom: 32px;
+}
+.gsv-badge {
+  display: inline-block;
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--clr-primary-light);
+  font-weight: 700;
+  font-size: 12px;
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  margin-bottom: 10px;
+}
+.gsv-header h2 {
+  font-size: 28px;
+  font-weight: 800;
+  color: #ffffff;
+  margin-bottom: 10px;
+}
+.gsv-header p {
+  color: var(--clr-text-muted);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.gsv-steps-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px;
+  margin-bottom: 40px;
+}
+.gsv-step-card {
+  background: var(--clr-surface);
+  border: 1px solid var(--clr-border-subtle);
+  border-radius: var(--radius-md);
+  padding: 24px;
+  position: relative;
+}
+.step-num {
+  font-size: 32px;
+  font-weight: 900;
+  color: rgba(16, 185, 129, 0.2);
+  margin-bottom: 8px;
+}
+.gsv-step-card h4 {
+  font-size: 15px;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 8px;
+}
+.gsv-step-card p {
+  font-size: 13px;
+  color: var(--clr-text-muted);
+  line-height: 1.5;
+  margin-bottom: 14px;
+}
+.step-note {
+  font-size: 11px;
+  color: var(--clr-primary-light);
+  background: rgba(16, 185, 129, 0.08);
+  padding: 6px 10px;
+  border-radius: 6px;
+}
+
+.gsv-validator-box {
+  background: var(--clr-surface);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-md);
+  padding: 28px;
+  margin-bottom: 40px;
+}
+.gsv-validator-box h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 6px;
+}
+.gsv-validator-box p {
+  font-size: 13px;
+  color: var(--clr-text-muted);
+  margin-bottom: 20px;
+}
+
+.dropzone {
+  border: 2px dashed rgba(16, 185, 129, 0.4);
+  border-radius: var(--radius-md);
+  padding: 40px 20px;
+  text-align: center;
+  cursor: pointer;
+  background: rgba(0, 0, 0, 0.2);
+  transition: all 0.2s;
+}
+.dropzone:hover,
+.dropzone.dragover {
+  border-color: var(--clr-primary);
+  background: rgba(16, 185, 129, 0.05);
+}
+.dropzone-inner svg {
+  color: var(--clr-primary-light);
+  margin-bottom: 12px;
+}
+.dropzone-inner p {
+  font-size: 14px;
+  color: var(--clr-text);
+  margin-bottom: 4px;
+}
+
+.gsv-result-box {
+  margin-top: 20px;
+}
+.alert-box {
+  display: flex;
+  gap: 14px;
+  padding: 16px 20px;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+}
+.alert-box.success {
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid var(--clr-primary);
+  color: #d1fae5;
+}
+.alert-box.error {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid var(--clr-danger);
+  color: #fca5a5;
+}
+.alert-icon {
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.gsv-status-table-box {
+  background: var(--clr-surface);
+  border: 1px solid var(--clr-border-subtle);
+  border-radius: var(--radius-md);
+  padding: 24px;
+}
+.gsv-status-table-box h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 6px;
+}
+.gsv-status-table-box p {
+  font-size: 13px;
+  color: var(--clr-text-muted);
+  margin-bottom: 16px;
+}
+.table-responsive {
+  overflow-x: auto;
+}
+.status-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.status-table th,
+.status-table td {
+  padding: 12px 14px;
+  text-align: left;
+  font-size: 13px;
+  border-bottom: 1px solid var(--clr-border-subtle);
+}
+.status-table th {
+  background: var(--clr-surface-card);
+  color: var(--clr-primary-light);
+  font-weight: 600;
+}
+.status-pill {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.status-pill.ready {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+}
+.status-pill.pending {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+}
+
+/* Utility Hidden Class */
+.hidden {
+  display: none !important;
+}
+
+
+/* ======================================================================
+   Mobile Responsive - Rapatkan Padding Kiri & Kanan Setiap Box di Info Kawasan
+   ====================================================================== */
+@media (max-width: 768px) {
+  .home-wrapper,
+  .info-wrapper,
+  .tree-qr-wrapper,
+  .catalog-wrapper,
+  .carbon-wrapper,
+  .gallery-wrapper {
+    padding: 16px 12px 36px !important;
+  }
+  .info-grid {
+    grid-template-columns: 1fr !important;
+    gap: 20px !important;
+  }
+  .info-main-content h3 {
+    font-size: 17px !important;
+    margin: 22px 0 10px !important;
+  }
+  .section-title {
+    font-size: 20px !important;
+    line-height: 1.3 !important;
+  }
+  .section-subtitle {
+    font-size: 13px !important;
+    line-height: 1.5 !important;
+  }
+  #info-general-desc {
+    padding: 12px 14px !important;
+    font-size: 13px !important;
+    margin: 10px 0 14px !important;
+    border-radius: 12px !important;
+  }
+  .spatial-ref-notice {
+    padding: 12px 14px !important;
+    font-size: 12.5px !important;
+    margin: 14px 0 20px !important;
+    border-radius: 12px !important;
+  }
+  .spatial-ref-list {
+    margin: 8px 0 0 0 !important;
+    padding-left: 16px !important;
+  }
+  .spatial-ref-list li {
+    margin-bottom: 7px !important;
+    line-height: 1.5 !important;
+  }
+  .ref-map-container-box {
+    padding: 14px 12px !important;
+    margin: 16px 0 24px !important;
+    border-radius: 14px !important;
+  }
+  .ref-map-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+    font-size: 12px !important;
+  }
+  .map-canvas-container {
+    height: 240px !important;
+  }
+  .zonasi-list {
+    padding-left: 0 !important;
+    list-style: none !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+  }
+  .zonasi-list li {
+    padding: 12px 14px !important;
+    font-size: 12.5px !important;
+    border-radius: 12px !important;
+  }
+  .table-scroll-hint {
+    display: flex !important;
+    padding: 8px 12px !important;
+  }
+  .species-table {
+    border-radius: 14px !important;
+    margin: 14px 0 16px !important;
+  }
+  .species-table th,
+  .species-table td {
+    padding: 10px 10px !important;
+    font-size: 12px !important;
+  }
+  .gallery-grid {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+    margin: 16px 0 24px !important;
+  }
+  .gallery-card {
+    border-radius: 14px !important;
+  }
+  .gallery-card-caption {
+    padding: 12px 14px !important;
+    font-size: 12px !important;
+  }
+  .info-sidebar-card {
+    padding: 16px 14px !important;
+    margin-bottom: 16px !important;
+    border-radius: 14px !important;
+  }
+  .info-sidebar-card h4 {
+    font-size: 14px !important;
+    margin-bottom: 10px !important;
+  }
+  .info-sidebar-card ul {
+    padding-left: 0 !important;
+  }
+  .info-sidebar-card li {
+    font-size: 12px !important;
+    margin-bottom: 9px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .info-wrapper {
+    padding: 16px 10px 36px !important;
+  }
+  #info-general-desc {
+    padding: 10px 10px !important;
+    font-size: 12px !important;
+    margin: 8px 0 12px !important;
+  }
+  .spatial-ref-notice {
+    padding: 10px 10px !important;
+    font-size: 12px !important;
+  }
+  .spatial-ref-list {
+    margin: 6px 0 0 0 !important;
+    padding-left: 14px !important;
+  }
+  .spatial-ref-list li {
+    margin-bottom: 6px !important;
+    font-size: 11.5px !important;
+  }
+  .ref-map-container-box {
+    padding: 12px 10px !important;
+  }
+  .zonasi-list li {
+    padding: 10px 10px !important;
+  }
+  .species-table th,
+  .species-table td {
+    padding: 8px 8px !important;
+    font-size: 11.5px !important;
+  }
+  .table-scroll-hint {
+    padding: 6px 10px !important;
+  }
+  .gallery-card-caption {
+    padding: 10px 10px !important;
+  }
+  .info-sidebar-card {
+    padding: 14px 12px !important;
+  }
+}
+
+/* ======================================================================
+/* ---------- Utility Classes (No Inline Styles) ---------- */
+.section-header-spacing {
+  margin-top: 36px;
+}
+.header-flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.ref-coord-badge {
+  font-size: 11px;
+  color: var(--clr-primary-light);
+}
+.map-canvas-container {
+  width: 100%;
+  height: 520px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+@media (max-width: 992px) {
+  .map-canvas-container {
+    height: 400px;
+  }
+}
+
+@media (max-width: 640px) {
+  .map-canvas-container {
+    height: 340px;
+  }
+}
+.ref-map-info-text {
+  font-size: 11px;
+  color: var(--clr-text-dim);
+  margin-top: 8px;
+}
+.zonasi-list {
+  margin: 0 0 16px 20px;
+  color: var(--clr-text-muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+.contact-desc {
+  font-size: 13px;
+  color: var(--clr-text-muted);
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+.contact-links {
+  font-size: 12px;
+  color: var(--clr-primary-light);
+}
+.panel-header-flex {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+/* Info General Description Box */
+#info-general-desc {
+  background: rgba(14, 28, 22, 0.75);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  border-radius: 14px;
+  padding: 14px 18px;
+  margin: 12px 0 16px;
+  color: var(--clr-text-muted);
+  font-size: 13.5px;
+  line-height: 1.65;
+}
+
+/* Spatial Reference Info Notice */
+.spatial-ref-notice {
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  border-radius: 12px;
+  padding: 14px 18px;
+  margin: 16px 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--clr-text-muted);
+}
+
+.spatial-ref-title {
+  color: #fff;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.spatial-ref-list {
+  margin: 0 0 0 16px;
+  padding: 0;
+}
+
+/* Informasi Kawasan Mobile Refinements */
+.ref-coord-badge {
+  font-family: monospace;
+  font-size: 11px;
+  color: #34d399;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  padding: 3px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  margin: 16px 0 10px;
+  border-radius: 16px;
+}
+
+.species-table {
+  min-width: 540px;
+}
+
+.table-scroll-hint {
+  display: none;
+  font-size: 11px;
+  color: #94a3b8;
+  margin-bottom: 24px;
+  align-items: center;
+  gap: 6px;
+}
+
+.zonasi-list {
+  list-style: none !important;
+  padding: 0 !important;
+  margin: 14px 0 24px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+}
+
+.zonasi-list li {
+  background: rgba(14, 28, 22, 0.75);
+  border: 1px solid rgba(16, 185, 129, 0.18);
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--clr-text-muted);
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.zonasi-list li:hover {
+  border-color: rgba(16, 185, 129, 0.4);
+  background: rgba(19, 39, 31, 0.9);
+}
+
+.zonasi-list li strong {
+  color: #ffffff;
+  display: inline;
+}

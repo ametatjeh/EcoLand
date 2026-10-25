@@ -6,6 +6,7 @@
 
 import { ApiService } from '../services/api.js';
 import { EcoToast } from '../utils/toast.js';
+import { EcoModal } from '../utils/modal.js';
 import { toDateInputValue, formatDateDisplay, parseDateForPayload } from '../utils/date.js';
 
 let currentZoneData = null;
@@ -570,7 +571,19 @@ function renderAdminPhotoCards() {
   grid.querySelectorAll('.btn-delete-photo').forEach((btn) => {
     btn.addEventListener('click', async () => {
       const photoId = btn.getAttribute('data-id');
-      if (confirm('Apakah Anda yakin ingin menghapus foto dokumentasi ini?')) {
+      const photo = currentPhotos.find((p) => String(p.id) === String(photoId));
+
+      const confirmed = await EcoModal.confirm({
+        title: 'Hapus Foto Dokumentasi?',
+        subtitle: photo?.caption || 'Dokumentasi Kawasan',
+        message: 'Apakah Anda yakin ingin menghapus foto dokumentasi ini dari kawasan? File foto dan catatan terkait akan dihapus secara permanen.',
+        type: 'danger',
+        confirmText: 'Ya, Hapus Foto',
+        cancelText: 'Batal',
+        icon: '🗑️'
+      });
+
+      if (confirmed) {
         try {
           await ApiService.deleteZonePhoto(currentZoneData.id, photoId);
           EcoToast.deleted('Foto dokumentasi kawasan berhasil dihapus.');

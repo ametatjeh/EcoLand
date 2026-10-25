@@ -39,4 +39,6 @@ dist-ssr
 !/storage/app/public/settings/*
 /storage/app/backups/*
 *.sql
+*.sqlite
+database/*.sqlite
 /public/storage

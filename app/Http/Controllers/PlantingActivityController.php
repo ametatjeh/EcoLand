@@ -15,7 +15,7 @@ class PlantingActivityController extends Controller
      */
     public function index(Request $request)
     {
-        $query = PlantingActivity::with(['scene', 'items.species', 'surveys' => fn($q) => $q->orderBy('survey_date', 'desc')])
+        $query = PlantingActivity::with(['plantingZone', 'scene', 'items.species', 'surveys' => fn($q) => $q->orderBy('survey_date', 'desc')])
             ->orderBy('activity_date', 'desc');
 
         if ($request->filled('search')) {
@@ -65,6 +65,8 @@ class PlantingActivityController extends Controller
                     'activity_date' => $act->activity_date?->format('Y-m-d'),
                     'person_in_charge' => $act->person_in_charge,
                     'organizer' => $act->organizer,
+                    'planting_zone_id' => $act->planting_zone_id,
+                    'planting_zone_name' => $act->plantingZone?->name,
                     'location_zone' => $act->location_zone,
                     'scene_id' => $act->scene_id,
                     'scene_name' => $act->scene?->name,

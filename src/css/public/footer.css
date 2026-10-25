@@ -1,0 +1,298 @@
+/* ======================================================================
+   STICKY FOOTER & GLOBAL FOOTER COMPONENT
+   Style matching https://barbossa.nagakecil.site/
+   ====================================================================== */
+#public-global-footer {
+  margin-top: auto;
+  flex-shrink: 0;
+  width: 100%;
+}
+
+.glass-logo-box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 5px !important;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.25);
+  position: relative;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease, background 0.3s ease;
+}
+
+.glass-logo-box:hover,
+.group:hover .glass-logo-box {
+  transform: translateY(-3px) scale(1.05);
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(52, 211, 153, 0.55);
+  box-shadow: 0 16px 36px rgba(16, 185, 129, 0.4), 0 0 16px rgba(52, 211, 153, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.4);
+}
+
+.glass-logo-box svg,
+.glass-logo-box img {
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.35));
+  transition: transform 0.3s ease;
+}
+
+.glass-logo-box:hover svg,
+.group:hover .glass-logo-box svg,
+.glass-logo-box:hover img,
+.group:hover .glass-logo-box img {
+  transform: scale(1.06);
+}
+
+
+/* ======================================================================
+   PUBLIC GLOBAL FOOTER (RICH 4-COLUMN RESPONSIVE LAYOUT)
+   ====================================================================== */
+.public-global-footer {
+  border-top: 1px solid rgba(16, 185, 129, 0.2);
+  background: linear-gradient(180deg, #10251B 0%, #0B1712 100%);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  margin-top: auto;
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  color: #94a3b8;
+  font-family: var(--font, 'Inter', sans-serif);
+}
+
+.footer-container {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 20px 20px;
+  width: 100%;
+}
+
+.footer-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1.2fr 1fr;
+  gap: 36px;
+  padding-bottom: 40px;
+}
+
+@media (max-width: 1024px) {
+  .footer-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+  }
+}
+
+@media (max-width: 640px) {
+  .footer-grid {
+    grid-template-columns: 1fr;
+    gap: 28px;
+    padding-bottom: 32px;
+  }
+  .footer-container {
+    padding: 36px 16px 24px;
+  }
+}
+
+.footer-col-brand {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.footer-description {
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: #94a3b8;
+  margin: 0;
+}
+
+.footer-badge-wrap {
+  margin-top: 2px;
+}
+
+.footer-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 12px;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #6ee7b7;
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 8px #10b981;
+}
+
+.footer-heading {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #f1f5f9;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0 0 16px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.footer-heading::after {
+  content: '';
+  display: block;
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.08);
+  max-width: 40px;
+}
+
+.footer-nav-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.footer-nav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #94a3b8;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  padding: 3px 0;
+}
+
+.footer-nav-link:hover {
+  color: #34d399;
+  transform: translateX(3px);
+}
+
+.footer-link-icon {
+  font-size: 13px;
+}
+
+.footer-metrics-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.footer-metric-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+}
+
+.footer-metric-item .metric-label {
+  font-size: 11px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.footer-metric-item .metric-value {
+  font-size: 12px;
+  color: #e2e8f0;
+  font-weight: 600;
+}
+
+.footer-subtext {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: #94a3b8;
+  margin: 0 0 14px 0;
+}
+
+.footer-social-links {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.footer-social-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #cbd5e1;
+  font-size: 12px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.footer-social-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.footer-portal-link-wrap {
+  margin-top: 4px;
+}
+
+.footer-admin-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #34d399;
+  text-decoration: none;
+  padding: 6px 12px;
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.footer-admin-btn:hover {
+  background: rgba(16, 185, 129, 0.18);
+  color: #a7f3d0;
+  border-color: rgba(16, 185, 129, 0.4);
+}
+
+.footer-bottom-bar {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 22px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 11.5px;
+  color: #64748b;
+}
+
+@media (max-width: 640px) {
+  .footer-bottom-bar {
+    flex-direction: column;
+    text-align: center;
+    gap: 10px;
+  }
+}
+
+.footer-bottom-left {
+  color: #94a3b8;
+}
+
+.footer-bottom-right {
+  color: #94a3b8;
+}

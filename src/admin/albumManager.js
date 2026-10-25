@@ -6,6 +6,7 @@
 import { ApiService } from '../services/api.js';
 import { formatDateDisplay } from '../utils/date.js';
 import { EcoToast } from '../utils/toast.js';
+import { EcoModal } from '../utils/modal.js';
 
 let cachedAlbums = [];
 let cachedZones = [];
@@ -30,15 +31,33 @@ const ALBUM_CATEGORIES = [
   'Dokumentasi Lainnya',
 ];
 
-export async function initAlbumsModule(containerId = 'admin-albums-content') {
+export async function initAlbumsModule(containerId = 'admin-albums-content', initialView = null, initialId = null) {
   const container = document.getElementById(containerId);
   if (!container) return;
 
-  // Reset to list view if root #admin/albums is opened
-  const hash = window.location.hash || '';
-  if (hash === '#admin/albums' || hash === '#admin/albums/' || !hash.includes('/')) {
-    currentAlbumView = 'list';
-    activeAlbumId = null;
+  if (initialView) {
+    currentAlbumView = initialView;
+    activeAlbumId = initialId || null;
+  } else {
+    // Parse current location hash for album routes
+    const hash = window.location.hash || '';
+    const editMatch = hash.match(/^#admin\/albums\/([^/]+)\/edit$/);
+    const photoMatch = hash.match(/^#admin\/albums\/([^/]+)\/photos$/);
+    const createMatch = hash.match(/^#admin\/albums\/create$/);
+
+    if (editMatch) {
+      currentAlbumView = 'edit';
+      activeAlbumId = editMatch[1];
+    } else if (photoMatch) {
+      currentAlbumView = 'manage-photos';
+      activeAlbumId = photoMatch[1];
+    } else if (createMatch) {
+      currentAlbumView = 'create';
+      activeAlbumId = null;
+    } else {
+      currentAlbumView = 'list';
+      activeAlbumId = null;
+    }
   }
 
   // Restore preferred display mode
@@ -216,9 +235,44 @@ function renderActiveAlbumView() {
   }
 }
 
-export function switchAlbumSubView(viewName, albumId = null) {
+export function switchAlbumSubView(viewName, albumId = null, updateHash = true) {
   currentAlbumView = viewName;
   activeAlbumId = albumId;
+
+  if (updateHash) {
+    let targetHash = '#admin/albums';
+    if (viewName === 'create') {
+      targetHash = '#admin/albums/create';
+    } else if (viewName === 'edit' && albumId) {
+      targetHash = `#admin/albums/${albumId}/edit`;
+    } else if (viewName === 'manage-photos' && albumId) {
+      targetHash = `#admin/albums/${albumId}/photos`;
+    }
+
+    if (window.location.hash !== targetHash) {
+      window.location.hash = targetHash;
+    }
+  }
+
+  // Update topbar breadcrumbs and title
+  const titleEl = document.getElementById('admin-header-title');
+  const breadcrumbActiveEl = document.getElementById('admin-breadcrumb-active');
+  if (titleEl && breadcrumbActiveEl) {
+    if (viewName === 'create') {
+      titleEl.textContent = 'Formulir Tambah Album Kegiatan Baru';
+      breadcrumbActiveEl.textContent = 'Tambah Album';
+    } else if (viewName === 'edit') {
+      titleEl.textContent = 'Sunting Informasi & Koleksi Album';
+      breadcrumbActiveEl.textContent = 'Edit Album';
+    } else if (viewName === 'manage-photos') {
+      titleEl.textContent = 'Pengelolaan Foto & Urutan Album';
+      breadcrumbActiveEl.textContent = 'Kelola Foto';
+    } else {
+      titleEl.textContent = 'Manajemen Album Kegiatan Galeri Kawasan';
+      breadcrumbActiveEl.textContent = 'Album Kegiatan';
+    }
+  }
+
   renderActiveAlbumView();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -592,7 +646,16 @@ function attachAlbumActionListeners() {
     btn.addEventListener('click', async () => {
       const id = btn.getAttribute('data-id');
       const title = btn.getAttribute('data-title');
-      if (confirm(`Yakin ingin menghapus album "${title}"?\n\nFoto asli di kawasan tidak akan terhapus, hanya pengelompokan album ini yang dihapus.`)) {
+      const confirmed = await EcoModal.confirm({
+        title: 'Hapus Album Kegiatan?',
+        subtitle: `Album "${title}" akan dihapus dari daftar.`,
+        message: 'Foto asli di kawasan tidak akan terhapus dari server, hanya pengelompokan album ini yang dihapus. Lanjutkan?',
+        type: 'danger',
+        confirmText: 'Ya, Hapus Album',
+        cancelText: 'Batal',
+        icon: '📁',
+      });
+      if (confirmed) {
         try {
           await ApiService.deleteAlbum(id);
           EcoToast.success('Album Dihapus', `Album "${title}" berhasil dihapus.`);
@@ -642,10 +705,31 @@ async function renderAlbumForm(container) {
       if (res.album) {
         albumData = res.album;
         existingPhotos = res.album.photos || [];
+      } else {
+        throw new Error('Data album tidak ditemukan di server.');
       }
     } catch (err) {
-      EcoToast.error('Gagal Memuat Data Album', err.message);
-      switchAlbumSubView('list');
+      container.innerHTML = `
+        <div class="zone-form-card space-y-6 text-center py-12">
+          <div class="w-16 h-16 mx-auto rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-3xl text-rose-400">
+            ⚠️
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-white">Album Tidak Ditemukan</h3>
+            <p class="text-xs text-slate-400 mt-1 max-w-md mx-auto">
+              ${escapeHtml(err.message || 'Data album dengan ID tersebut tidak ditemukan atau telah dihapus.')}
+            </p>
+          </div>
+          <div class="pt-2">
+            <button id="btn-err-back-to-albums" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs border border-slate-700 transition cursor-pointer">
+              ← Kembali ke Daftar Album
+            </button>
+          </div>
+        </div>
+      `;
+      document.getElementById('btn-err-back-to-albums')?.addEventListener('click', () => {
+        switchAlbumSubView('list');
+      });
       return;
     }
   }
@@ -915,22 +999,62 @@ async function renderAlbumForm(container) {
     </div>
   `;
 
+  // Track dirty state
+  let isFormDirty = false;
+  const markDirty = () => { isFormDirty = true; };
+
   // Attach quick 'Hari Ini' button
   document.getElementById('btn-set-today')?.addEventListener('click', () => {
     const dateInput = document.getElementById('album-input-date');
-    if (dateInput) dateInput.value = new Date().toISOString().split('T')[0];
+    if (dateInput) {
+      dateInput.value = new Date().toISOString().split('T')[0];
+      markDirty();
+    }
   });
 
+  const handleCancelWithGuard = async () => {
+    if (isFormDirty) {
+      const confirmLeave = await EcoModal.confirm({
+        title: 'Batalkan Perubahan?',
+        subtitle: 'Perubahan pada formulir album belum disimpan.',
+        message: 'Data yang telah Anda masukkan akan hilang jika Anda meninggalkan halaman ini sekarang. Apakah Anda yakin?',
+        type: 'warning',
+        confirmText: 'Ya, Tinggalkan',
+        cancelText: 'Tetap di Sini',
+      });
+      if (!confirmLeave) return;
+    }
+    switchAlbumSubView('list');
+  };
+
   // Attach Cancel buttons & Breadcrumb
-  document.getElementById('btn-breadcrumb-albums')?.addEventListener('click', () => switchAlbumSubView('list'));
-  document.getElementById('btn-cancel-album-form')?.addEventListener('click', () => switchAlbumSubView('list'));
-  document.getElementById('btn-cancel-album-action')?.addEventListener('click', () => switchAlbumSubView('list'));
+  document.getElementById('btn-breadcrumb-albums')?.addEventListener('click', handleCancelWithGuard);
+  document.getElementById('btn-cancel-album-form')?.addEventListener('click', handleCancelWithGuard);
+  document.getElementById('btn-cancel-album-action')?.addEventListener('click', handleCancelWithGuard);
 
   // Toggle switch interactions
   const toggleWrap = document.getElementById('toggle-wrap-published');
   const toggleEl = document.getElementById('ui-toggle-published');
   const chkPublished = document.getElementById('album-input-published');
   const labelPublished = document.getElementById('toggle-label-published');
+
+  // Attach change listeners to mark form as dirty
+  [
+    'album-input-title',
+    'album-input-category',
+    'album-input-zone',
+    'album-input-organizer',
+    'album-input-location',
+    'album-input-date',
+    'album-input-desc',
+    'album-input-order',
+  ].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener('input', markDirty);
+      el.addEventListener('change', markDirty);
+    }
+  });
 
   toggleWrap?.addEventListener('click', (e) => {
     e.preventDefault();
@@ -941,6 +1065,7 @@ async function renderAlbumForm(container) {
     } else {
       labelPublished.textContent = 'Draft (Hanya Pengelola)';
     }
+    markDirty();
   });
 
   // Photo selection grid interactions
@@ -994,6 +1119,7 @@ async function renderAlbumForm(container) {
           formCoverPhotoId = currentSelectedPhotoIds.values().next().value || null;
         }
       }
+      markDirty();
       updatePhotoGridUI();
     });
   });
@@ -1004,6 +1130,7 @@ async function renderAlbumForm(container) {
       const pid = parseInt(btn.getAttribute('data-photo-id'), 10);
       if (currentSelectedPhotoIds.has(pid)) {
         formCoverPhotoId = pid;
+        markDirty();
         updatePhotoGridUI();
       }
     });
@@ -1052,6 +1179,7 @@ async function renderAlbumForm(container) {
           activeAlbumId = createRes.album.id;
         }
       }
+      isFormDirty = false;
       await reloadAlbums();
       switchAlbumSubView('list');
     } catch (err) {
@@ -1428,7 +1556,16 @@ async function renderManagePhotosView(container) {
   document.querySelectorAll('.btn-remove-from-album').forEach((btn) => {
     btn.addEventListener('click', async () => {
       const pid = btn.getAttribute('data-photo-id');
-      if (confirm('Keluarkan foto ini dari album?\n\nFoto asli di kawasan tetap aman dan tidak akan dihapus dari server.')) {
+      const confirmed = await EcoModal.confirm({
+        title: 'Keluarkan Foto dari Album?',
+        subtitle: 'Foto akan dilepas dari daftar koleksi album ini.',
+        message: 'Foto asli di kawasan tetap aman dan tidak akan dihapus dari server. Lanjutkan?',
+        type: 'warning',
+        confirmText: 'Ya, Keluarkan',
+        cancelText: 'Batal',
+        icon: '🖼️',
+      });
+      if (confirmed) {
         try {
           await ApiService.removePhotoFromAlbum(activeAlbumId, pid);
           EcoToast.info('Foto Dikeluarkan', 'Foto telah dilepas dari album ini.');
@@ -1444,7 +1581,16 @@ async function renderManagePhotosView(container) {
   document.querySelectorAll('.btn-delete-photo-permanent').forEach((btn) => {
     btn.addEventListener('click', async () => {
       const pid = btn.getAttribute('data-photo-id');
-      if (confirm('PERINGATAN: Hapus foto ini secara permanen dari server?\n\nFile foto dan catatannya akan dihapus jika tidak digunakan di album/fitur lain.')) {
+      const confirmed = await EcoModal.confirm({
+        title: 'Hapus Foto Permanen?',
+        subtitle: 'PERINGATAN: File foto dan catatannya akan dihapus permanen dari server.',
+        message: 'File foto dan catatannya akan dihapus jika tidak digunakan di album/fitur lain. Tindakan ini tidak dapat dibatalkan. Lanjutkan?',
+        type: 'danger',
+        confirmText: 'Ya, Hapus Permanen',
+        cancelText: 'Batal',
+        icon: '🗑️',
+      });
+      if (confirmed) {
         try {
           await ApiService.deleteAlbumPhotoPermanently(activeAlbumId, pid);
           EcoToast.success('Foto Dihapus', 'Foto berhasil dihapus secara permanen dari server.');

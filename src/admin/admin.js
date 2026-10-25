@@ -22,7 +22,7 @@ import { initReportsModule, switchReportSubTab } from './reports.js';
 import { initUsersModule } from './users.js';
 import { initActivityLogsModule } from './activity_logs.js';
 import { initSessionTimer, stopSessionTimer, resetSessionTimer } from './session_timer.js';
-import { initAlbumsModule } from './albumManager.js';
+import { initAlbumsModule, switchAlbumSubView } from './albumManager.js';
 import { initTheme } from './theme.js';
 
 // Auto-initialize theme immediately
@@ -30,8 +30,14 @@ initTheme();
 
 let activeAdminTab = 'dashboard';
 let activeTreeSubTab = null;
+let activeTreeTargetId = null;
+let activeTreeAction = null;
 let activeZoneSubTab = null;
+let activeZoneTargetId = null;
+let activeZoneAction = null;
 let activeReportSubTab = null;
+let activeAlbumSubTab = 'list';
+let activeAlbumTargetId = null;
 let cachedHotspots = [];
 let editorInstance = null;
 let scenes = [...scenesData];
@@ -421,9 +427,12 @@ export function updateTopbarBreadcrumbsAndTitle(tabName, subTab = null) {
     activeBreadcrumb = 'Ringkasan';
   } else if (tabName === 'zones') {
     category = '2. Persiapan';
-    if (subTab === 'create') {
+    if (subTab === 'create' || action === 'create') {
       pageTitle = 'Formulir Tambah Kawasan Baru';
       activeBreadcrumb = 'Tambah Kawasan';
+    } else if (subTab === 'edit' || action === 'edit') {
+      pageTitle = 'Sunting Informasi & Batas Kawasan';
+      activeBreadcrumb = 'Edit Kawasan';
     } else if (subTab === 'detail') {
       pageTitle = 'Detail Informasi Kawasan (8 Tab)';
       activeBreadcrumb = 'Detail Kawasan';
@@ -437,20 +446,52 @@ export function updateTopbarBreadcrumbsAndTitle(tabName, subTab = null) {
   } else if (tabName === 'trees') {
     if (subTab === 'species') {
       category = '2. Persiapan';
-      pageTitle = 'Master Jenis Pohon (Silvikultur)';
-      activeBreadcrumb = 'Master Jenis Pohon';
+      if (action === 'create' || extraId === 'create') {
+        pageTitle = 'Formulir Tambah Jenis Pohon Baru';
+        activeBreadcrumb = 'Tambah Spesies';
+      } else if (action === 'edit') {
+        pageTitle = 'Sunting Data Taksonomi & Silvikultur Pohon';
+        activeBreadcrumb = 'Edit Spesies';
+      } else {
+        pageTitle = 'Master Jenis Pohon (Silvikultur)';
+        activeBreadcrumb = 'Master Jenis Pohon';
+      }
     } else if (subTab === 'activities') {
       category = '3. Pelaksanaan';
-      pageTitle = 'Kegiatan Penanaman & Batch Bibit';
-      activeBreadcrumb = 'Kegiatan Penanaman';
+      if (action === 'create' || extraId === 'create') {
+        pageTitle = 'Catat Kegiatan Penanaman Baru';
+        activeBreadcrumb = 'Catat Penanaman';
+      } else if (action === 'edit') {
+        pageTitle = 'Sunting Catatan Batch & Penanaman';
+        activeBreadcrumb = 'Edit Penanaman';
+      } else {
+        pageTitle = 'Kegiatan Penanaman & Batch Bibit';
+        activeBreadcrumb = 'Kegiatan Penanaman';
+      }
     } else if (subTab === 'surveys') {
       category = '4. Pemantauan & Perawatan';
-      pageTitle = 'Pemantauan Pertumbuhan & Sensus Pohon';
-      activeBreadcrumb = 'Pemantauan Tanaman';
+      if (action === 'create' || extraId === 'create') {
+        pageTitle = 'Catat Hasil Sensus Pemantauan Tanaman';
+        activeBreadcrumb = 'Catat Pemantauan';
+      } else if (action === 'edit') {
+        pageTitle = 'Sunting Data Sensus Pemantauan Tanaman';
+        activeBreadcrumb = 'Edit Pemantauan';
+      } else {
+        pageTitle = 'Pemantauan Pertumbuhan & Sensus Pohon';
+        activeBreadcrumb = 'Pemantauan Tanaman';
+      }
     } else if (subTab === 'maintenance') {
       category = '4. Pemantauan & Perawatan';
-      pageTitle = 'Perawatan, Pemupukan & Penyulaman';
-      activeBreadcrumb = 'Perawatan & Penyulaman';
+      if (action === 'create' || extraId === 'create') {
+        pageTitle = 'Catat Tindakan Perawatan / Penyulaman';
+        activeBreadcrumb = 'Catat Perawatan';
+      } else if (action === 'edit') {
+        pageTitle = 'Sunting Catatan Tindakan Perawatan';
+        activeBreadcrumb = 'Edit Perawatan';
+      } else {
+        pageTitle = 'Perawatan, Pemupukan & Penyulaman';
+        activeBreadcrumb = 'Perawatan & Penyulaman';
+      }
     } else {
       category = '1. Dashboard';
       pageTitle = 'Statistik & Ringkasan Penanaman';
@@ -466,8 +507,19 @@ export function updateTopbarBreadcrumbsAndTitle(tabName, subTab = null) {
     activeBreadcrumb = 'Editor Hotspot';
   } else if (tabName === 'albums') {
     category = '5. Dokumentasi Digital';
-    pageTitle = 'Manajemen Album Kegiatan Galeri Kawasan';
-    activeBreadcrumb = 'Album Kegiatan';
+    if (subTab === 'create') {
+      pageTitle = 'Formulir Tambah Album Kegiatan Baru';
+      activeBreadcrumb = 'Tambah Album';
+    } else if (subTab === 'edit') {
+      pageTitle = 'Sunting Informasi & Koleksi Album';
+      activeBreadcrumb = 'Edit Album';
+    } else if (subTab === 'manage-photos') {
+      pageTitle = 'Pengelolaan Foto & Urutan Album';
+      activeBreadcrumb = 'Kelola Foto';
+    } else {
+      pageTitle = 'Manajemen Album Kegiatan Galeri Kawasan';
+      activeBreadcrumb = 'Album Kegiatan';
+    }
   } else if (tabName === 'reports') {
     category = '6. Evaluasi & Pelaporan';
     if (subTab === 'per-kawasan') {
@@ -547,13 +599,35 @@ async function setupTopbarZoneSwitcher() {
   }
 }
 
-export function getRouteFromTab(tabName, subTab = null) {
+export function getRouteFromTab(tabName, subTab = null, extraId = null, action = null) {
   if (tabName === 'dashboard') return '#admin/dashboard';
-  if (tabName === 'zones') return subTab && subTab !== 'list' ? `#admin/zones/${subTab}` : '#admin/zones';
-  if (tabName === 'trees') return subTab && subTab !== 'dashboard' ? `#admin/trees/${subTab}` : '#admin/trees/dashboard';
+  if (tabName === 'zones') {
+    if (subTab === 'create' || action === 'create') return '#admin/zones/create';
+    if ((subTab === 'edit' || action === 'edit') && extraId) return `#admin/zones/${extraId}/edit`;
+    if (subTab === 'detail' && extraId) return `#admin/zones/${extraId}/detail`;
+    if (subTab === 'gallery') return '#admin/zones/gallery';
+    return '#admin/zones';
+  }
+  if (tabName === 'trees') {
+    if (subTab && subTab !== 'dashboard') {
+      if (action === 'create' || extraId === 'create') {
+        return `#admin/trees/${subTab}/create`;
+      }
+      if ((action === 'edit' || action === 'detail') && extraId) {
+        return `#admin/trees/${subTab}/${extraId}/edit`;
+      }
+      return `#admin/trees/${subTab}`;
+    }
+    return '#admin/trees/dashboard';
+  }
   if (tabName === 'panoramas') return '#admin/panoramas';
   if (tabName === 'editor') return '#admin/editor';
-  if (tabName === 'albums') return '#admin/albums';
+  if (tabName === 'albums') {
+    if (subTab === 'create') return '#admin/albums/create';
+    if (subTab === 'edit' && extraId) return `#admin/albums/${extraId}/edit`;
+    if (subTab === 'manage-photos' && extraId) return `#admin/albums/${extraId}/photos`;
+    return '#admin/albums';
+  }
   if (tabName === 'settings') return '#admin/settings';
   if (tabName === 'reports') return subTab && subTab !== 'rekap' ? `#admin/reports/${subTab}` : '#admin/reports';
   if (tabName === 'users') return '#admin/users';
@@ -563,41 +637,112 @@ export function getRouteFromTab(tabName, subTab = null) {
 }
 
 export function parseAdminRoute(hashStr) {
-  if (!hashStr) return { tab: 'dashboard', subTab: null };
-  const clean = hashStr.replace(/^#?\/?/, '').replace(/^\/+/, '');
+  if (!hashStr) return { tab: 'dashboard', subTab: null, extraId: null, action: null };
+  const clean = hashStr.replace(/^[#/]+/, '');
   const parts = clean.split('/').filter(Boolean);
   if (parts[0] !== 'admin') return null;
   const rawTab = parts[1] || 'dashboard';
   const rawSubTab = parts[2] || null;
+  const rawSubSub = parts[3] || null;
+  const rawSubSubSub = parts[4] || null;
 
+  // 1. Kawasan / Planting Zones
   if (rawTab === 'kawasan' || rawTab === 'zones') {
-    return { tab: 'zones', subTab: rawSubTab || 'list' };
+    if (rawSubTab === 'create') {
+      return { tab: 'zones', subTab: 'create', extraId: null, action: 'create' };
+    }
+    if (rawSubTab === 'gallery') {
+      return { tab: 'zones', subTab: 'gallery', extraId: null, action: null };
+    }
+    // Pattern: #admin/zones/:id/edit
+    if (rawSubTab && rawSubSub === 'edit') {
+      return { tab: 'zones', subTab: 'edit', extraId: rawSubTab, action: 'edit' };
+    }
+    // Pattern: #admin/zones/edit/:id
+    if (rawSubTab === 'edit' && rawSubSub) {
+      return { tab: 'zones', subTab: 'edit', extraId: rawSubSub, action: 'edit' };
+    }
+    // Pattern: #admin/zones/:id/detail
+    if (rawSubTab && rawSubSub === 'detail') {
+      return { tab: 'zones', subTab: 'detail', extraId: rawSubTab, action: 'detail' };
+    }
+    // Pattern: #admin/zones/detail/:id
+    if (rawSubTab === 'detail' && rawSubSub) {
+      return { tab: 'zones', subTab: 'detail', extraId: rawSubSub, action: 'detail' };
+    }
+    // Pattern: #admin/zones/:id (default to detail if not 'list')
+    if (rawSubTab && rawSubTab !== 'list') {
+      return { tab: 'zones', subTab: 'detail', extraId: rawSubTab, action: 'detail' };
+    }
+    return { tab: 'zones', subTab: 'list', extraId: null, action: null };
   }
-  if (rawTab === 'species') {
-    return { tab: 'trees', subTab: 'species' };
+
+  // 2. Direct Shortcuts for Trees Submodules
+  if (['species', 'activities', 'surveys', 'maintenance'].includes(rawTab)) {
+    if (rawSubTab === 'create') {
+      return { tab: 'trees', subTab: rawTab, extraId: null, action: 'create' };
+    }
+    if (rawSubTab && rawSubSub === 'edit') {
+      return { tab: 'trees', subTab: rawTab, extraId: rawSubTab, action: 'edit' };
+    }
+    if (rawSubTab === 'edit' && rawSubSub) {
+      return { tab: 'trees', subTab: rawTab, extraId: rawSubSub, action: 'edit' };
+    }
+    if (rawSubTab && rawSubTab !== 'list') {
+      return { tab: 'trees', subTab: rawTab, extraId: rawSubTab, action: 'edit' };
+    }
+    return { tab: 'trees', subTab: rawTab, extraId: null, action: null };
   }
-  if (rawTab === 'activities') {
-    return { tab: 'trees', subTab: 'activities' };
-  }
-  if (rawTab === 'surveys') {
-    return { tab: 'trees', subTab: 'surveys' };
-  }
-  if (rawTab === 'maintenance') {
-    return { tab: 'trees', subTab: 'maintenance' };
-  }
-  if (rawTab === 'logs' || rawTab === 'activity-logs') {
-    return { tab: 'activity-logs', subTab: null };
-  }
-  if (rawTab === 'albums' || rawTab === 'album') {
-    return { tab: 'albums', subTab: rawSubTab || 'list' };
-  }
-  if (rawTab === 'reports') {
-    return { tab: 'reports', subTab: rawSubTab || 'rekap' };
-  }
+
+  // 3. Tree Module Standard Routes: #admin/trees/...
   if (rawTab === 'trees') {
-    return { tab: 'trees', subTab: rawSubTab || 'dashboard' };
+    const sub = rawSubTab || 'dashboard';
+    if (['species', 'activities', 'surveys', 'maintenance'].includes(sub)) {
+      if (rawSubSub === 'create') {
+        return { tab: 'trees', subTab: sub, extraId: null, action: 'create' };
+      }
+      if (rawSubSub && rawSubSubSub === 'edit') {
+        return { tab: 'trees', subTab: sub, extraId: rawSubSub, action: 'edit' };
+      }
+      if (rawSubSub === 'edit' && rawSubSubSub) {
+        return { tab: 'trees', subTab: sub, extraId: rawSubSubSub, action: 'edit' };
+      }
+      if (rawSubSub && rawSubSub !== 'list') {
+        return { tab: 'trees', subTab: sub, extraId: rawSubSub, action: 'edit' };
+      }
+    }
+    return { tab: 'trees', subTab: sub, extraId: null, action: null };
   }
-  return { tab: rawTab, subTab: rawSubTab };
+
+  if (rawTab === 'logs' || rawTab === 'activity-logs') {
+    return { tab: 'activity-logs', subTab: null, extraId: null, action: null };
+  }
+
+  // 4. Album Module Routes
+  if (rawTab === 'albums' || rawTab === 'album') {
+    if (rawSubTab === 'create') {
+      return { tab: 'albums', subTab: 'create', extraId: null, action: 'create' };
+    }
+    // Pattern: #admin/albums/:id/edit
+    if (rawSubTab && rawSubSub === 'edit') {
+      return { tab: 'albums', subTab: 'edit', extraId: rawSubTab, action: 'edit' };
+    }
+    // Pattern: #admin/albums/:id/photos
+    if (rawSubTab && (rawSubSub === 'photos' || rawSubSub === 'manage-photos')) {
+      return { tab: 'albums', subTab: 'manage-photos', extraId: rawSubTab, action: 'manage-photos' };
+    }
+    // Pattern: #admin/albums/:id (default to edit jika format :id)
+    if (rawSubTab && rawSubTab !== 'list') {
+      return { tab: 'albums', subTab: 'edit', extraId: rawSubTab, action: 'edit' };
+    }
+    return { tab: 'albums', subTab: 'list', extraId: null, action: null };
+  }
+
+  if (rawTab === 'reports') {
+    return { tab: 'reports', subTab: rawSubTab || 'rekap', extraId: null, action: null };
+  }
+
+  return { tab: rawTab, subTab: rawSubTab, extraId: rawSubSub, action: null };
 }
 
 export function handleAdminHashRoute(hashStr) {
@@ -608,7 +753,7 @@ export function handleAdminHashRoute(hashStr) {
       window.location.href = '/login';
       return;
     }
-    switchAdminSubmenu(parsed.tab, parsed.subTab, false);
+    switchAdminSubmenu(parsed.tab, parsed.subTab, false, parsed.extraId, parsed.action);
   }
 }
 
@@ -743,21 +888,28 @@ function setupAdminSubmenuTabs(onExitAdminToTour) {
   if (adminBackdrop) adminBackdrop.addEventListener('click', closeMobileSidebarDrawer);
 }
 
-export function switchAdminSubmenu(tabName, subTab = null, updateHash = true) {
+export function switchAdminSubmenu(tabName, subTab = null, updateHash = true, extraId = null, action = null) {
   activeAdminTab = tabName;
   resetSessionTimer();
 
   if (tabName === 'trees') {
     activeTreeSubTab = subTab;
+    activeTreeTargetId = extraId;
+    activeTreeAction = action;
   } else if (tabName === 'zones') {
     activeZoneSubTab = subTab;
+    activeZoneTargetId = extraId;
+    activeZoneAction = action;
   } else if (tabName === 'reports') {
     activeReportSubTab = subTab;
+  } else if (tabName === 'albums') {
+    activeAlbumSubTab = subTab || 'list';
+    activeAlbumTargetId = extraId || null;
   }
 
   // Sinkronisasi URL Hash jika diminta
   if (updateHash) {
-    const targetHash = getRouteFromTab(tabName, subTab);
+    const targetHash = getRouteFromTab(tabName, subTab, extraId, action);
     if (window.location.hash !== targetHash) {
       if (window.location.hash.startsWith('#admin') || window.location.hash === '') {
         window.location.hash = targetHash;
@@ -776,7 +928,7 @@ export function switchAdminSubmenu(tabName, subTab = null, updateHash = true) {
     if (tabName === 'trees') {
       isActive = (btnTab === 'trees' && (btnTree === activeTreeSubTab || (!activeTreeSubTab && btnTree === 'dashboard')));
     } else if (tabName === 'zones') {
-      isActive = (btnTab === 'zones' && (btnZone === activeZoneSubTab || (!activeZoneSubTab && btnZone === 'list')));
+      isActive = (btnTab === 'zones' && (btnZone === activeZoneSubTab || (!activeZoneSubTab && btnZone === 'list') || (['create', 'edit', 'detail'].includes(activeZoneSubTab) && btnZone === 'list')));
     } else if (tabName === 'reports') {
       isActive = (btnTab === 'reports' && (btnReport === activeReportSubTab || (!activeReportSubTab && btnReport === 'rekap')));
     } else {
@@ -792,7 +944,7 @@ export function switchAdminSubmenu(tabName, subTab = null, updateHash = true) {
   });
 
   // Update topbar breadcrumb, title & contextual zone switcher
-  updateTopbarBreadcrumbsAndTitle(tabName, subTab);
+  updateTopbarBreadcrumbsAndTitle(tabName, subTab, extraId, action);
   updateTopbarZoneSwitcherVisibility(tabName);
 
   refreshActiveAdminTab();
@@ -834,11 +986,7 @@ function refreshActiveAdminTab() {
       onNavigateToLogs: () => switchAdminSubmenu('activity-logs'),
     });
   } else if (activeAdminTab === 'zones') {
-    if (activeZoneSubTab) {
-      switchZoneSubTab(activeZoneSubTab);
-    } else {
-      initZonesModule({ scenes });
-    }
+    switchZoneSubTab(activeZoneSubTab || 'list', activeZoneTargetId, false);
   } else if (activeAdminTab === 'panoramas') {
     renderPanoramaManagement({
       scenes,
@@ -864,11 +1012,7 @@ function refreshActiveAdminTab() {
       },
     });
   } else if (activeAdminTab === 'trees') {
-    if (activeTreeSubTab) {
-      switchTreeSubTab(activeTreeSubTab, scenes);
-    } else {
-      initTreeModule({ scenes });
-    }
+    switchTreeSubTab(activeTreeSubTab || 'dashboard', scenes, activeTreeTargetId, activeTreeAction, false);
   } else if (activeAdminTab === 'reports') {
     if (activeReportSubTab) {
       switchReportSubTab(activeReportSubTab);
@@ -896,7 +1040,12 @@ function refreshActiveAdminTab() {
       editorInstance.renderHotspotsOnCurrentScene();
     }
   } else if (activeAdminTab === 'albums') {
-    initAlbumsModule();
+    const albumsRoot = document.getElementById('admin-albums-root');
+    if (albumsRoot) {
+      switchAlbumSubView(activeAlbumSubTab || 'list', activeAlbumTargetId, false);
+    } else {
+      initAlbumsModule('admin-albums-content', activeAlbumSubTab, activeAlbumTargetId);
+    }
   }
 }
 

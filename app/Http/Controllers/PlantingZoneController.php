@@ -188,10 +188,15 @@ class PlantingZoneController extends Controller
         }
 
         // Filter Arsip
-        if ($request->has('archived') && $request->archived === 'true') {
-            $query->where('is_archived', true);
+        if ($request->has('archived')) {
+            if ($request->archived === 'true' || $request->archived === '1') {
+                $query->where('is_archived', true);
+            } elseif ($request->archived === 'false' || $request->archived === '0') {
+                $query->where('is_archived', false);
+            }
+            // jika 'all', tidak difilter sehingga kawasan aktif dan arsip tampil
         } else {
-            $query->where('is_archived', false);
+            // default tetap menampilkan semua kawasan di admin kecuali ditentukan
         }
 
         // Sorting
@@ -219,6 +224,8 @@ class PlantingZoneController extends Controller
                 'area_unit' => $zone->area_unit,
                 'area_in_ha' => $zone->getAreaInHa(),
                 'activities_count' => $zone->activities_count,
+                'photos_count' => $zone->photos->count(),
+                'surveys_count' => TreeSurvey::whereIn('planting_activity_id', $zone->activities()->pluck('id'))->count(),
                 'total_initial_seedlings' => $zone->getTotalInitialSeedlings(),
                 'species_count' => $zone->getUniqueSpeciesCount(),
                 'survival_rate' => $zone->calculateSurvivalRate(),
@@ -487,25 +494,50 @@ class PlantingZoneController extends Controller
     }
 
     /**
-     * Endpoint Admin: Arsipkan atau hapus aman kawasan
+     * Endpoint Admin: Hapus aman kawasan (hanya jika data terkait sudah dihapus / tidak terikat)
      */
     public function destroy($id)
     {
         $zone = PlantingZone::findOrFail($id);
 
-        $activitiesCount = $zone->activities()->count();
+        $activityIds = $zone->activities()->pluck('id');
+        $activitiesCount = $activityIds->count();
+        $photosCount = $zone->photos()->count();
+        $surveysCount = TreeSurvey::whereIn('planting_activity_id', $activityIds)->count();
+        $maintenanceCount = TreeMaintenanceLog::whereIn('planting_activity_id', $activityIds)->count();
         $scenesCount = $zone->scenes()->count();
-        $hotspotsCount = $zone->hotspots()->count();
 
-        // Cegah penghapusan permanen jika memiliki relasi penting
-        if ($activitiesCount > 0 || $scenesCount > 0 || $hotspotsCount > 0) {
-            $zone->update(['is_archived' => true]);
-            ActivityLogger::log('archive', 'zones', "Mengarsipkan kawasan '{$zone->name}' ({$zone->zone_code}) karena memiliki data terkait ({$activitiesCount} kegiatan, {$scenesCount} scene)", $zone->id);
+        // Cek jika kawasan masih memiliki link data terkait
+        $blockingReasons = [];
+        if ($photosCount > 0) {
+            $blockingReasons[] = "{$photosCount} foto galeri dokumentasi";
+        }
+        if ($activitiesCount > 0) {
+            $blockingReasons[] = "{$activitiesCount} kegiatan penanaman";
+        }
+        if ($surveysCount > 0) {
+            $blockingReasons[] = "{$surveysCount} data sensus / pemantauan";
+        }
+        if ($maintenanceCount > 0) {
+            $blockingReasons[] = "{$maintenanceCount} log perawatan & penyulaman";
+        }
+        if ($scenesCount > 0) {
+            $blockingReasons[] = "{$scenesCount} scene panorama 360°";
+        }
+
+        if (!empty($blockingReasons)) {
+            $reasonsList = implode(', ', $blockingReasons);
             return response()->json([
-                'success' => true,
-                'action' => 'archived',
-                'message' => "Kawasan '{$zone->name}' memiliki data terkait ({$activitiesCount} kegiatan, {$scenesCount} scene) sehingga telah diarsipkan secara aman untuk melindungi integritas data.",
-            ]);
+                'success' => false,
+                'message' => "Kawasan '{$zone->name}' tidak dapat dihapus karena masih terhubung dengan {$reasonsList}. Harap hapus atau lepaskan link data terkait terlebih dahulu.",
+                'details' => [
+                    'photos_count' => $photosCount,
+                    'activities_count' => $activitiesCount,
+                    'surveys_count' => $surveysCount,
+                    'maintenance_count' => $maintenanceCount,
+                    'scenes_count' => $scenesCount,
+                ],
+            ], 422);
         }
 
         $zoneName = $zone->name;

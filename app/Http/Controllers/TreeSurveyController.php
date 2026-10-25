@@ -15,7 +15,7 @@ class TreeSurveyController extends Controller
      */
     public function index(Request $request)
     {
-        $query = TreeSurvey::with(['activity.scene', 'species'])
+        $query = TreeSurvey::with(['activity.plantingZone', 'activity.scene', 'species'])
             ->orderBy('survey_date', 'desc');
 
         if ($request->filled('planting_activity_id') && $request->planting_activity_id !== 'all') {
@@ -53,6 +53,8 @@ class TreeSurveyController extends Controller
                     'planting_activity_id' => $s->planting_activity_id,
                     'batch_code' => $s->activity?->batch_code,
                     'activity_name' => $s->activity?->name,
+                    'planting_zone_id' => $s->activity?->planting_zone_id,
+                    'planting_zone_name' => $s->activity?->plantingZone?->name,
                     'location_zone' => $s->activity?->location_zone,
                     'scene_name' => $s->activity?->scene?->name,
                     'species_name' => $s->species?->common_name,

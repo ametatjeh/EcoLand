@@ -5,6 +5,7 @@
 import { ApiService } from '../services/api.js';
 import { renderAdminZoneGallery } from './zoneGallery.js';
 import { EcoToast } from '../utils/toast.js';
+import { EcoModal } from '../utils/modal.js';
 import { toDateInputValue, formatDateDisplay, parseDateForPayload } from '../utils/date.js';
 
 let currentZoneTab = 'list';
@@ -23,9 +24,25 @@ export async function initZonesModule({ scenes = [], onNavigateToTour, onOpenHot
   await loadZonesList();
 }
 
-export async function switchZoneSubTab(tabName, zoneId = null, initialDetailTab = 'tab-ringkasan') {
+export async function switchZoneSubTab(tabName, zoneId = null, updateHash = true, initialDetailTab = 'tab-ringkasan') {
   currentZoneTab = tabName;
   if (zoneId) selectedZoneId = zoneId;
+
+  if (updateHash) {
+    let targetHash = '#admin/zones';
+    if (tabName === 'create') {
+      targetHash = '#admin/zones/create';
+    } else if (tabName === 'edit' && zoneId) {
+      targetHash = `#admin/zones/${zoneId}/edit`;
+    } else if (tabName === 'detail' && zoneId) {
+      targetHash = `#admin/zones/${zoneId}/detail`;
+    } else if (tabName === 'gallery') {
+      targetHash = '#admin/zones/gallery';
+    }
+    if (window.location.hash !== targetHash) {
+      window.location.hash = targetHash;
+    }
+  }
 
   const container = document.getElementById('admin-zones-content');
   if (!container) return;
@@ -45,9 +62,11 @@ export async function switchZoneSubTab(tabName, zoneId = null, initialDetailTab 
       renderZonesListView();
     }
   } else if (tabName === 'create') {
-    renderZoneFormView(null);
+    await renderZoneFormView(null, null);
+  } else if (tabName === 'edit') {
+    await renderZoneFormView(null, selectedZoneId);
   } else if (tabName === 'detail' && selectedZoneId) {
-    loadAndRenderZoneDetail(selectedZoneId, initialDetailTab);
+    await loadAndRenderZoneDetail(selectedZoneId, initialDetailTab);
   } else if (tabName === 'gallery') {
     if (cachedZones.length === 0) {
       await loadZonesList();
@@ -65,31 +84,15 @@ function renderZonesLayout(container) {
           <span class="zones-hero-icon">🏞️</span>
           <span>Manajemen Kawasan / Lahan Penanaman</span>
         </h2>
-        <p class="zones-hero-desc">
-          Kelola kawasan konservasi & restorasi pohon, batas deskriptif, luasan lahan (Ha/m²), dokumentasi galeri, dan tautan Virtual Tour 360°.
-        </p>
       </div>
       <div style="display: flex; gap: 10px; align-items: center; z-index: 2;">
+        <button id="btn-zone-open-gallery" class="zone-nav-tab" data-zone-tab="gallery" style="display: inline-flex; align-items: center; gap: 6px; padding: 9px 16px; font-weight: 600; cursor: pointer; border: 1px solid var(--clr-border); background: rgba(255, 255, 255, 0.05); border-radius: var(--radius-sm); color: var(--clr-text-muted);">
+          <span>🖼️</span> Galeri Foto Dokumentasi
+        </button>
         <button id="btn-zone-add-new" class="btn-primary-action btn-sm" style="display: inline-flex; align-items: center; gap: 6px; padding: 10px 18px; font-weight: 600; cursor: pointer;">
           <span>➕</span> Tambah Kawasan Baru
         </button>
       </div>
-    </div>
-
-    <!-- Zones Sub-navigation Bar -->
-    <div class="zone-subtabs-nav">
-      <button class="zone-nav-tab active" data-zone-tab="list">
-        <span>📋</span> Daftar Kawasan & Lahan
-      </button>
-      <button class="zone-nav-tab" data-zone-tab="create">
-        <span>➕</span> Formulir Tambah Kawasan
-      </button>
-      <button class="zone-nav-tab" data-zone-tab="gallery">
-        <span>🖼️</span> Galeri Foto Dokumentasi
-      </button>
-      <button class="zone-nav-tab hidden" id="tab-nav-zone-detail" data-zone-tab="detail">
-        <span>🔍</span> Detail Kawasan (8 Tab)
-      </button>
     </div>
 
     <!-- Dynamic Container -->
@@ -121,7 +124,7 @@ async function loadZonesList() {
   if (!pane) return;
 
   try {
-    const res = await ApiService.getZones({ sort_by: 'created_at', sort_dir: 'asc' });
+    const res = await ApiService.getZones({ sort_by: 'created_at', sort_dir: 'asc', archived: 'all' });
     cachedZones = res.zones || [];
     renderZonesListView();
   } catch (err) {
@@ -143,217 +146,27 @@ function renderZonesListView() {
   if (!pane) return;
 
   const totalZones = cachedZones.length;
-  const activeZones = cachedZones.filter(z => !z.is_archived && z.status === 'active').length;
-  const totalAreaHa = cachedZones.reduce((sum, z) => sum + (parseFloat(z.area_in_ha) || 0), 0);
-  const totalSeedlings = cachedZones.reduce((sum, z) => sum + (parseInt(z.total_initial_seedlings) || 0), 0);
-  
-  // Calculate average survival rate from zones that have it
-  const zonesWithSurvival = cachedZones.filter(z => z.survival_rate !== null && z.survival_rate !== undefined);
-  const avgSurvival = zonesWithSurvival.length > 0
-    ? (zonesWithSurvival.reduce((sum, z) => sum + parseFloat(z.survival_rate), 0) / zonesWithSurvival.length).toFixed(1)
-    : null;
 
   pane.innerHTML = `
-    <!-- 1. Top KPI Metrics Grid -->
-    <div class="zones-metrics-grid">
-      <!-- Metric 1: Total Kawasan -->
-      <div class="zone-metric-card">
-        <div class="zone-metric-icon-wrap emerald">
-          <span>🏞️</span>
-        </div>
-        <div class="zone-metric-content">
-          <div class="zone-metric-label">Total Kawasan</div>
-          <div class="zone-metric-value">${totalZones} <span style="font-size: 13px; font-weight: 500; color: var(--clr-text-muted);">Lahan</span></div>
-          <div class="zone-metric-sub">✅ ${activeZones} Kawasan Aktif Restorasi</div>
-        </div>
-      </div>
-
-      <!-- Metric 2: Total Luas Lahan -->
-      <div class="zone-metric-card">
-        <div class="zone-metric-icon-wrap sky">
-          <span>📐</span>
-        </div>
-        <div class="zone-metric-content">
-          <div class="zone-metric-label">Total Luas Lahan</div>
-          <div class="zone-metric-value" style="color: #38bdf8;">${totalAreaHa.toFixed(2)} <span style="font-size: 13px; font-weight: 500;">Ha</span></div>
-          <div class="zone-metric-sub">± ${(totalAreaHa * 10000).toLocaleString('id-ID')} m² Luas Kumulatif</div>
-        </div>
-      </div>
-
-      <!-- Metric 3: Total Bibit Tertanam -->
-      <div class="zone-metric-card">
-        <div class="zone-metric-icon-wrap amber">
-          <span>🌱</span>
-        </div>
-        <div class="zone-metric-content">
-          <div class="zone-metric-label">Total Bibit Awal</div>
-          <div class="zone-metric-value" style="color: #fbbf24;">${totalSeedlings.toLocaleString('id-ID')} <span style="font-size: 13px; font-weight: 500;">Btg</span></div>
-          <div class="zone-metric-sub">Dari seluruh batch penanaman</div>
-        </div>
-      </div>
-
-      <!-- Metric 4: Kelulusan Hidup / Survival -->
-      <div class="zone-metric-card">
-        <div class="zone-metric-icon-wrap purple">
-          <span>📊</span>
-        </div>
-        <div class="zone-metric-content">
-          <div class="zone-metric-label">Rerata Survival</div>
-          <div class="zone-metric-value" style="color: ${avgSurvival !== null && avgSurvival >= 75 ? '#34d399' : '#c084fc'};">
-            ${avgSurvival !== null ? `${avgSurvival}%` : '<span style="font-size: 14px; font-weight: 600; color: var(--clr-text-dim);">Belum Cukup</span>'}
-          </div>
-          <div class="zone-metric-sub">${avgSurvival !== null ? 'Kondisi Tegakan Sangat Baik' : 'Menunggu hasil sensus survei'}</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 2. Search, Filters & View Toggle Toolbar -->
-    <div class="zones-toolbar-card">
-      <div class="zones-toolbar-left">
-        <!-- Search Input -->
-        <div class="zone-search-wrapper">
-          <span class="zone-search-icon">🔍</span>
-          <input 
-            type="text" 
-            id="zone-search-input" 
-            class="zone-search-input" 
-            placeholder="Cari nama kawasan, kode, lokasi, PIC..." 
-          />
-        </div>
-
-        <!-- Filter Status -->
-        <select id="zone-filter-status" class="zone-filter-select" title="Filter berdasarkan status kawasan">
-          <option value="all">Semua Status</option>
-          <option value="active">🟢 Aktif</option>
-          <option value="preparation">🟡 Persiapan</option>
-          <option value="monitoring">🔵 Pemantauan</option>
-          <option value="completed">⚪ Selesai</option>
-        </select>
-
-        <!-- Filter Archived -->
-        <select id="zone-filter-archived" class="zone-filter-select" title="Filter kawasan aktif atau diarsipkan">
-          <option value="false">Kawasan Aktif</option>
-          <option value="true">Diarsipkan</option>
-        </select>
-
-        <!-- Reset Button -->
-        <button id="btn-reset-filters" class="btn-text-btn btn-sm hidden" style="color: var(--clr-text-muted); cursor: pointer;" title="Reset Filter">
-          ✕ Reset
-        </button>
-      </div>
-
-      <div class="zones-toolbar-right">
-        <span id="zone-count-label" style="font-size: 12px; color: var(--clr-text-muted); margin-right: 4px;">
-          Menampilkan: <strong style="color: #fff;">${totalZones}</strong> kawasan
-        </span>
-
-        <!-- View Mode Switcher -->
-        <div class="zones-view-toggle">
-          <button id="btn-view-table" class="zone-view-btn ${zoneViewMode === 'table' ? 'active' : ''}" title="Tampilan Tabel">
-            <span>📋</span> Tabel
-          </button>
-          <button id="btn-view-grid" class="zone-view-btn ${zoneViewMode === 'grid' ? 'active' : ''}" title="Tampilan Kartu Grid">
-            <span>🗂️</span> Kartu
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- 3. Zones Content Container (Table or Grid) -->
+    <!-- Zones Content Container (Table or Grid) -->
     <div id="zones-data-container">
       ${zoneViewMode === 'table' ? renderZonesTableHtml(cachedZones) : renderZonesGridHtml(cachedZones)}
     </div>
   `;
 
-  // Attach search and filter event listeners
-  const searchInput = document.getElementById('zone-search-input');
-  const filterStatus = document.getElementById('zone-filter-status');
-  const filterArchived = document.getElementById('zone-filter-archived');
-  const btnReset = document.getElementById('btn-reset-filters');
-  const countLabel = document.getElementById('zone-count-label');
-
-  const checkFiltersActive = () => {
-    const isFiltered = searchInput.value.trim() !== '' || filterStatus.value !== 'all' || filterArchived.value !== 'false';
-    if (btnReset) {
-      btnReset.classList.toggle('hidden', !isFiltered);
-    }
-  };
-
-  const handleFilter = async () => {
-    checkFiltersActive();
-    const q = searchInput.value.trim();
-    const st = filterStatus.value;
-    const arch = filterArchived.value;
-    try {
-      const res = await ApiService.getZones({
-        search: q,
-        status: st,
-        archived: arch,
-      });
-      cachedZones = res.zones || [];
-      if (countLabel) {
-        countLabel.innerHTML = `Menampilkan: <strong style="color: #fff;">${cachedZones.length}</strong> kawasan`;
-      }
-      const dataContainer = document.getElementById('zones-data-container');
-      if (dataContainer) {
-        dataContainer.innerHTML = zoneViewMode === 'table' ? renderZonesTableHtml(cachedZones) : renderZonesGridHtml(cachedZones);
-      }
-      bindZoneTableActions();
-    } catch (e) {
-      console.error('Gagal filter data kawasan:', e);
-    }
-  };
-
-  if (searchInput) searchInput.addEventListener('input', debounce(handleFilter, 300));
-  if (filterStatus) filterStatus.addEventListener('change', handleFilter);
-  if (filterArchived) filterArchived.addEventListener('change', handleFilter);
-
-  if (btnReset) {
-    btnReset.addEventListener('click', () => {
-      searchInput.value = '';
-      filterStatus.value = 'all';
-      filterArchived.value = 'false';
-      handleFilter();
-    });
-  }
-
-  // View Mode Switcher
-  const btnTable = document.getElementById('btn-view-table');
-  const btnGrid = document.getElementById('btn-view-grid');
-
-  if (btnTable && btnGrid) {
-    btnTable.addEventListener('click', () => {
-      if (zoneViewMode === 'table') return;
-      zoneViewMode = 'table';
-      try { localStorage.setItem('ecoland_zone_view_mode', 'table'); } catch (e) {}
-      btnTable.classList.add('active');
-      btnGrid.classList.remove('active');
-      const dataContainer = document.getElementById('zones-data-container');
-      if (dataContainer) dataContainer.innerHTML = renderZonesTableHtml(cachedZones);
-      bindZoneTableActions();
-    });
-
-    btnGrid.addEventListener('click', () => {
-      if (zoneViewMode === 'grid') return;
-      zoneViewMode = 'grid';
-      try { localStorage.setItem('ecoland_zone_view_mode', 'grid'); } catch (e) {}
-      btnGrid.classList.add('active');
-      btnTable.classList.remove('active');
-      const dataContainer = document.getElementById('zones-data-container');
-      if (dataContainer) dataContainer.innerHTML = renderZonesGridHtml(cachedZones);
-      bindZoneTableActions();
-    });
-  }
-
   bindZoneTableActions();
 }
 
-function getStatusBadge(status) {
+function getStatusBadge(status, isArchived = false) {
+  if (isArchived || status === 'archived' || status === 'arsip') {
+    return '<span class="badge-status-inactive" style="background: rgba(148, 163, 184, 0.15); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.3); display: inline-flex; align-items: center; gap: 5px; padding: 2px 8px; border-radius: 99px; font-size: 11px; font-weight: 600;"><span style="width:6px;height:6px;border-radius:50%;background:#94a3b8;"></span> Arsip</span>';
+  }
   const statusMap = {
     active: '<span class="badge-status-published"><span style="width:6px;height:6px;border-radius:50%;background:#10b981;"></span> Aktif</span>',
     preparation: '<span class="badge-status-draft"><span style="width:6px;height:6px;border-radius:50%;background:#f59e0b;"></span> Persiapan</span>',
     monitoring: '<span class="badge-status-monitoring"><span style="width:6px;height:6px;border-radius:50%;background:#38bdf8;"></span> Pemantauan</span>',
     completed: '<span class="badge-status-completed"><span style="width:6px;height:6px;border-radius:50%;background:#9ca3af;"></span> Selesai</span>',
+    archived: '<span class="badge-status-inactive" style="background: rgba(148, 163, 184, 0.15); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.3); display: inline-flex; align-items: center; gap: 5px; padding: 2px 8px; border-radius: 99px; font-size: 11px; font-weight: 600;"><span style="width:6px;height:6px;border-radius:50%;background:#94a3b8;"></span> Arsip</span>',
   };
   return statusMap[status] || `<span class="badge-status-completed">${escapeHtml(status)}</span>`;
 }
@@ -375,7 +188,7 @@ function renderZonesTableHtml(zones) {
   }
 
   const rows = zones.map((z) => {
-    const badge = getStatusBadge(z.status);
+    const badge = getStatusBadge(z.status, z.is_archived);
     const survivalVal = z.survival_rate !== null && z.survival_rate !== undefined ? parseFloat(z.survival_rate) : null;
     const survivalText = survivalVal !== null 
       ? `
@@ -401,10 +214,6 @@ function renderZonesTableHtml(zones) {
         <td>
           <div style="font-weight: 700; color: #ffffff; font-size: 14px; margin-bottom: 3px;">
             ${escapeHtml(z.name)}
-          </div>
-          <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--clr-text-muted); flex-wrap: wrap;">
-            <span style="background: rgba(255,255,255,0.06); padding: 1px 6px; border-radius: 4px; font-size: 10.5px;">${escapeHtml(z.category || 'Silvikultur')}</span>
-            <span>📍 ${escapeHtml(z.city || z.province || 'Aceh')}</span>
           </div>
         </td>
 
@@ -457,9 +266,6 @@ function renderZonesTableHtml(zones) {
             <button class="btn-action-edit zone-btn-action edit" data-id="${z.id}" title="Edit Data Kawasan">
               <span>✏️</span> Edit
             </button>
-            <button class="btn-action-tour zone-btn-action tour" data-id="${z.id}" title="Buka Virtual Tour Kawasan Ini">
-              <span>🌐</span> Tour
-            </button>
             <button class="btn-action-archive zone-btn-action archive" data-id="${z.id}" title="${z.is_archived ? 'Aktifkan Kembali' : 'Arsipkan Kawasan'}">
               <span>${z.is_archived ? '♻️' : '📦'}</span> ${z.is_archived ? 'Pulihkan' : 'Arsip'}
             </button>
@@ -502,7 +308,7 @@ function renderZonesGridHtml(zones) {
   }
 
   const cards = zones.map((z) => {
-    const badge = getStatusBadge(z.status);
+    const badge = getStatusBadge(z.status, z.is_archived);
     const survivalVal = z.survival_rate !== null && z.survival_rate !== undefined ? parseFloat(z.survival_rate) : null;
     const coverUrl = z.main_photo_path || null;
 
@@ -531,15 +337,9 @@ function renderZonesGridHtml(zones) {
         <!-- Card Body -->
         <div class="zone-card-body">
           <div>
-            <div style="font-size: 11px; color: var(--clr-primary-light); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em;">
-              ${escapeHtml(z.category || 'Silvikultur & Restorasi')}
-            </div>
             <h4 style="color: #ffffff; font-size: 16px; font-weight: 800; margin: 4px 0 6px; line-height: 1.3;">
               ${escapeHtml(z.name)}
             </h4>
-            <p style="color: var(--clr-text-muted); font-size: 12px; margin: 0; display: flex; align-items: center; gap: 4px;">
-              <span>📍</span> ${escapeHtml(z.address || z.city || z.province || 'Aceh')}
-            </p>
           </div>
 
           <!-- Mini Stats Grid -->
@@ -572,9 +372,6 @@ function renderZonesGridHtml(zones) {
               </button>
               <button class="btn-action-edit zone-btn-action edit" data-id="${z.id}" title="Edit Kawasan">
                 <span>✏️</span> Edit
-              </button>
-              <button class="btn-action-tour zone-btn-action tour" data-id="${z.id}" title="Virtual Tour">
-                <span>🌐</span> Tour
               </button>
             </div>
             <div style="display: flex; gap: 6px;">
@@ -620,14 +417,9 @@ function bindZoneTableActions() {
   });
 
   container.querySelectorAll('.btn-action-edit').forEach((btn) => {
-    btn.addEventListener('click', async () => {
+    btn.addEventListener('click', () => {
       const id = btn.getAttribute('data-id');
-      try {
-        const res = await ApiService.getZone(id);
-        renderZoneFormView(res.zone);
-      } catch (e) {
-        EcoToast.error('✕ Gagal memuat kawasan', e.message);
-      }
+      switchZoneSubTab('edit', id);
     });
   });
 
@@ -641,7 +433,21 @@ function bindZoneTableActions() {
   container.querySelectorAll('.btn-action-archive').forEach((btn) => {
     btn.addEventListener('click', async () => {
       const id = btn.getAttribute('data-id');
-      if (confirm('Ubah status arsip kawasan ini?')) {
+      const targetZone = cachedZones.find((z) => String(z.id) === String(id));
+      const willArchive = targetZone ? !targetZone.is_archived : true;
+
+      const confirmed = await EcoModal.confirm({
+        title: willArchive ? 'Arsipkan Kawasan?' : 'Pulihkan Kawasan?',
+        subtitle: targetZone ? targetZone.name : 'Status Kawasan',
+        message: willArchive
+          ? `Apakah Anda yakin ingin mengarsipkan kawasan <strong>"${escapeHtml(targetZone?.name || '')}"</strong>?<br><br>Kawasan yang diarsipkan akan disembunyikan dari daftar publik namun datanya tetap tersimpan aman.`
+          : `Apakah Anda yakin ingin mengaktifkan kembali kawasan <strong>"${escapeHtml(targetZone?.name || '')}"</strong>?`,
+        type: willArchive ? 'warning' : 'info',
+        confirmText: willArchive ? 'Ya, Arsipkan' : 'Ya, Pulihkan',
+        icon: willArchive ? '📦' : '♻️'
+      });
+
+      if (confirmed) {
         try {
           const res = await ApiService.archiveZone(id);
           window.dispatchEvent(new CustomEvent('zones-updated'));
@@ -661,18 +467,50 @@ function bindZoneTableActions() {
   container.querySelectorAll('.btn-action-delete').forEach((btn) => {
     btn.addEventListener('click', async () => {
       const id = btn.getAttribute('data-id');
-      if (confirm('Yakin ingin menghapus kawasan ini? Kawasan tanpa data terkait akan dihapus permanen, atau diarsipkan jika memiliki data.')) {
+      const targetZone = cachedZones.find((z) => String(z.id) === String(id));
+
+      if (targetZone) {
+        const blocking = [];
+        if (targetZone.photos_count > 0) blocking.push(`${targetZone.photos_count} Foto Galeri`);
+        if (targetZone.activities_count > 0) blocking.push(`${targetZone.activities_count} Kegiatan Penanaman`);
+        if (targetZone.surveys_count > 0) blocking.push(`${targetZone.surveys_count} Data Pemantauan / Survei`);
+        if (targetZone.scenes_count > 0) blocking.push(`${targetZone.scenes_count} Scene Panorama`);
+
+        if (blocking.length > 0) {
+          await EcoModal.alert({
+            title: 'Kawasan Tidak Dapat Dihapus',
+            subtitle: 'Data Terkait Masih Aktif',
+            message: `Kawasan <strong>"${escapeHtml(targetZone.name)}"</strong> masih memiliki link data terkait:<br><ul style="margin: 8px 0 12px 18px; padding: 0;">${blocking.map(b => `<li><strong>${b}</strong></li>`).join('')}</ul>Harap hapus atau lepaskan link data tersebut terlebih dahulu sebelum menghapus kawasan ini.`,
+            type: 'warning',
+            confirmText: 'Saya Mengerti',
+            icon: '⚠️'
+          });
+          return;
+        }
+      }
+
+      const confirmed = await EcoModal.confirm({
+        title: 'Hapus Kawasan Permanen?',
+        subtitle: targetZone ? targetZone.name : 'Tindakan Permanen',
+        message: `Apakah Anda yakin ingin menghapus kawasan <strong>"${escapeHtml(targetZone?.name || '')}"</strong> secara permanen?<br><br>Kawasan ini tidak memiliki link data terkait dan akan langsung dihapus dari sistem. Tindakan ini tidak dapat dibatalkan.`,
+        type: 'danger',
+        confirmText: 'Ya, Hapus Permanen',
+        cancelText: 'Batal',
+        icon: '🗑️'
+      });
+
+      if (confirmed) {
         try {
           const res = await ApiService.deleteZone(id);
           window.dispatchEvent(new CustomEvent('zones-updated'));
           EcoToast.show({
             type: 'success',
-            title: res.action === 'deleted' ? '✓ Berhasil dihapus' : '✓ Berhasil diarsipkan',
+            title: '✓ Berhasil dihapus',
             message: res.message || 'Kawasan berhasil dihapus.',
           });
           await loadZonesList();
         } catch (e) {
-          EcoToast.error('✕ Gagal menghapus kawasan', e.message);
+          EcoToast.error('✕ Tidak Dapat Menghapus Kawasan', e.message);
         }
       }
     });
@@ -682,15 +520,65 @@ function bindZoneTableActions() {
 // ─────────────────────────────────────────────────────────────
 // 2. FORMULIR TAMBAH / EDIT KAWASAN
 // ─────────────────────────────────────────────────────────────
-function renderZoneFormView(existingZone = null) {
+async function renderZoneFormView(existingZone = null, targetZoneId = null) {
   const pane = document.getElementById('zone-pane-container');
   if (!pane) return;
 
+  // Direct URL load atau refresh pada rute #admin/zones/:id/edit
+  if (!existingZone && targetZoneId) {
+    pane.innerHTML = `
+      <div style="display: flex; justify-content: center; align-items: center; padding: 60px 20px; color: var(--clr-text-muted); gap: 12px;">
+        <span class="loading-spinner"></span> Memuat data kawasan untuk disunting...
+      </div>
+    `;
+    try {
+      const inCache = cachedZones.find((z) => String(z.id) === String(targetZoneId) || z.zone_code === targetZoneId);
+      if (inCache) {
+        const fullRes = await ApiService.getZone(inCache.id);
+        existingZone = fullRes.zone || inCache;
+      } else {
+        const res = await ApiService.getZone(targetZoneId);
+        if (res && res.zone) {
+          existingZone = res.zone;
+        } else {
+          throw new Error('Data kawasan tidak ditemukan di server.');
+        }
+      }
+    } catch (err) {
+      pane.innerHTML = `
+        <div class="zone-form-card" style="text-align: center; padding: 48px 24px; border-radius: 12px; background: var(--clr-surface); border: 1px solid var(--clr-border);">
+          <div style="font-size: 40px; margin-bottom: 12px;">⚠️</div>
+          <h3 style="color: #fff; font-size: 18px; font-weight: 700; margin: 0 0 8px;">Kawasan Tidak Ditemukan</h3>
+          <p style="color: var(--clr-text-muted); font-size: 13px; max-width: 480px; margin: 0 auto 20px; line-height: 1.5;">
+            ${escapeHtml(err.message || 'Kawasan penanaman dengan ID atau kode tersebut tidak ditemukan atau telah dihapus.')}
+          </p>
+          <button id="btn-err-back-to-zones" class="btn-primary-action btn-sm" style="display: inline-flex; align-items: center; gap: 6px; cursor: pointer;">
+            <span>←</span> Kembali ke Daftar Kawasan
+          </button>
+        </div>
+      `;
+      document.getElementById('btn-err-back-to-zones')?.addEventListener('click', () => {
+        switchZoneSubTab('list');
+      });
+      return;
+    }
+  }
+
   const isEdit = !!existingZone;
   const formTitle = isEdit ? `Edit Kawasan: ${existingZone.name}` : 'Tambah Kawasan / Lahan Baru';
+  let isFormDirty = false;
 
   pane.innerHTML = `
     <div class="zone-form-card">
+      <!-- Breadcrumb Nav Inside Form -->
+      <nav style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--clr-text-muted); margin-bottom: 16px;">
+        <button id="breadcrumb-btn-zones-list" style="background: none; border: none; color: var(--clr-text-muted); cursor: pointer; padding: 0; font-size: 12px; text-decoration: underline;">
+          ← Kembali ke Semua Kawasan
+        </button>
+        <span>/</span>
+        <span style="color: #38bdf8; font-weight: 600;">${isEdit ? 'Sunting Data Kawasan' : 'Formulir Kawasan Baru'}</span>
+      </nav>
+
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; border-bottom: 1px solid var(--clr-border); padding-bottom: 16px; flex-wrap: wrap; gap: 12px;">
         <h3 style="color: #fff; margin: 0; font-size: 20px; font-weight: 800; display: flex; align-items: center; gap: 10px;">
           <span>${isEdit ? '✏️' : '➕'}</span> <span>${formTitle}</span>
@@ -892,12 +780,33 @@ function renderZoneFormView(existingZone = null) {
     </div>
   `;
 
-  // Attach button events
-  const btnCancel = document.getElementById('btn-cancel-zone-form');
-  const btnCancel2 = document.getElementById('btn-cancel-form');
-  const handleCancel = () => switchZoneSubTab('list');
-  if (btnCancel) btnCancel.addEventListener('click', handleCancel);
-  if (btnCancel2) btnCancel2.addEventListener('click', handleCancel);
+  // Attach dirty tracking
+  const markDirty = () => { isFormDirty = true; };
+  pane.querySelectorAll('input, select, textarea').forEach((el) => {
+    el.addEventListener('input', markDirty);
+    el.addEventListener('change', markDirty);
+  });
+
+  // Guard Cancel & Back buttons
+  const handleCancelWithGuard = async () => {
+    if (isFormDirty) {
+      const confirmLeave = await EcoModal.confirm({
+        title: 'Batalkan Pengisian Formulir?',
+        subtitle: 'Perubahan Belum Disimpan',
+        message: 'Data yang telah Anda masukkan pada formulir kawasan akan hilang jika Anda meninggalkan halaman ini sekarang. Apakah Anda yakin?',
+        type: 'warning',
+        confirmText: 'Ya, Tinggalkan',
+        cancelText: 'Tetap di Sini',
+        icon: '⚠️'
+      });
+      if (!confirmLeave) return;
+    }
+    switchZoneSubTab('list');
+  };
+
+  document.getElementById('breadcrumb-btn-zones-list')?.addEventListener('click', handleCancelWithGuard);
+  document.getElementById('btn-cancel-zone-form')?.addEventListener('click', handleCancelWithGuard);
+  document.getElementById('btn-cancel-form')?.addEventListener('click', handleCancelWithGuard);
 
   // Form submit handler
   const form = document.getElementById('zone-edit-form');
@@ -947,7 +856,9 @@ function renderZoneFormView(existingZone = null) {
         } else {
           EcoToast.created(res.message || 'Data kawasan baru berhasil disimpan.');
         }
+        isFormDirty = false;
         await loadZonesList();
+        switchZoneSubTab('list');
       } catch (err) {
         EcoToast.error('✕ Gagal menyimpan kawasan', err.message || 'Periksa kembali formulir kawasan dan coba lagi.');
         submitBtn.disabled = false;
@@ -1011,7 +922,7 @@ function renderZoneDetailView(data, initialDetailTab = 'tab-ringkasan') {
               ${escapeHtml(z.zone_code)}
             </span>
             <h2 style="margin: 0; color: #fff; font-size: 22px; font-weight: 800;">${escapeHtml(z.name)}</h2>
-            ${getStatusBadge(z.status)}
+            ${getStatusBadge(z.status, z.is_archived)}
           </div>
           <p style="color: var(--clr-text-muted); font-size: 13px; margin: 8px 0 0; display: flex; align-items: center; gap: 6px;">
             <span>📍</span> ${escapeHtml(z.address || (z.village ? z.village + ', ' + z.district : 'Lokasi Terdaftar'))} • ${escapeHtml(z.city || 'Aceh')}
@@ -1080,7 +991,7 @@ function renderZoneDetailView(data, initialDetailTab = 'tab-ringkasan') {
 
   const btnEdit = document.getElementById('btn-detail-edit-zone');
   if (btnEdit) {
-    btnEdit.addEventListener('click', () => renderZoneFormView(z));
+    btnEdit.addEventListener('click', () => switchZoneSubTab('edit', z.id));
   }
 
   const btnBack = document.getElementById('btn-detail-back-list');

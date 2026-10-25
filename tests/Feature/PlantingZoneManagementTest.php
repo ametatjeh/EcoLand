@@ -124,17 +124,16 @@ class PlantingZoneManagementTest extends TestCase
             'status' => 'terlaksana',
         ]);
 
-        // Attempt DELETE - should auto-archive instead of hard delete
+        // Attempt DELETE - should be rejected with 422 because it has linked activities
         $res = $this->withHeader('Authorization', "Bearer {$this->adminToken}")
             ->deleteJson("/api/admin/zones/{$zone->id}");
 
-        $res->assertStatus(200)
-            ->assertJsonPath('action', 'archived');
+        $res->assertStatus(422)
+            ->assertJsonPath('success', false);
 
-        // Zone still exists in database and is marked archived
+        // Zone still exists in database and is not deleted
         $this->assertDatabaseHas('planting_zones', [
             'id' => $zone->id,
-            'is_archived' => 1,
         ]);
 
         // Toggle archive endpoint

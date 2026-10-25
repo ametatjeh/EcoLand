@@ -82,7 +82,7 @@ function getSavedTourView(sceneId) {
 }
 
 function parseHash(fullHash) {
-  const clean = (fullHash || '').replace(/^#\/?/, '').trim();
+  const clean = (fullHash || '').replace(/^[#/]+/, '').trim();
   const [routePart, queryPart] = clean.split('?');
   let route = (routePart || '').toLowerCase();
   const queryParams = new URLSearchParams(queryPart || '');

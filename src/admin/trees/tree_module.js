@@ -11,6 +11,7 @@
  */
 import { ApiService } from '../../services/api.js';
 import { EcoToast } from '../../utils/toast.js';
+import { EcoModal } from '../../utils/modal.js';
 import { toDateInputValue, formatDateDisplay, parseDateForPayload } from '../../utils/date.js';
 
 let currentTreeTab = 'dashboard';
@@ -28,16 +29,30 @@ export async function initTreeModule({ scenes = [] } = {}) {
   await loadTreeTabData(currentTreeTab, scenes);
 }
 
-export async function switchTreeSubTab(tabName, scenes = []) {
+export async function switchTreeSubTab(tabName, scenes = [], targetId = null, action = null, updateHash = true) {
   if (scenes && scenes.length > 0) cachedScenes = scenes;
   currentTreeTab = tabName;
+
+  if (updateHash) {
+    let targetHash = tabName === 'dashboard' ? '#admin/trees/dashboard' : `#admin/trees/${tabName}`;
+    if (action === 'create' || targetId === 'create') {
+      targetHash = `#admin/trees/${tabName}/create`;
+    } else if (action === 'edit' && targetId) {
+      targetHash = `#admin/trees/${tabName}/${targetId}/edit`;
+    }
+    if (window.location.hash !== targetHash) {
+      window.location.hash = targetHash;
+      return;
+    }
+  }
+
   const container = document.getElementById('admin-trees-content');
   if (!container) return;
 
   if (!document.getElementById('tree-subpane-content')) {
     renderTreeModuleLayout(container, scenes);
   }
-  await loadTreeTabData(tabName, scenes);
+  await loadTreeTabData(tabName, scenes, targetId, action);
 }
 
 function renderTreeModuleLayout(container, scenes) {
@@ -51,11 +66,47 @@ function renderTreeModuleLayout(container, scenes) {
   `;
 }
 
-async function loadTreeTabData(tab, scenes) {
+async function loadTreeTabData(tab, scenes, targetId = null, action = null) {
   const contentEl = document.getElementById('tree-subpane-content');
   if (!contentEl) return;
 
   try {
+    if (action === 'create' || targetId === 'create') {
+      if (tab === 'species') {
+        renderSpeciesFormView(null, contentEl);
+        return;
+      }
+      if (tab === 'activities') {
+        await renderActivityFormView(null, contentEl, scenes);
+        return;
+      }
+      if (tab === 'surveys') {
+        await renderSurveyFormView(null, contentEl);
+        return;
+      }
+      if (tab === 'maintenance') {
+        await renderMaintenanceFormView(null, contentEl);
+        return;
+      }
+    } else if (action === 'edit' && targetId) {
+      if (tab === 'species') {
+        await openSpeciesEdit(targetId, contentEl);
+        return;
+      }
+      if (tab === 'activities') {
+        await openActivityEdit(targetId, contentEl, scenes);
+        return;
+      }
+      if (tab === 'surveys') {
+        await openSurveyEdit(targetId, contentEl);
+        return;
+      }
+      if (tab === 'maintenance') {
+        await openMaintenanceEdit(targetId, contentEl);
+        return;
+      }
+    }
+
     if (tab === 'dashboard') {
       await renderDashboardTab(contentEl);
     } else if (tab === 'species') {
@@ -80,20 +131,156 @@ async function loadTreeTabData(tab, scenes) {
   }
 }
 
+async function openSpeciesEdit(id, container) {
+  container.innerHTML = `<div style="display: flex; justify-content: center; align-items: center; padding: 60px 20px; color: var(--clr-text-muted); gap: 12px;"><span class="loading-spinner"></span> Memuat data jenis pohon untuk disunting...</div>`;
+  try {
+    const res = await ApiService.getTreeSpeciesDetail(id);
+    const item = res.species || res;
+    if (!item || !item.id) {
+      throw new Error('Data jenis pohon tidak ditemukan di server.');
+    }
+    renderSpeciesFormView(item, container);
+  } catch (err) {
+    renderTreeNotFoundCard(container, 'Jenis Pohon Tidak Ditemukan', err.message || 'Spesies dengan ID tersebut tidak ditemukan atau telah dihapus.', () => switchTreeSubTab('species', cachedScenes));
+  }
+}
+
+async function openActivityEdit(id, container, scenes) {
+  container.innerHTML = `<div style="display: flex; justify-content: center; align-items: center; padding: 60px 20px; color: var(--clr-text-muted); gap: 12px;"><span class="loading-spinner"></span> Memuat kegiatan penanaman untuk disunting...</div>`;
+  try {
+    const res = await ApiService.getPlantingActivity(id);
+    const item = res.activity || res;
+    if (!item || !item.id) {
+      throw new Error('Data kegiatan penanaman tidak ditemukan di server.');
+    }
+    await renderActivityFormView(item, container, scenes || cachedScenes, cachedZones);
+  } catch (err) {
+    renderTreeNotFoundCard(container, 'Kegiatan Penanaman Tidak Ditemukan', err.message || 'Kegiatan penanaman dengan ID tersebut tidak ditemukan atau telah dihapus.', () => switchTreeSubTab('activities', cachedScenes));
+  }
+}
+
+async function openSurveyEdit(id, container) {
+  container.innerHTML = `<div style="display: flex; justify-content: center; align-items: center; padding: 60px 20px; color: var(--clr-text-muted); gap: 12px;"><span class="loading-spinner"></span> Memuat data pemantauan untuk disunting...</div>`;
+  try {
+    const res = await ApiService.getTreeSurveyDetail(id);
+    if (res && res.survey) {
+      await renderSurveyFormView(res.survey, container);
+    } else {
+      throw new Error('Data survei pemantauan tidak ditemukan di server.');
+    }
+  } catch (err) {
+    renderTreeNotFoundCard(container, 'Survei Pemantauan Tidak Ditemukan', err.message || 'Catatan survei dengan ID tersebut tidak ditemukan atau telah dihapus.', () => switchTreeSubTab('surveys', cachedScenes));
+  }
+}
+
+async function openMaintenanceEdit(id, container) {
+  container.innerHTML = `<div style="display: flex; justify-content: center; align-items: center; padding: 60px 20px; color: var(--clr-text-muted); gap: 12px;"><span class="loading-spinner"></span> Memuat data perawatan untuk disunting...</div>`;
+  try {
+    const res = await ApiService.getTreeMaintenanceDetail(id);
+    const log = res.maintenance || res.log;
+    if (log) {
+      await renderMaintenanceFormView(log, container);
+    } else {
+      throw new Error('Data perawatan tidak ditemukan di server.');
+    }
+  } catch (err) {
+    renderTreeNotFoundCard(container, 'Catatan Perawatan Tidak Ditemukan', err.message || 'Catatan perawatan dengan ID tersebut tidak ditemukan atau telah dihapus.', () => switchTreeSubTab('maintenance', cachedScenes));
+  }
+}
+
+function renderTreeNotFoundCard(container, title, message, onBack) {
+  container.innerHTML = `
+    <div class="admin-pane-card" style="background: var(--clr-surface); border: 1px solid var(--clr-border); border-radius: 12px; padding: 48px 24px; text-align: center; margin: 20px 0;">
+      <div style="font-size: 40px; margin-bottom: 12px;">⚠️</div>
+      <h3 style="color: #fff; font-size: 18px; font-weight: 700; margin: 0 0 8px;">${escapeHtml(title)}</h3>
+      <p style="color: var(--clr-text-muted); font-size: 13px; max-width: 480px; margin: 0 auto 20px; line-height: 1.5;">
+        ${escapeHtml(message)}
+      </p>
+      <button id="btn-err-back-to-tree-list" class="btn-primary-action btn-sm" style="display: inline-flex; align-items: center; gap: 6px; cursor: pointer;">
+        <span>←</span> Kembali ke Daftar
+      </button>
+    </div>
+  `;
+  document.getElementById('btn-err-back-to-tree-list')?.addEventListener('click', onBack);
+}
+
 // ─────────────────────────────────────────────────────────────
 // 1. DASHBOARD PENANAMAN
 // ─────────────────────────────────────────────────────────────
 async function renderDashboardTab(container) {
   container.innerHTML = `<div style="text-align: center; padding: 30px;">⏳ Memuat indikator penanaman...</div>`;
-  const res = await ApiService.getTreeDashboard();
+  const [res, zonesRes] = await Promise.all([
+    ApiService.getTreeDashboard(),
+    ApiService.getZones({ sort_by: 'created_at', sort_dir: 'asc' }).catch(() => ({ zones: [] }))
+  ]);
   const ind = res.indicators || {};
   const needs = res.needs_inspection || [];
   const speciesDist = res.charts?.species_distribution || [];
+
+  const zonesList = zonesRes.zones || [];
+  const totalZonesCount = zonesList.length || ind.total_zones || 0;
+  const activeZonesCount = zonesList.filter(z => !z.is_archived && z.status === 'active').length || ind.total_zones || 0;
+  const totalAreaHa = zonesList.reduce((sum, z) => sum + (parseFloat(z.area_in_ha) || 0), 0);
+  const totalSeedlingsCount = ind.total_initial_seedlings || zonesList.reduce((sum, z) => sum + (parseInt(z.total_initial_seedlings) || 0), 0);
+  const survivalRateVal = ind.survival_rate !== null && ind.survival_rate !== undefined ? ind.survival_rate : null;
 
   const rateDisplay = ind.survival_rate !== null ? `${ind.survival_rate}%` : 'Data Belum Lengkap';
   const rateClass = ind.survival_rate !== null ? (ind.survival_rate >= 80 ? 'pill-success' : (ind.survival_rate >= 60 ? 'pill-warning' : 'pill-danger')) : 'pill-neutral';
 
   container.innerHTML = `
+    <!-- Top KPI Metrics Grid (Kawasan & Penanaman) -->
+    <div class="zones-metrics-grid" style="margin-bottom: 24px;">
+      <!-- Metric 1: Total Kawasan -->
+      <div class="zone-metric-card">
+        <div class="zone-metric-icon-wrap emerald">
+          <span>🏞️</span>
+        </div>
+        <div class="zone-metric-content">
+          <div class="zone-metric-label">Total Kawasan</div>
+          <div class="zone-metric-value">${totalZonesCount} <span style="font-size: 13px; font-weight: 500; color: var(--clr-text-muted);">Lahan</span></div>
+          <div class="zone-metric-sub">✅ ${activeZonesCount} Kawasan Aktif Restorasi</div>
+        </div>
+      </div>
+
+      <!-- Metric 2: Total Luas Lahan -->
+      <div class="zone-metric-card">
+        <div class="zone-metric-icon-wrap sky">
+          <span>📐</span>
+        </div>
+        <div class="zone-metric-content">
+          <div class="zone-metric-label">Total Luas Lahan</div>
+          <div class="zone-metric-value" style="color: #38bdf8;">${totalAreaHa.toFixed(2)} <span style="font-size: 13px; font-weight: 500;">Ha</span></div>
+          <div class="zone-metric-sub">± ${(totalAreaHa * 10000).toLocaleString('id-ID')} m² Luas Kumulatif</div>
+        </div>
+      </div>
+
+      <!-- Metric 3: Total Bibit Tertanam -->
+      <div class="zone-metric-card">
+        <div class="zone-metric-icon-wrap amber">
+          <span>🌱</span>
+        </div>
+        <div class="zone-metric-content">
+          <div class="zone-metric-label">Total Bibit Awal</div>
+          <div class="zone-metric-value" style="color: #fbbf24;">${Number(totalSeedlingsCount).toLocaleString('id-ID')} <span style="font-size: 13px; font-weight: 500;">Btg</span></div>
+          <div class="zone-metric-sub">Dari seluruh batch penanaman</div>
+        </div>
+      </div>
+
+      <!-- Metric 4: Kelulusan Hidup / Survival -->
+      <div class="zone-metric-card">
+        <div class="zone-metric-icon-wrap purple">
+          <span>📊</span>
+        </div>
+        <div class="zone-metric-content">
+          <div class="zone-metric-label">Rerata Survival</div>
+          <div class="zone-metric-value" style="color: ${survivalRateVal !== null && survivalRateVal >= 75 ? '#34d399' : '#c084fc'};">
+            ${survivalRateVal !== null ? `${survivalRateVal}%` : '<span style="font-size: 14px; font-weight: 600; color: var(--clr-text-dim);">Belum Cukup</span>'}
+          </div>
+          <div class="zone-metric-sub">${survivalRateVal !== null ? 'Kondisi Tegakan Sangat Baik' : 'Menunggu hasil sensus survei'}</div>
+        </div>
+      </div>
+    </div>
+
     <!-- Top KPI Grid: 7 Indikator Utama + Kelangsungan Hidup -->
     <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 24px;">
       <div class="stat-card">
@@ -278,7 +465,7 @@ async function renderSpeciesTab(container) {
 
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
       <div style="display: flex; gap: 8px; flex: 1; min-width: 260px;">
-        <input type="text" id="filter-species-search" class="form-input" placeholder="Cari nama umum, ilmiah, famili..." style="max-width: 300px;" />
+        <input type="text" id="filter-species-search" class="form-input" placeholder="Cari nama umum, ilmiah, nama lokal..." style="max-width: 300px;" />
         <select id="filter-species-origin" class="form-select" style="max-width: 180px;">
           <option value="all">Semua Status Asal</option>
           <option value="lokal_asli">Jenis Lokal / Asli</option>
@@ -295,10 +482,10 @@ async function renderSpeciesTab(container) {
       <table class="admin-data-table" style="width: 100%; border-collapse: collapse; font-size: 13px;">
         <thead>
           <tr style="border-bottom: 1px solid var(--clr-border); background: rgba(255,255,255,0.03); text-align: left;">
-            <th style="padding: 10px 14px;">Nama Umum & Ilmiah</th>
-            <th style="padding: 10px 14px;">Famili</th>
+            <th style="padding: 10px 14px;">Nama Umum</th>
+            <th style="padding: 10px 14px;">Nama Ilmiah</th>
+            <th style="padding: 10px 14px;">Nama Lokal</th>
             <th style="padding: 10px 14px;">Status Asal</th>
-            <th style="padding: 10px 14px;">Fungsi Ekologis</th>
             <th style="padding: 10px 14px; text-align: right;">Total Ditanam</th>
             <th style="padding: 10px 14px; text-align: center;">Aksi</th>
           </tr>
@@ -332,7 +519,7 @@ async function renderSpeciesTab(container) {
   originSelect?.addEventListener('change', filterRows);
 
   document.getElementById('btn-add-species')?.addEventListener('click', () => {
-    renderSpeciesFormView(null, container);
+    switchTreeSubTab('species', cachedScenes, null, 'create');
   });
 
   bindSpeciesActionBtns(container);
@@ -347,24 +534,24 @@ function renderSpeciesRows(list) {
       (s) => `
     <tr style="border-bottom: 1px solid var(--clr-border);">
       <td style="padding: 10px 14px;">
-        <span style="font-weight: 600; color: var(--clr-text);">${escapeHtml(s.common_name)}</span><br>
-        <span style="font-size: 12px; font-style: italic; color: var(--clr-primary, #10b981);">${escapeHtml(s.scientific_name)}</span>
-        ${s.local_name ? `<span style="font-size: 11px; color: var(--clr-text-muted);"> (${escapeHtml(s.local_name)})</span>` : ''}
+        <span style="font-weight: 600; color: var(--clr-text);">${escapeHtml(s.common_name)}</span>
       </td>
-      <td style="padding: 10px 14px;">${escapeHtml(s.family || '-')}</td>
+      <td style="padding: 10px 14px;">
+        <span style="font-style: italic; color: var(--clr-primary, #10b981);">${escapeHtml(s.scientific_name)}</span>
+      </td>
+      <td style="padding: 10px 14px;">
+        <span style="color: var(--clr-text);">${escapeHtml(s.local_name || '-')}</span>
+      </td>
       <td style="padding: 10px 14px;">
         <span class="admin-header-pill ${s.origin_status === 'lokal_asli' ? 'pill-success' : (s.origin_status === 'introduksi' ? 'pill-warning' : 'pill-neutral')}" style="font-size: 11px;">
           ${s.origin_status === 'lokal_asli' ? 'Lokal / Asli' : (s.origin_status === 'introduksi' ? 'Introduksi' : 'Belum Diverifikasi')}
         </span>
       </td>
-      <td style="padding: 10px 14px; max-width: 240px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${escapeHtml(s.ecological_function || '')}">
-        ${escapeHtml(s.ecological_function || '-')}
-      </td>
       <td style="padding: 10px 14px; text-align: right; font-weight: 600;">
         ${s.total_planted?.toLocaleString() || 0} bibit
       </td>
       <td style="padding: 10px 14px; text-align: center; white-space: nowrap;">
-        <a href="#katalog?species=${encodeURIComponent(s.id)}" class="icon-btn-sm" title="Lihat Profil Jenis Pohon di Katalog" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none; font-size: 13px; margin-right: 4px;">👁️</a>
+        <a href="#katalog?species=${encodeURIComponent(s.id)}" target="_blank" rel="noopener noreferrer" class="icon-btn-sm" title="Lihat Profil Jenis Pohon di Katalog" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none; font-size: 13px; margin-right: 4px;">👁️</a>
         <button class="btn-edit-species icon-btn-sm" data-id="${s.id}" title="Edit Data">✏️</button>
         <button class="btn-del-species icon-btn-sm" data-id="${s.id}" title="Hapus Spesies" style="color: #ef4444;">🗑️</button>
       </td>
@@ -378,9 +565,7 @@ function bindSpeciesActionBtns(container) {
   document.querySelectorAll('.btn-edit-species').forEach((btn) => {
     btn.addEventListener('click', () => {
       const id = btn.getAttribute('data-id');
-      const item = cachedSpecies.find((s) => s.id === id);
-      if (!item) return;
-      renderSpeciesFormView(item, container);
+      switchTreeSubTab('species', cachedScenes, id, 'edit');
     });
   });
 
@@ -389,7 +574,18 @@ function bindSpeciesActionBtns(container) {
       const id = btn.getAttribute('data-id');
       const item = cachedSpecies.find((s) => s.id === id);
       const name = item ? item.common_name : 'spesies ini';
-      if (confirm(`Yakin ingin menghapus jenis pohon "${name}"? Data yang sudah terhubung dengan kegiatan penanaman tidak dapat dihapus.`)) {
+
+      const confirmed = await EcoModal.confirm({
+        title: 'Hapus Jenis Pohon?',
+        subtitle: name,
+        message: `Apakah Anda yakin ingin menghapus jenis pohon <strong>"${escapeHtml(name)}"</strong>?<br><br>Data yang sudah terhubung dengan kegiatan penanaman atau katalog pohon tidak dapat dihapus.`,
+        type: 'danger',
+        confirmText: 'Ya, Hapus',
+        cancelText: 'Batal',
+        icon: '🌳'
+      });
+
+      if (confirmed) {
         try {
           await ApiService.deleteTreeSpecies(id);
           EcoToast.deleted(`Jenis pohon "${name}" berhasil dihapus.`);
@@ -1119,9 +1315,10 @@ async function renderActivitiesTab(container, scenes) {
       <table class="admin-data-table" style="width: 100%; border-collapse: collapse; font-size: 13px;">
         <thead>
           <tr style="border-bottom: 1px solid var(--clr-border); background: rgba(255,255,255,0.03); text-align: left;">
-            <th style="padding: 10px 14px;">Batch & Tanggal</th>
-            <th style="padding: 10px 14px;">Nama Kegiatan & Pelaksana</th>
-            <th style="padding: 10px 14px;">Zona / Panorama</th>
+            <th style="padding: 10px 14px;">Kode Batch</th>
+            <th style="padding: 10px 14px;">Tanggal Penanaman</th>
+            <th style="padding: 10px 14px;">Kawasan Penanaman</th>
+            <th style="padding: 10px 14px;">Zona / Blok</th>
             <th style="padding: 10px 14px; text-align: right;">Total Awal</th>
             <th style="padding: 10px 14px; text-align: center;">Kelangsungan Hidup</th>
             <th style="padding: 10px 14px; text-align: center;">Aksi</th>
@@ -1142,8 +1339,10 @@ async function renderActivitiesTab(container, scenes) {
       const matchBatch = (a.batch_code || '').toLowerCase().includes(q);
       const matchName = (a.name || '').toLowerCase().includes(q);
       const matchZone = (a.location_zone || '').toLowerCase().includes(q);
+      const matchZoneName = (a.planting_zone_name || '').toLowerCase().includes(q);
       const matchPic = (a.person_in_charge || '').toLowerCase().includes(q);
-      return matchBatch || matchName || matchZone || matchPic;
+      const matchOrg = (a.organizer || '').toLowerCase().includes(q);
+      return matchBatch || matchName || matchZone || matchZoneName || matchPic || matchOrg;
     });
     const tbody = document.getElementById('act-table-body');
     if (tbody) tbody.innerHTML = renderActivityRows(filtered);
@@ -1151,8 +1350,8 @@ async function renderActivitiesTab(container, scenes) {
   });
 
   // Tombol Catat Kegiatan Penanaman -> Buka Halaman Formulir Lengkap
-  document.getElementById('btn-add-activity')?.addEventListener('click', async () => {
-    await renderActivityFormView(null, container, scenes || cachedScenes, cachedZones);
+  document.getElementById('btn-add-activity')?.addEventListener('click', () => {
+    switchTreeSubTab('activities', cachedScenes, null, 'create');
   });
 
   bindActivityActionBtns(container, scenes);
@@ -1161,26 +1360,38 @@ async function renderActivitiesTab(container, scenes) {
 
 function renderActivityRows(list) {
   if (list.length === 0) {
-    return `<tr><td colspan="6" style="padding: 20px; text-align: center; color: var(--clr-text-muted);">Belum ada catatan kegiatan penanaman.</td></tr>`;
+    return `<tr><td colspan="7" style="padding: 20px; text-align: center; color: var(--clr-text-muted);">Belum ada catatan kegiatan penanaman.</td></tr>`;
   }
   return list
     .map((a) => {
       const rateStr = a.survival_rate !== null ? `${a.survival_rate}%` : 'Data Belum Lengkap';
       const rateClass = a.survival_rate !== null ? (a.survival_rate >= 80 ? 'pill-success' : 'pill-warning') : 'pill-neutral';
 
+      // Kawasan Penanaman
+      let zoneName = a.planting_zone_name;
+      if (!zoneName && a.planting_zone_id && cachedZones && cachedZones.length > 0) {
+        const found = cachedZones.find((z) => z.id === a.planting_zone_id);
+        if (found) zoneName = found.name;
+      }
+      if (!zoneName) zoneName = 'Kawasan Restorasi';
+
       return `
       <tr style="border-bottom: 1px solid var(--clr-border);">
         <td style="padding: 10px 14px;">
-          <span style="font-weight: 600;">${escapeHtml(a.batch_code)}</span><br>
-          <span style="font-size: 12px; color: var(--clr-text-muted);">📅 ${formatDateDisplay(a.activity_date)}</span>
+          <span style="font-weight: 600; color: #fff; font-family: monospace; font-size: 13px;">${escapeHtml(a.batch_code)}</span>
+        </td>
+        <td style="padding: 10px 14px; white-space: nowrap;">
+          <span style="font-size: 12.5px; color: var(--clr-text); display: inline-flex; align-items: center; gap: 5px;">
+            <span>📅</span> ${formatDateDisplay(a.activity_date)}
+          </span>
         </td>
         <td style="padding: 10px 14px;">
-          <span style="font-weight: 500;">${escapeHtml(a.name)}</span><br>
-          <span style="font-size: 11px; color: var(--clr-text-muted);">PIC: ${escapeHtml(a.person_in_charge)} • ${escapeHtml(a.organizer)}</span>
+          <span style="font-weight: 500; color: #34d399; display: inline-flex; align-items: center; gap: 5px;">
+            <span>🏞️</span> ${escapeHtml(zoneName)}
+          </span>
         </td>
         <td style="padding: 10px 14px;">
-          <span>📍 ${escapeHtml(a.location_zone)}</span><br>
-          <span style="font-size: 11px; color: var(--clr-text-muted);">${a.scene_name ? '🌐 ' + escapeHtml(a.scene_name) : 'Tanpa Panorama'}</span>
+          <span style="color: var(--clr-text);">📍 ${escapeHtml(a.location_zone)}</span>
         </td>
         <td style="padding: 10px 14px; text-align: right; font-weight: 600;">
           ${a.total_initial_seedlings} bibit
@@ -1200,26 +1411,25 @@ function renderActivityRows(list) {
 
 function bindActivityActionBtns(container, scenes) {
   document.querySelectorAll('.btn-edit-activity').forEach((btn) => {
-    btn.addEventListener('click', async () => {
+    btn.addEventListener('click', () => {
       const id = btn.getAttribute('data-id');
-      try {
-        btn.disabled = true;
-        btn.innerHTML = '⏳';
-        const res = await ApiService.getPlantingActivity(id);
-        const act = res.activity || res;
-        await renderActivityFormView(act, container, scenes || cachedScenes, cachedZones);
-      } catch (e) {
-        EcoToast.error('✕ Gagal memuat data kegiatan', e.message);
-        btn.disabled = false;
-        btn.innerHTML = '✏️';
-      }
+      switchTreeSubTab('activities', cachedScenes, id, 'edit');
     });
   });
 
   document.querySelectorAll('.btn-del-activity').forEach((btn) => {
     btn.addEventListener('click', async () => {
       const id = btn.getAttribute('data-id');
-      if (confirm('Hapus kegiatan penanaman ini beserta rincian bibitnya?')) {
+      const confirmed = await EcoModal.confirm({
+        title: 'Hapus Kegiatan Penanaman?',
+        subtitle: 'Tindakan ini akan menghapus catatan kegiatan dan rincian bibit.',
+        message: 'Apakah Anda yakin ingin menghapus kegiatan penanaman ini beserta rincian bibitnya? Tindakan ini tidak dapat dibatalkan.',
+        type: 'danger',
+        confirmText: 'Ya, Hapus Kegiatan',
+        cancelText: 'Batal',
+        icon: '🌱',
+      });
+      if (confirmed) {
         try {
           await ApiService.deletePlantingActivity(id);
           EcoToast.deleted('Catatan kegiatan penanaman berhasil dihapus.');
@@ -1358,7 +1568,7 @@ async function renderActivityFormView(activity = null, container, scenes = [], z
 
           <div class="form-group">
             <label for="edit-act-zone" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
-              Zona Deskriptif / Blok Lapangan: <span style="color: #ef4444;">*</span>
+              Zona / Blok <span style="color: #ef4444;">*</span>
             </label>
             <input type="text" id="edit-act-zone" class="form-input" required placeholder="Contoh: Blok A - Lereng Barat" value="${isEdit ? escapeHtml(activity.location_zone) : ''}" />
           </div>
@@ -1488,9 +1698,28 @@ async function renderActivityFormView(activity = null, container, scenes = [], z
     itemsContainer.appendChild(createItemRow(null));
   });
 
-  // Cancel and Back handlers
-  const handleCancelOrBack = () => {
-    renderActivitiesTab(container, scenes);
+  // Dirty tracking & Cancel/Back guard
+  let isActFormDirty = false;
+  const markActDirty = () => { isActFormDirty = true; };
+  container.querySelectorAll('input, select, textarea').forEach((el) => {
+    el.addEventListener('input', markActDirty);
+    el.addEventListener('change', markActDirty);
+  });
+
+  const handleCancelOrBack = async () => {
+    if (isActFormDirty) {
+      const confirmLeave = await EcoModal.confirm({
+        title: 'Batalkan Pengisian Kegiatan?',
+        subtitle: 'Perubahan Belum Disimpan',
+        message: 'Data kegiatan penanaman yang telah Anda ubah akan hilang jika Anda meninggalkan halaman ini sekarang. Apakah Anda yakin ingin kembali?',
+        type: 'warning',
+        confirmText: 'Ya, Tinggalkan',
+        cancelText: 'Tetap di Sini',
+        icon: '⚠️',
+      });
+      if (!confirmLeave) return;
+    }
+    switchTreeSubTab('activities', cachedScenes);
   };
 
   document.getElementById('breadcrumb-btn-act-list')?.addEventListener('click', handleCancelOrBack);
@@ -1673,7 +1902,8 @@ async function renderActivityFormView(activity = null, container, scenes = [], z
           ? `Data kegiatan penanaman '${batchCode}' berhasil diperbarui.`
           : `Data kegiatan penanaman '${batchCode}' dan rincian bibit berhasil dicatat.`,
       });
-      await renderActivitiesTab(container, scenes);
+      isActFormDirty = false;
+      switchTreeSubTab('activities', cachedScenes);
     } catch (err) {
       alertBox.className = 'alert-banner alert-danger';
 
@@ -1734,6 +1964,10 @@ async function renderActivityFormView(activity = null, container, scenes = [], z
 
   document.getElementById('btn-save-act-top')?.addEventListener('click', handleSave);
   document.getElementById('btn-save-act-bottom')?.addEventListener('click', handleSave);
+  document.getElementById('form-edit-activity')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    handleSave();
+  });
 }
 
 const renderActivityEditFormView = renderActivityFormView;
@@ -1767,11 +2001,11 @@ async function renderSurveysTab(container) {
         <thead>
           <tr style="border-bottom: 1px solid var(--clr-border); background: rgba(255,255,255,0.03); text-align: left;">
             <th style="padding: 10px 14px;">Tanggal Survei</th>
-            <th style="padding: 10px 14px;">Kelompok / Batch</th>
+            <th style="padding: 10px 14px;">Kode Batch</th>
+            <th style="padding: 10px 14px;">Kawasan / Blok</th>
             <th style="padding: 10px 14px;">Bibit Hidup Awal</th>
             <th style="padding: 10px 14px;">Mati / Hilang</th>
             <th style="padding: 10px 14px; text-align: center;">Kelangsungan Hidup</th>
-            <th style="padding: 10px 14px;">Kondisi & Gejala</th>
             <th style="padding: 10px 14px;">Pemeriksa</th>
             <th style="padding: 10px 14px; text-align: center;">Aksi</th>
           </tr>
@@ -1781,12 +2015,21 @@ async function renderSurveysTab(container) {
             surveys.length > 0
               ? surveys
                   .map(
-                    (s) => `
+                    (s) => {
+                      const zoneTitle = s.planting_zone_name || 'Kawasan Restorasi';
+                      const blockTitle = s.location_zone || '-';
+
+                      return `
                 <tr style="border-bottom: 1px solid var(--clr-border);">
-                  <td style="padding: 10px 14px; font-weight: 600;">📅 ${formatDateDisplay(s.survey_date)}</td>
+                  <td style="padding: 10px 14px; font-weight: 600; white-space: nowrap;">📅 ${formatDateDisplay(s.survey_date)}</td>
                   <td style="padding: 10px 14px;">
-                    <span style="font-weight: 500;">${escapeHtml(s.batch_code)}</span><br>
-                    <span style="font-size: 11px; color: var(--clr-text-muted);">${escapeHtml(s.location_zone)}</span>
+                    <span style="font-weight: 600; color: #fff; font-family: monospace; font-size: 13px;">${escapeHtml(s.batch_code || '-')}</span>
+                  </td>
+                  <td style="padding: 10px 14px;">
+                    <span style="font-weight: 500; color: #34d399; display: inline-flex; align-items: center; gap: 4px;">
+                      <span>🏞️</span> ${escapeHtml(zoneTitle)}
+                    </span><br>
+                    <span style="font-size: 11px; color: var(--clr-text-muted);">📍 ${escapeHtml(blockTitle)}</span>
                   </td>
                   <td style="padding: 10px 14px; font-weight: 600; color: #10b981;">
                     ${s.alive_count} / ${s.initial_seedlings} bibit
@@ -1799,17 +2042,14 @@ async function renderSurveysTab(container) {
                       ${s.survival_rate !== null ? s.survival_rate + '%' : '-'}
                     </span>
                   </td>
-                  <td style="padding: 10px 14px;">
-                    <span style="font-weight: 500;">${ucfirst(s.health_condition.replace('_', ' '))}</span>
-                    ${s.damage_symptoms ? `<br><span style="font-size: 11px; color: var(--clr-text-muted);">${escapeHtml(s.damage_symptoms)}</span>` : ''}
-                  </td>
                   <td style="padding: 10px 14px;">${escapeHtml(s.inspector_name)}</td>
                   <td style="padding: 10px 14px; text-align: center; white-space: nowrap;">
                     <button class="btn-edit-survey icon-btn-sm" data-id="${s.id}" title="Edit Survei" aria-label="Edit Survei" style="margin-right: 4px; color: #38bdf8;">✏️</button>
                     <button class="btn-del-survey icon-btn-sm" data-id="${s.id}" title="Hapus Survei" aria-label="Hapus Survei" style="color: #ef4444;">🗑️</button>
                   </td>
                 </tr>
-              `
+              `;
+                    }
                   )
                   .join('')
               : `<tr><td colspan="8" style="padding: 20px; text-align: center; color: var(--clr-text-muted);">Belum ada catatan survei pemantauan.</td></tr>`
@@ -1821,31 +2061,30 @@ async function renderSurveysTab(container) {
   `;
 
   // Bind Survey Events
-  document.getElementById('btn-add-survey')?.addEventListener('click', async () => {
-    await renderSurveyFormView(null, container);
+  document.getElementById('btn-add-survey')?.addEventListener('click', () => {
+    switchTreeSubTab('surveys', cachedScenes, null, 'create');
   });
 
   document.querySelectorAll('.btn-edit-survey').forEach((btn) => {
-    btn.addEventListener('click', async () => {
+    btn.addEventListener('click', () => {
       const id = btn.getAttribute('data-id');
-      try {
-        btn.disabled = true;
-        btn.innerHTML = '⏳';
-        const res = await ApiService.getTreeSurveyDetail(id);
-        const srv = res.survey || res;
-        await renderSurveyFormView(srv, container);
-      } catch (e) {
-        EcoToast.error('✕ Gagal memuat data survei', e.message);
-        btn.disabled = false;
-        btn.innerHTML = '✏️';
-      }
+      switchTreeSubTab('surveys', cachedScenes, id, 'edit');
     });
   });
 
   document.querySelectorAll('.btn-del-survey').forEach((btn) => {
     btn.addEventListener('click', async () => {
       const id = btn.getAttribute('data-id');
-      if (confirm('Hapus catatan survei ini?')) {
+      const confirmed = await EcoModal.confirm({
+        title: 'Hapus Catatan Pemantauan?',
+        subtitle: 'Data riwayat survei dan kesehatan pohon akan dihapus.',
+        message: 'Apakah Anda yakin ingin menghapus catatan survei ini? Tindakan ini tidak dapat dibatalkan.',
+        type: 'danger',
+        confirmText: 'Ya, Hapus Survei',
+        cancelText: 'Batal',
+        icon: '📊',
+      });
+      if (confirmed) {
         try {
           await ApiService.deleteTreeSurvey(id);
           EcoToast.deleted('Catatan survei pemantauan berhasil dihapus.');
@@ -2047,9 +2286,28 @@ async function renderSurveyFormView(survey = null, container) {
     </form>
   `;
 
-  // Cancel and Back handlers
-  const handleCancelOrBack = () => {
-    renderSurveysTab(container);
+  // Dirty tracking & Cancel/Back guard
+  let isSrvFormDirty = false;
+  const markSrvDirty = () => { isSrvFormDirty = true; };
+  container.querySelectorAll('input, select, textarea').forEach((el) => {
+    el.addEventListener('input', markSrvDirty);
+    el.addEventListener('change', markSrvDirty);
+  });
+
+  const handleCancelOrBack = async () => {
+    if (isSrvFormDirty) {
+      const confirmLeave = await EcoModal.confirm({
+        title: 'Batalkan Pengisian Survei?',
+        subtitle: 'Perubahan Belum Disimpan',
+        message: 'Data hasil sensus pemantauan yang telah Anda ubah akan hilang jika Anda meninggalkan halaman ini sekarang. Apakah Anda yakin ingin kembali?',
+        type: 'warning',
+        confirmText: 'Ya, Tinggalkan',
+        cancelText: 'Tetap di Sini',
+        icon: '⚠️',
+      });
+      if (!confirmLeave) return;
+    }
+    switchTreeSubTab('surveys', cachedScenes);
   };
 
   document.getElementById('breadcrumb-btn-srv-list')?.addEventListener('click', handleCancelOrBack);
@@ -2174,7 +2432,8 @@ async function renderSurveyFormView(survey = null, container) {
       } else {
         EcoToast.saved('Catatan survei pemantauan pohon berhasil disimpan.');
       }
-      await renderSurveysTab(container);
+      isSrvFormDirty = false;
+      switchTreeSubTab('surveys', cachedScenes);
     } catch (err) {
       alertBox.className = 'alert-banner alert-danger';
       alertBox.textContent = `Gagal menyimpan survei: ${err.message}. Seluruh data input tetap dipertahankan.`;
@@ -2192,6 +2451,10 @@ async function renderSurveyFormView(survey = null, container) {
 
   document.getElementById('btn-save-srv-top')?.addEventListener('click', handleSave);
   document.getElementById('btn-save-srv-bottom')?.addEventListener('click', handleSave);
+  document.getElementById('form-survey-page')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    handleSave();
+  });
 }
 
 const renderSurveyEditFormView = renderSurveyFormView;
@@ -2270,31 +2533,30 @@ async function renderMaintenanceTab(container) {
   `;
 
   // Bind Maintenance Events
-  document.getElementById('btn-add-maintenance')?.addEventListener('click', async () => {
-    await renderMaintenanceFormView(null, container);
+  document.getElementById('btn-add-maintenance')?.addEventListener('click', () => {
+    switchTreeSubTab('maintenance', cachedScenes, null, 'create');
   });
 
   document.querySelectorAll('.btn-edit-maintenance').forEach((btn) => {
-    btn.addEventListener('click', async () => {
+    btn.addEventListener('click', () => {
       const id = btn.getAttribute('data-id');
-      try {
-        btn.disabled = true;
-        btn.innerHTML = '⏳';
-        const res = await ApiService.getTreeMaintenanceDetail(id);
-        const log = res.log || res.maintenance || res;
-        await renderMaintenanceFormView(log, container);
-      } catch (e) {
-        EcoToast.error('✕ Gagal memuat data perawatan', e.message);
-        btn.disabled = false;
-        btn.innerHTML = '✏️';
-      }
+      switchTreeSubTab('maintenance', cachedScenes, id, 'edit');
     });
   });
 
   document.querySelectorAll('.btn-del-maintenance').forEach((btn) => {
     btn.addEventListener('click', async () => {
       const id = btn.getAttribute('data-id');
-      if (confirm('Hapus catatan perawatan ini?')) {
+      const confirmed = await EcoModal.confirm({
+        title: 'Hapus Catatan Perawatan?',
+        subtitle: 'Data perawatan / penyulaman tanaman akan dihapus.',
+        message: 'Apakah Anda yakin ingin menghapus catatan perawatan ini? Tindakan ini tidak dapat dibatalkan.',
+        type: 'danger',
+        confirmText: 'Ya, Hapus Catatan',
+        cancelText: 'Batal',
+        icon: '🛠️',
+      });
+      if (confirmed) {
         try {
           await ApiService.deleteTreeMaintenance(id);
           EcoToast.deleted('Catatan perawatan berhasil dihapus.');
@@ -2482,9 +2744,28 @@ async function renderMaintenanceFormView(log = null, container) {
     </form>
   `;
 
-  // Cancel and Back handlers
-  const handleCancelOrBack = () => {
-    renderMaintenanceTab(container);
+  // Dirty tracking & Cancel/Back guard
+  let isMntFormDirty = false;
+  const markMntDirty = () => { isMntFormDirty = true; };
+  container.querySelectorAll('input, select, textarea').forEach((el) => {
+    el.addEventListener('input', markMntDirty);
+    el.addEventListener('change', markMntDirty);
+  });
+
+  const handleCancelOrBack = async () => {
+    if (isMntFormDirty) {
+      const confirmLeave = await EcoModal.confirm({
+        title: 'Batalkan Pengisian Perawatan?',
+        subtitle: 'Perubahan Belum Disimpan',
+        message: 'Data tindakan perawatan atau penyulaman yang telah Anda ubah akan hilang jika Anda meninggalkan halaman ini sekarang. Apakah Anda yakin ingin kembali?',
+        type: 'warning',
+        confirmText: 'Ya, Tinggalkan',
+        cancelText: 'Tetap di Sini',
+        icon: '⚠️',
+      });
+      if (!confirmLeave) return;
+    }
+    switchTreeSubTab('maintenance', cachedScenes);
   };
 
   document.getElementById('breadcrumb-btn-mnt-list')?.addEventListener('click', handleCancelOrBack);
@@ -2584,7 +2865,8 @@ async function renderMaintenanceFormView(log = null, container) {
       } else {
         EcoToast.saved('Catatan perawatan dan penyulaman berhasil disimpan.');
       }
-      await renderMaintenanceTab(container);
+      isMntFormDirty = false;
+      switchTreeSubTab('maintenance', cachedScenes);
     } catch (err) {
       alertBox.className = 'alert-banner alert-danger';
       alertBox.textContent = `Gagal menyimpan catatan perawatan: ${err.message}. Seluruh data input tetap dipertahankan.`;
@@ -2602,6 +2884,10 @@ async function renderMaintenanceFormView(log = null, container) {
 
   document.getElementById('btn-save-mnt-top')?.addEventListener('click', handleSave);
   document.getElementById('btn-save-mnt-bottom')?.addEventListener('click', handleSave);
+  document.getElementById('form-maintenance-page')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    handleSave();
+  });
 }
 
 const renderMaintenanceEditFormView = renderMaintenanceFormView;

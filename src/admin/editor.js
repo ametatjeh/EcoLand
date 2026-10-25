@@ -5,6 +5,7 @@
 import Marzipano from 'marzipano';
 import { ApiService } from '../services/api.js';
 import { EcoToast } from '../utils/toast.js';
+import { EcoModal } from '../utils/modal.js';
 import { createLinkHotspotElement, createInfoHotspotElement } from '../hotspots.js';
 import { checkAdminAuth } from './auth.js';
 
@@ -1254,11 +1255,21 @@ export class VisualHotspotEditor {
     this.showToast(`Hotspot ditempelkan ke scene ${this.currentSceneId} sebagai draft.`);
   }
 
-  deleteHotspot(hotspotId) {
+  async deleteHotspot(hotspotId) {
     const hs = this.getHotspots().find((h) => h.id === hotspotId);
     if (!hs) return;
 
-    if (!confirm(`Apakah Anda yakin ingin menghapus hotspot "${hs.title || hs.id}"?`)) {
+    const confirmed = await EcoModal.confirm({
+      title: 'Hapus Hotspot?',
+      subtitle: `Hotspot "${hs.title || hs.id}" akan dihapus dari tur visual.`,
+      message: 'Apakah Anda yakin ingin menghapus hotspot ini dari adegan tur 360°? Tindakan ini dapat dibatalkan sebelum disimpan permanen.',
+      type: 'danger',
+      confirmText: 'Ya, Hapus Hotspot',
+      cancelText: 'Batal',
+      icon: '📍',
+    });
+
+    if (!confirmed) {
       return;
     }
 

@@ -4,6 +4,7 @@
  */
 import { ApiService } from '../services/api.js';
 import { EcoToast } from '../utils/toast.js';
+import { EcoModal } from '../utils/modal.js';
 
 let cachedUsers = [];
 
@@ -240,7 +241,19 @@ function renderUsersTable(container, users) {
   container.querySelectorAll('.btn-delete-user').forEach((btn) => {
     btn.addEventListener('click', async () => {
       const id = btn.getAttribute('data-id');
-      if (confirm('Hapus pengguna ini?')) {
+      const u = cachedUsers.find((x) => String(x.id) === String(id));
+
+      const confirmed = await EcoModal.confirm({
+        title: 'Hapus Pengguna?',
+        subtitle: u?.name || u?.username || 'Akun Pengguna',
+        message: `Apakah Anda yakin ingin menghapus akun pengguna <strong>"${escapeHtml(u?.name || u?.username || '')}"</strong>? Pengguna ini tidak akan dapat login lagi ke sistem.`,
+        type: 'danger',
+        confirmText: 'Ya, Hapus Pengguna',
+        cancelText: 'Batal',
+        icon: '🗑️'
+      });
+
+      if (confirmed) {
         try {
           const res = await ApiService.deleteUser(id);
           EcoToast.deleted(res.message || 'Pengguna berhasil dihapus.');

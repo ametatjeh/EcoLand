@@ -2,6 +2,7 @@
  * Utility module — panorama loading helpers and empty-state rendering.
  */
 export { EcoToast, showToast } from './utils/toast.js';
+export { EcoModal } from './utils/modal.js';
 
 /**
  * Check if an image URL exists by attempting to preload it.

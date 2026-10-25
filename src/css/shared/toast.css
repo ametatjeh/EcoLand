@@ -1,0 +1,217 @@
+/* ======================================================================
+   EcoToast — Global Toast Notifications
+   Modern, elegant, high-contrast, accessible notification toasts
+   ====================================================================== */
+#ecozone-toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 999999;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  pointer-events: none;
+  max-width: 420px;
+  width: calc(100vw - 32px);
+}
+
+.ecotoast-item {
+  position: relative;
+  pointer-events: auto;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px 16px 16px;
+  border-radius: var(--radius-md, 12px);
+  background: rgba(18, 30, 24, 0.96);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  box-shadow: 0 16px 36px -4px rgba(0, 0, 0, 0.55), 0 6px 16px -2px rgba(16, 185, 129, 0.12);
+  color: #f1f5f9;
+  font-family: var(--font, sans-serif);
+  overflow: hidden;
+  animation: ecotoast-slide-in 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.ecotoast-item.ecotoast-leave {
+  animation: ecotoast-slide-out 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.ecotoast-icon-box {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.ecotoast-icon-svg {
+  width: 20px;
+  height: 20px;
+}
+
+.ecotoast-body {
+  flex: 1;
+  min-width: 0;
+  padding-right: 8px;
+}
+
+.ecotoast-title {
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 1.35;
+  color: #f8fafc;
+  letter-spacing: -0.01em;
+}
+
+.ecotoast-desc {
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: #94a3b8;
+  margin-top: 3px;
+  word-break: break-word;
+}
+
+.ecotoast-close {
+  background: transparent;
+  border: none;
+  color: #64748b;
+  font-size: 14px;
+  line-height: 1;
+  padding: 4px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: color 0.15s ease, background-color 0.15s ease;
+  flex-shrink: 0;
+  margin-top: -2px;
+}
+
+.ecotoast-close:hover {
+  color: #f1f5f9;
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+.ecotoast-bar {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 3px;
+  width: 100%;
+  animation: ecotoast-progress linear forwards;
+}
+
+/* Success variant */
+.ecotoast-success {
+  border-left: 4px solid #10b981;
+  border-color: rgba(16, 185, 129, 0.35);
+}
+.ecotoast-success .ecotoast-icon-box {
+  background: rgba(16, 185, 129, 0.18);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+.ecotoast-success .ecotoast-title {
+  color: #ecfdf5;
+}
+.ecotoast-success .ecotoast-bar {
+  background: linear-gradient(90deg, #10b981, #34d399);
+}
+
+/* Error variant */
+.ecotoast-error {
+  border-left: 4px solid #ef4444;
+  border-color: rgba(239, 68, 68, 0.35);
+  background: rgba(30, 18, 18, 0.96);
+  box-shadow: 0 16px 36px -4px rgba(0, 0, 0, 0.55), 0 6px 16px -2px rgba(239, 68, 68, 0.15);
+}
+.ecotoast-error .ecotoast-icon-box {
+  background: rgba(239, 68, 68, 0.18);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+.ecotoast-error .ecotoast-title {
+  color: #fef2f2;
+}
+.ecotoast-error .ecotoast-desc {
+  color: #fca5a5;
+}
+.ecotoast-error .ecotoast-bar {
+  background: linear-gradient(90deg, #ef4444, #f87171);
+}
+
+/* Warning variant */
+.ecotoast-warning {
+  border-left: 4px solid #f59e0b;
+  border-color: rgba(245, 158, 11, 0.35);
+}
+.ecotoast-warning .ecotoast-icon-box {
+  background: rgba(245, 158, 11, 0.18);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+.ecotoast-warning .ecotoast-bar {
+  background: linear-gradient(90deg, #f59e0b, #fbbf24);
+}
+
+/* Info variant */
+.ecotoast-info {
+  border-left: 4px solid #38bdf8;
+  border-color: rgba(56, 189, 248, 0.35);
+}
+.ecotoast-info .ecotoast-icon-box {
+  background: rgba(56, 189, 248, 0.18);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}
+.ecotoast-info .ecotoast-bar {
+  background: linear-gradient(90deg, #0284c7, #38bdf8);
+}
+
+@keyframes ecotoast-slide-in {
+  from {
+    opacity: 0;
+    transform: translate3d(30px, 0, 0) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes ecotoast-slide-out {
+  from {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translate3d(40px, 0, 0) scale(0.94);
+  }
+}
+
+@keyframes ecotoast-progress {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
+@media (max-width: 640px) {
+  #ecozone-toast-container {
+    top: 12px;
+    right: 12px;
+    left: 12px;
+    width: auto;
+    max-width: none;
+  }
+  .ecotoast-item {
+    padding: 12px 14px;
+  }
+}
