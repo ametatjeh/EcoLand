@@ -915,6 +915,30 @@ body:has(#view-admin.active) #public-global-footer,
   background: rgba(16, 185, 129, 0.6);
 }
 
+.lightbox-raw-btn {
+  background: rgba(8, 18, 13, 0.78);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 12px;
+  padding: 8px 14px;
+  color: #e2e8f0;
+  box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.6), 0 0 12px rgba(16, 185, 129, 0.12);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.lightbox-raw-btn:hover {
+  background: rgba(16, 185, 129, 0.9);
+  border-color: #34d399;
+  color: #04120a !important;
+  box-shadow: 0 12px 28px -4px rgba(0, 0, 0, 0.7), 0 0 20px rgba(16, 185, 129, 0.45);
+  transform: translateY(-2px);
+}
+
+.lightbox-raw-btn:active {
+  transform: translateY(0) scale(0.96);
+}
+
 
 .hero-section {
   position: relative;

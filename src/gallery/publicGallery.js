@@ -262,11 +262,11 @@ export async function initPublicGallery(containerId = 'public-gallery-container'
               href="#"
               target="_blank"
               rel="noopener noreferrer"
-              class="absolute bottom-3 right-3 z-20 font-semibold text-slate-100 hover:text-white bg-slate-950/80 hover:bg-emerald-600/90 backdrop-blur-md px-3.5 py-2 rounded-xl border border-white/20 hover:border-emerald-400 shadow-xl transition-all duration-200 flex items-center gap-2 text-xs sm:text-sm active:scale-95"
+              class="lightbox-raw-btn absolute bottom-3.5 right-3.5 z-20 font-semibold text-slate-200 hover:text-white flex items-center gap-2 text-xs sm:text-sm active:scale-95 transition-all duration-200 cursor-pointer"
               title="Buka foto dalam resolusi penuh di tab baru"
             >
               <span>Resolusi Asli</span>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="transition-transform duration-200 group-hover:translate-x-0.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
             </a>
           </div>
           <div id="lightbox-error-msg" class="hidden bg-slate-900 border border-slate-800 rounded-2xl p-8 text-center text-slate-400 shadow-2xl max-w-md">
