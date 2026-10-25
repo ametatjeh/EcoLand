@@ -251,6 +251,7 @@ export function switchAlbumSubView(viewName, albumId = null, updateHash = true) 
 
     if (window.location.hash !== targetHash) {
       window.location.hash = targetHash;
+      return;
     }
   }
 

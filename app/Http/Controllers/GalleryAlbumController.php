@@ -153,7 +153,7 @@ class GalleryAlbumController extends Controller
             'description' => 'nullable|string',
             'category' => 'nullable|string|max:100',
             'organizer' => 'nullable|string|max:255',
-            'planting_zone_id' => 'nullable|string|max:100',
+            'planting_zone_id' => 'nullable|string|max:100|exists:planting_zones,id',
             'location_name' => 'nullable|string|max:255',
             'activity_date' => 'nullable|date',
             'is_published' => 'nullable|boolean',
@@ -237,24 +237,47 @@ class GalleryAlbumController extends Controller
             'description' => 'nullable|string',
             'category' => 'nullable|string|max:100',
             'organizer' => 'nullable|string|max:255',
-            'planting_zone_id' => 'nullable|string|max:100',
+            'planting_zone_id' => 'nullable|string|max:100|exists:planting_zones,id',
             'location_name' => 'nullable|string|max:255',
             'activity_date' => 'nullable|date',
             'is_published' => 'nullable|boolean',
             'sort_order' => 'nullable|integer',
+            'photo_ids' => 'nullable|array',
+            'photo_ids.*' => 'integer|exists:planting_zone_photos,id',
             'cover_photo_id' => 'nullable|integer|exists:planting_zone_photos,id',
         ]);
 
-        $album->update($validated);
+        return DB::transaction(function () use ($album, $validated, $request) {
+            $albumData = array_intersect_key($validated, array_flip([
+                'title', 'description', 'category', 'organizer', 'planting_zone_id',
+                'location_name', 'activity_date', 'is_published', 'sort_order', 'cover_photo_id',
+            ]));
 
-        $album->load(['photos', 'coverPhoto', 'zone', 'creator']);
-        $album->loadCount('photos');
+            $album->update($albumData);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Album berhasil diperbarui.',
-            'album' => $album,
-        ]);
+            if ($request->has('photo_ids')) {
+                $photoIds = $validated['photo_ids'] ?? [];
+                $pivotData = [];
+                foreach ($photoIds as $index => $photoId) {
+                    $pivotData[$photoId] = ['sort_order' => $index];
+                }
+                $album->photos()->sync($pivotData);
+
+                // Jika cover saat ini tidak ada di daftar foto baru, sesuaikan
+                if ($album->cover_photo_id && !in_array($album->cover_photo_id, $photoIds)) {
+                    $album->update(['cover_photo_id' => $photoIds[0] ?? null]);
+                }
+            }
+
+            $album->load(['photos', 'coverPhoto', 'zone', 'creator']);
+            $album->loadCount('photos');
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Album berhasil diperbarui.',
+                'album' => $album,
+            ]);
+        });
     }
 
     /**
@@ -263,13 +286,16 @@ class GalleryAlbumController extends Controller
     public function destroy($id)
     {
         $album = GalleryAlbum::findOrFail($id);
-        $album->photos()->detach();
-        $album->delete();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Album berhasil dihapus.',
-        ]);
+        return DB::transaction(function () use ($album) {
+            $album->photos()->detach();
+            $album->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Album berhasil dihapus.',
+            ]);
+        });
     }
 
     /**
@@ -323,22 +349,25 @@ class GalleryAlbumController extends Controller
     public function removePhoto($id, $photoId)
     {
         $album = GalleryAlbum::findOrFail($id);
-        $album->photos()->detach($photoId);
 
-        // Reset cover if removed photo was cover
-        if ($album->cover_photo_id == $photoId) {
-            $firstPhoto = $album->photos()->orderBy('gallery_album_photos.sort_order')->first();
-            $album->update(['cover_photo_id' => $firstPhoto?->id]);
-        }
+        return DB::transaction(function () use ($album, $photoId) {
+            $album->photos()->detach($photoId);
 
-        $album->load('photos');
-        $album->loadCount('photos');
+            // Reset cover if removed photo was cover
+            if ($album->cover_photo_id == $photoId) {
+                $firstPhoto = $album->photos()->orderBy('gallery_album_photos.sort_order')->first();
+                $album->update(['cover_photo_id' => $firstPhoto?->id]);
+            }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Foto dihapus dari album.',
-            'album' => $album,
-        ]);
+            $album->load('photos');
+            $album->loadCount('photos');
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Foto dihapus dari album.',
+                'album' => $album,
+            ]);
+        });
     }
 
     /**
@@ -580,35 +609,37 @@ class GalleryAlbumController extends Controller
         $album = GalleryAlbum::findOrFail($id);
         $photo = $album->photos()->findOrFail($photoId);
 
-        // Periksa apakah foto digunakan di album lain
-        $otherAlbumsCount = $photo->albums()->where('gallery_albums.id', '!=', $album->id)->count();
+        return DB::transaction(function () use ($album, $photo, $photoId) {
+            // Periksa apakah foto digunakan di album lain
+            $otherAlbumsCount = $photo->albums()->where('gallery_albums.id', '!=', $album->id)->count();
 
-        // Lepas dari album ini
-        $album->photos()->detach($photoId);
+            // Lepas dari album ini
+            $album->photos()->detach($photoId);
 
-        if ($album->cover_photo_id == $photoId) {
-            $firstPhoto = $album->photos()->orderBy('gallery_album_photos.sort_order')->first();
-            $album->update(['cover_photo_id' => $firstPhoto?->id]);
-        }
+            if ($album->cover_photo_id == $photoId) {
+                $firstPhoto = $album->photos()->orderBy('gallery_album_photos.sort_order')->first();
+                $album->update(['cover_photo_id' => $firstPhoto?->id]);
+            }
 
-        if ($otherAlbumsCount > 0) {
+            if ($otherAlbumsCount > 0) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Foto dikeluarkan dari album ini. Berkas fisik tetap disimpan karena tercatat pada album lain.',
+                ]);
+            }
+
+            // Jika foto diunggah khusus album, bersihkan file fisiknya secara aman
+            if ($photo->file_path && str_contains($photo->file_path, 'gallery/albums/')) {
+                $relativePath = str_replace('/storage/', '', $photo->file_path);
+                Storage::disk('public')->delete($relativePath);
+            }
+
+            $photo->delete();
+
             return response()->json([
                 'success' => true,
-                'message' => 'Foto dikeluarkan dari album ini. Berkas fisik tetap disimpan karena tercatat pada album lain.',
+                'message' => 'Foto dan berkasnya berhasil dihapus secara permanen.',
             ]);
-        }
-
-        // Jika foto diunggah khusus album, bersihkan file fisiknya secara aman
-        if ($photo->file_path && str_contains($photo->file_path, 'gallery/albums/')) {
-            $relativePath = str_replace('/storage/', '', $photo->file_path);
-            Storage::disk('public')->delete($relativePath);
-        }
-
-        $photo->delete();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Foto dan berkasnya berhasil dihapus secara permanen.',
-        ]);
+        });
     }
 }

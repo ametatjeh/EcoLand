@@ -405,7 +405,7 @@ export function updateTopbarZoneSwitcherVisibility(tabName) {
   }
 }
 
-export function updateTopbarBreadcrumbsAndTitle(tabName, subTab = null) {
+export function updateTopbarBreadcrumbsAndTitle(tabName, subTab = null, extraId = null, action = null) {
   const titleEl = document.getElementById('admin-header-title');
   const breadcrumbActiveEl = document.getElementById('admin-breadcrumb-active');
   const categoryWrapperEl = document.getElementById('breadcrumb-category-wrapper');
@@ -678,25 +678,33 @@ export function parseAdminRoute(hashStr) {
   }
 
   // 2. Direct Shortcuts for Trees Submodules
-  if (['species', 'activities', 'surveys', 'maintenance'].includes(rawTab)) {
+  const treeDirectMap = {
+    'species': 'species',
+    'tree-species': 'species',
+    'activities': 'activities',
+    'surveys': 'surveys',
+    'maintenance': 'maintenance',
+  };
+  if (treeDirectMap[rawTab]) {
+    const sub = treeDirectMap[rawTab];
     if (rawSubTab === 'create') {
-      return { tab: 'trees', subTab: rawTab, extraId: null, action: 'create' };
+      return { tab: 'trees', subTab: sub, extraId: null, action: 'create' };
     }
     if (rawSubTab && rawSubSub === 'edit') {
-      return { tab: 'trees', subTab: rawTab, extraId: rawSubTab, action: 'edit' };
+      return { tab: 'trees', subTab: sub, extraId: rawSubTab, action: 'edit' };
     }
     if (rawSubTab === 'edit' && rawSubSub) {
-      return { tab: 'trees', subTab: rawTab, extraId: rawSubSub, action: 'edit' };
+      return { tab: 'trees', subTab: sub, extraId: rawSubSub, action: 'edit' };
     }
     if (rawSubTab && rawSubTab !== 'list') {
-      return { tab: 'trees', subTab: rawTab, extraId: rawSubTab, action: 'edit' };
+      return { tab: 'trees', subTab: sub, extraId: rawSubTab, action: 'edit' };
     }
-    return { tab: 'trees', subTab: rawTab, extraId: null, action: null };
+    return { tab: 'trees', subTab: sub, extraId: null, action: null };
   }
 
   // 3. Tree Module Standard Routes: #admin/trees/...
   if (rawTab === 'trees') {
-    const sub = rawSubTab || 'dashboard';
+    const sub = rawSubTab === 'tree-species' ? 'species' : (rawSubTab || 'dashboard');
     if (['species', 'activities', 'surveys', 'maintenance'].includes(sub)) {
       if (rawSubSub === 'create') {
         return { tab: 'trees', subTab: sub, extraId: null, action: 'create' };

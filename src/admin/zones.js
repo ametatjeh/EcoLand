@@ -41,6 +41,7 @@ export async function switchZoneSubTab(tabName, zoneId = null, updateHash = true
     }
     if (window.location.hash !== targetHash) {
       window.location.hash = targetHash;
+      return;
     }
   }
 

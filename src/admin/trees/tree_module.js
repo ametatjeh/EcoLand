@@ -880,6 +880,10 @@ function renderSpeciesFormView(item = null, container) {
   let stagedFiles = []; // Array of { file: File, id: string, previewUrl: string }
   let selectedCoverKey = null; // 'existing:URL' or 'staged:id'
 
+  // Dirty state tracking for species form
+  let isSpFormDirty = false;
+  const markSpDirty = () => { isSpFormDirty = true; };
+
   if (existingPhotos.length > 0) {
     selectedCoverKey = `existing:${item?.photo_path || existingPhotos[0]}`;
   }
@@ -1004,6 +1008,7 @@ function formatTreePhotoUrl(src) {
         btn.addEventListener('click', (e) => {
           e.stopPropagation();
           selectedCoverKey = btn.getAttribute('data-cover-key');
+          markSpDirty();
           updateGalleryUI();
         });
       });
@@ -1020,6 +1025,7 @@ function formatTreePhotoUrl(src) {
             const removed = stagedFiles.splice(idx, 1);
             if (removed[0]?.previewUrl) URL.revokeObjectURL(removed[0].previewUrl);
           }
+          markSpDirty();
           updateGalleryUI();
         });
       });
@@ -1042,6 +1048,7 @@ function formatTreePhotoUrl(src) {
         });
       }
     }
+    markSpDirty();
     updateGalleryUI();
   };
 
@@ -1077,6 +1084,27 @@ function formatTreePhotoUrl(src) {
     });
   }
 
+  // Dirty state tracking on form inputs
+
+  [
+    'page-sp-common',
+    'page-sp-scientific',
+    'page-sp-local',
+    'page-sp-family',
+    'page-sp-origin',
+    'page-sp-ref',
+    'page-sp-ecological',
+    'page-sp-benefits',
+    'page-sp-desc',
+  ].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener('input', markSpDirty);
+      el.addEventListener('change', markSpDirty);
+    }
+  });
+  document.getElementById('page-sp-active')?.addEventListener('change', markSpDirty);
+
   // Add manual photo URL
   btnAddUrl?.addEventListener('click', () => {
     const val = photoPathInput.value.trim();
@@ -1084,6 +1112,7 @@ function formatTreePhotoUrl(src) {
     if (!existingPhotos.includes(val)) {
       existingPhotos.push(val);
       photoPathInput.value = '';
+      markSpDirty();
       updateGalleryUI();
     } else {
       EcoToast.info('URL foto sudah ada di daftar.');
@@ -1091,14 +1120,22 @@ function formatTreePhotoUrl(src) {
   });
 
   // Tombol Kembali & Batal
-  const handleBackOrCancel = () => {
-    const commonName = document.getElementById('page-sp-common').value.trim();
-    if (commonName && (!item || commonName !== item.common_name)) {
-      if (!confirm('Perubahan belum disimpan. Kembali ke daftar jenis pohon?')) {
+  const handleBackOrCancel = async () => {
+    if (isSpFormDirty || stagedFiles.length > 0) {
+      const confirmed = await EcoModal.confirm({
+        title: 'Batalkan Perubahan?',
+        subtitle: 'Perubahan pada data jenis pohon belum disimpan.',
+        message: 'Data atau berkas foto yang Anda masukkan akan dibatalkan jika kembali ke daftar sekarang. Apakah Anda yakin?',
+        type: 'warning',
+        confirmText: 'Ya, Tinggalkan',
+        cancelText: 'Tetap di Sini',
+        icon: '🌳',
+      });
+      if (!confirmed) {
         return;
       }
     }
-    renderSpeciesTab(container);
+    switchTreeSubTab('species', cachedScenes);
   };
 
   document.getElementById('breadcrumb-btn-species-list')?.addEventListener('click', handleBackOrCancel);
@@ -1252,7 +1289,8 @@ function formatTreePhotoUrl(src) {
       } else {
         EcoToast.created(`Data jenis pohon '${commonName}' berhasil disimpan.`);
       }
-      await renderSpeciesTab(container);
+      isSpFormDirty = false;
+      switchTreeSubTab('species', cachedScenes);
     } catch (err) {
       alertBox.className = 'alert-box error';
       if (err.status === 422 && err.errors) {
@@ -1283,6 +1321,10 @@ function formatTreePhotoUrl(src) {
 
   document.getElementById('btn-save-species-form')?.addEventListener('click', handleSave);
   document.getElementById('btn-save-species-bottom')?.addEventListener('click', handleSave);
+  document.getElementById('species-page-form')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    handleSave();
+  });
 }
 
 // ─────────────────────────────────────────────────────────────
