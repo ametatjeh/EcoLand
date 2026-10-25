@@ -6293,17 +6293,6 @@ File foto dan catatannya akan dihapus jika tidak digunakan di album/fitur lain.`
       <div id="lightbox-thumb-strip" class="px-5 sm:px-8 py-3 bg-slate-950/85 border-t border-white/10 flex items-center justify-start sm:justify-center gap-2.5 overflow-x-auto z-20 shrink-0">
       </div>
 
-      <!-- Lightbox Footer -->
-      <div class="lightbox-footer-bar px-5 sm:px-8 py-4 bg-slate-900/95 border-t border-white/10 text-white flex items-center justify-end gap-3.5 z-30 shrink-0">
-        <div class="flex items-center gap-3 flex-wrap shrink-0 text-xs sm:text-sm">
-          <span id="lightbox-zone-name" class="font-medium text-slate-300 bg-slate-800/80 px-3.5 py-1.5 rounded-lg border border-slate-700 flex items-center gap-2">
-            <span>🏞️</span> <span>Kawasan</span>
-          </span>
-          <span id="lightbox-date" class="font-mono text-emerald-400 bg-emerald-500/10 px-3.5 py-1.5 rounded-lg border border-emerald-500/25 flex items-center gap-2">
-            <span>📅</span> <span>Tanggal</span>
-          </span>
-        </div>
-      </div>
     </div>
   `;try{Op=(await J.getPublicZones()).zones||[];let e=document.getElementById(`gallery-filter-zone`);e&&Op.length>0&&(e.innerHTML=`<option value="all">Semua Kawasan</option>`,Op.forEach(t=>{let n=document.createElement(`option`);n.value=t.id,n.textContent=t.name,n.title=`${t.name} (${t.zone_code})`,e.appendChild(n)}))}catch(e){console.warn(`Gagal memuat kawasan untuk filter galeri:`,e)}await Vp(r);let i=document.getElementById(`gallery-filter-zone`),a=document.getElementById(`gallery-filter-category`),o=document.getElementById(`gallery-search-input`),s=document.getElementById(`gallery-search-clear`),c=document.getElementById(`gallery-reset-btn`),l=document.getElementById(`gallery-back-to-albums`);i&&i.addEventListener(`change`,e=>{kp=e.target.value,Qp()}),a&&a.addEventListener(`change`,e=>{Ap=e.target.value,Qp()}),o&&o.addEventListener(`input`,e=>{jp=e.target.value.toLowerCase().trim(),Qp()}),s&&s.addEventListener(`click`,()=>{o&&(o.value=``,jp=``,o.focus(),Qp())}),c&&c.addEventListener(`click`,()=>{Zp()}),l&&l.addEventListener(`click`,()=>{Up(!0)}),rm()}async function Vp(e=null){let t=document.getElementById(`gallery-grid-container`);if(t)try{if(Ep=(await J.getPublicAlbums()).albums||[],Ep.length>0){Yp(Ep),qp(Ep);let t=e||zp();t?await Hp(t,!1):(Ip=`albums`,Qp())}else Ip=`photos`,Dp=(await J.getAllPublicPhotos()).photos||[],Xp(Dp),Jp(Dp,Op),Qp()}catch(e){console.error(`Error loading gallery:`,e),t.innerHTML=`
       <div class="bg-red-500/10 border border-red-500/20 text-red-400 rounded-2xl p-8 text-center text-sm">

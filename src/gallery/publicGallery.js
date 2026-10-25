@@ -275,17 +275,6 @@ export async function initPublicGallery(containerId = 'public-gallery-container'
       <div id="lightbox-thumb-strip" class="px-5 sm:px-8 py-3 bg-slate-950/85 border-t border-white/10 flex items-center justify-start sm:justify-center gap-2.5 overflow-x-auto z-20 shrink-0">
       </div>
 
-      <!-- Lightbox Footer -->
-      <div class="lightbox-footer-bar px-5 sm:px-8 py-4 bg-slate-900/95 border-t border-white/10 text-white flex items-center justify-end gap-3.5 z-30 shrink-0">
-        <div class="flex items-center gap-3 flex-wrap shrink-0 text-xs sm:text-sm">
-          <span id="lightbox-zone-name" class="font-medium text-slate-300 bg-slate-800/80 px-3.5 py-1.5 rounded-lg border border-slate-700 flex items-center gap-2">
-            <span>🏞️</span> <span>Kawasan</span>
-          </span>
-          <span id="lightbox-date" class="font-mono text-emerald-400 bg-emerald-500/10 px-3.5 py-1.5 rounded-lg border border-emerald-500/25 flex items-center gap-2">
-            <span>📅</span> <span>Tanggal</span>
-          </span>
-        </div>
-      </div>
     </div>
   `;
 
