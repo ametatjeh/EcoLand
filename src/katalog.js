@@ -94,7 +94,7 @@ export async function loadAndRenderCatalog() {
 
   // Render initial loading state
   container.innerHTML = `
-    <div class="catalog-wrapper" style="max-width: 1240px; margin: 0 auto; padding: 28px 24px 54px; width: 100%;">
+    <div class="catalog-wrapper">
       <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 340px; gap: 14px; color: var(--clr-text-muted);">
         <span class="loading-spinner"></span>
         <span style="font-size: 14px;">Memuat data katalog jenis pohon restorasi...</span>
@@ -108,7 +108,7 @@ export async function loadAndRenderCatalog() {
     renderCatalogState();
   } catch (err) {
     container.innerHTML = `
-      <div class="catalog-wrapper" style="max-width: 1240px; margin: 0 auto; padding: 28px 24px 54px; width: 100%;">
+      <div class="catalog-wrapper">
         <div style="padding: 32px 24px; text-align: center; background: rgba(239, 68, 68, 0.08); border-radius: var(--radius-md); border: 1px solid rgba(239, 68, 68, 0.25);">
           <span style="font-size: 36px; display: block; margin-bottom: 8px;">⚠️</span>
           <h3 style="color: var(--clr-danger); font-size: 18px; margin-bottom: 6px;">Gagal Memuat Katalog Jenis Pohon</h3>
@@ -154,7 +154,7 @@ function renderCatalogListView(container) {
   const availableFamilies = [...new Set(cachedPublicSpecies.map((s) => s.family).filter(Boolean))].sort();
 
   container.innerHTML = `
-    <div class="catalog-wrapper" style="max-width: 1240px; margin: 0 auto; padding: 28px 24px 54px; width: 100%;">
+    <div class="catalog-wrapper">
       <!-- Section Header Hero Banner -->
       <div class="hero-section text-center relative overflow-hidden" style="padding: 32px 24px; margin-bottom: 28px; background: radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.14) 0%, rgba(10, 24, 20, 0.8) 75%); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 20px; box-shadow: 0 16px 36px -12px rgba(0, 0, 0, 0.6);">
         <div class="hero-badge" style="display: inline-flex; align-items: center; gap: 6px; padding: 5px 14px; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 9999px; font-size: 12px; font-weight: 600; color: var(--clr-primary-light); margin-bottom: 12px;">
