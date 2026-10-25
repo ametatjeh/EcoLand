@@ -12,6 +12,14 @@ let onJumpToSceneCallback = null;
 let currentContainerId = 'public-tree-catalog-container';
 let currentMode = 'list'; // 'list' | 'detail' | 'not-found'
 let currentSpeciesId = null;
+let detailSlideTimer = null;
+
+function clearDetailSlideTimer() {
+  if (detailSlideTimer) {
+    clearInterval(detailSlideTimer);
+    detailSlideTimer = null;
+  }
+}
 
 let currentSearchTerm = '';
 let currentOriginFilter = 'all';
@@ -36,9 +44,12 @@ export async function initPublicTreeCatalog(containerId = 'public-tree-catalog-c
       if (hash.startsWith('#katalog')) {
         const sid = getSpeciesIdFromHash();
         if (sid !== currentSpeciesId) {
+          clearDetailSlideTimer();
           currentSpeciesId = sid;
           renderCatalogState();
         }
+      } else {
+        clearDetailSlideTimer();
       }
     });
   }
@@ -114,6 +125,7 @@ export async function loadAndRenderCatalog() {
  * Mengarahkan render ke list atau detail berdasarkan state saat ini
  */
 function renderCatalogState() {
+  clearDetailSlideTimer();
   const container = document.getElementById(currentContainerId);
   if (!container) return;
 
@@ -481,6 +493,7 @@ function getNeutralPhotoPlaceholderHtml() {
  * Navigasi menuju halaman detail profil pohon
  */
 function navigateToSpeciesDetail(speciesId) {
+  clearDetailSlideTimer();
   currentSpeciesId = speciesId;
   window.location.hash = `#katalog?species=${encodeURIComponent(speciesId)}`;
   window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -491,6 +504,7 @@ function navigateToSpeciesDetail(speciesId) {
  * Navigasi kembali ke daftar katalog utama
  */
 function backToCatalogList() {
+  clearDetailSlideTimer();
   currentSpeciesId = null;
   window.location.hash = '#katalog';
   window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -511,6 +525,20 @@ function renderSpeciesDetailView(container, sp) {
   if (photoSrc && !photoSrc.startsWith('http://') && !photoSrc.startsWith('https://') && !photoSrc.startsWith('/')) {
     photoSrc = '/' + photoSrc;
   }
+
+  // Kumpulan foto galeri untuk auto slider
+  const rawPhotos = Array.isArray(sp.gallery_photos) && sp.gallery_photos.length > 0
+    ? sp.gallery_photos
+    : (photoSrc ? [photoSrc] : []);
+
+  const photos = rawPhotos.map((p) => {
+    let src = String(p).trim();
+    if (src && !src.startsWith('http://') && !src.startsWith('https://') && !src.startsWith('/')) {
+      src = '/' + src;
+    }
+    return src;
+  }).filter(Boolean);
+  const hasPhotos = photos.length > 0;
 
   // Ringkasan penanaman
   const plantings = sp.plantings || [];
@@ -544,60 +572,94 @@ function renderSpeciesDetailView(container, sp) {
 
       <!-- Header Hero Profil Spesies -->
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 28px; background: rgba(15, 28, 22, 0.85); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 20px; padding: 24px; margin-bottom: 28px; box-shadow: 0 16px 36px -12px rgba(0, 0, 0, 0.6);">
-        <!-- Kolom Kiri: Foto Dokumentasi -->
+        <!-- Kolom Kiri: Foto Dokumentasi (Auto Slider) -->
         <div>
-          <div style="width: 100%; aspect-ratio: 4 / 3; border-radius: 14px; overflow: hidden; background: #070d0a; border: 1px solid rgba(255, 255, 255, 0.1); position: relative;">
-            ${hasPhoto ? `
-              <img
-                id="catalog-species-main-photo"
-                src="${photoSrc}"
-                alt="Foto Dokumentasi ${escapeHtml(sp.common_name)} (${escapeHtml(sp.scientific_name)})"
-                style="width: 100%; height: 100%; object-fit: cover; transition: opacity 0.25s ease;"
-                onerror="this.parentElement.innerHTML = getNeutralPhotoPlaceholderHtml();"
-              />
-            ` : getNeutralPhotoPlaceholderHtml()}
-
-            <div style="position: absolute; top: 12px; left: 12px;">
-              <span class="admin-header-pill ${originBadgeClass}" style="font-size: 11px; padding: 4px 12px; border-radius: 9999px; font-weight: 600; box-shadow: 0 2px 8px rgba(0,0,0,0.5);">
-                ${escapeHtml(originLabel)}
-              </span>
-            </div>
-
-            ${sp.gallery_photos && sp.gallery_photos.length > 1 ? `
-              <div style="position: absolute; bottom: 12px; right: 12px;">
-                <span id="catalog-species-photo-counter" style="font-size: 11px; padding: 3px 10px; border-radius: 9999px; font-weight: 600; background: rgba(0,0,0,0.75); color: #fff; border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(4px);">
-                  1 / ${sp.gallery_photos.length} Foto
+          ${!hasPhotos ? `
+            <div style="width: 100%; aspect-ratio: 4 / 3; border-radius: 14px; overflow: hidden; background: #070d0a; border: 1px solid rgba(255, 255, 255, 0.1); position: relative;">
+              ${getNeutralPhotoPlaceholderHtml()}
+              <div style="position: absolute; top: 12px; left: 12px; z-index: 5;">
+                <span class="admin-header-pill ${originBadgeClass}" style="font-size: 11px; padding: 4px 12px; border-radius: 9999px; font-weight: 600; box-shadow: 0 2px 8px rgba(0,0,0,0.5);">
+                  ${escapeHtml(originLabel)}
                 </span>
               </div>
-            ` : ''}
-          </div>
-
-          <!-- Thumbnail Strip jika lebih dari 1 foto -->
-          ${sp.gallery_photos && sp.gallery_photos.length > 1 ? `
-            <div style="display: flex; gap: 8px; margin-top: 12px; overflow-x: auto; padding-bottom: 4px;" id="catalog-species-thumbnails">
-              ${sp.gallery_photos.map((pUrl, pIdx) => `
-                <button
-                  type="button"
-                  class="species-thumb-btn ${pIdx === 0 ? 'active' : ''}"
-                  data-photo-url="${escapeHtml(pUrl)}"
-                  data-photo-idx="${pIdx + 1}"
-                  style="flex: 0 0 68px; height: 52px; border-radius: 8px; overflow: hidden; border: 2px solid ${pIdx === 0 ? '#10b981' : 'rgba(255,255,255,0.15)'}; background: #070d0a; padding: 0; cursor: pointer; transition: all 0.2s;"
+            </div>
+          ` : photos.length === 1 ? `
+            <div style="width: 100%; aspect-ratio: 4 / 3; border-radius: 14px; overflow: hidden; background: #070d0a; border: 1px solid rgba(255, 255, 255, 0.1); position: relative;">
+              <img
+                src="${escapeHtml(photos[0])}"
+                alt="Foto Dokumentasi ${escapeHtml(sp.common_name)} (${escapeHtml(sp.scientific_name)})"
+                style="width: 100%; height: 100%; object-fit: cover;"
+                onerror="this.parentElement.innerHTML = getNeutralPhotoPlaceholderHtml();"
+              />
+              <div style="position: absolute; top: 12px; left: 12px; z-index: 5;">
+                <span class="admin-header-pill ${originBadgeClass}" style="font-size: 11px; padding: 4px 12px; border-radius: 9999px; font-weight: 600; box-shadow: 0 2px 8px rgba(0,0,0,0.5);">
+                  ${escapeHtml(originLabel)}
+                </span>
+              </div>
+            </div>
+          ` : `
+            <div id="catalog-species-slider-box" style="width: 100%; aspect-ratio: 4 / 3; border-radius: 14px; overflow: hidden; background: #070d0a; border: 1px solid rgba(255, 255, 255, 0.1); position: relative; user-select: none;">
+              ${photos.map((pUrl, pIdx) => `
+                <div
+                  class="catalog-slide-item"
+                  data-slide-index="${pIdx}"
+                  style="position: absolute; inset: 0; opacity: ${pIdx === 0 ? '1' : '0'}; transition: opacity 0.7s cubic-bezier(0.4, 0, 0.2, 1); pointer-events: ${pIdx === 0 ? 'auto' : 'none'}; z-index: ${pIdx === 0 ? '2' : '1'};"
                 >
-                  <img src="${escapeHtml(pUrl)}" alt="Thumbnail ${pIdx + 1}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='/favicon.svg'" />
-                </button>
+                  <img
+                    src="${escapeHtml(pUrl)}"
+                    alt="Foto Dokumentasi ${escapeHtml(sp.common_name)} (${pIdx + 1}/${photos.length})"
+                    style="width: 100%; height: 100%; object-fit: cover;"
+                    onerror="this.src='/favicon.svg'"
+                  />
+                </div>
               `).join('')}
-            </div>
-          ` : ''}
 
-          ${sp.reference_source ? `
-            <div style="margin-top: 10px; font-size: 11.5px; color: var(--clr-text-dim); line-height: 1.4; padding: 6px 10px; background: rgba(0,0,0,0.25); border-radius: 6px;">
-              📖 <strong>Sumber Referensi:</strong> ${escapeHtml(sp.reference_source)}
+              <!-- Badge Asal Spesies (Kiri Atas) -->
+              <div style="position: absolute; top: 12px; left: 12px; z-index: 10;">
+                <span class="admin-header-pill ${originBadgeClass}" style="font-size: 11px; padding: 4px 12px; border-radius: 9999px; font-weight: 600; box-shadow: 0 2px 8px rgba(0,0,0,0.5);">
+                  ${escapeHtml(originLabel)}
+                </span>
+              </div>
+
+              <!-- Counter Foto (Kanan Atas) -->
+              <div style="position: absolute; top: 12px; right: 12px; z-index: 10;">
+                <span id="catalog-species-photo-counter" style="font-size: 11px; padding: 3px 10px; border-radius: 9999px; font-weight: 600; background: rgba(0,0,0,0.75); color: #fff; border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(4px); box-shadow: 0 2px 8px rgba(0,0,0,0.5);">
+                  1 / ${photos.length} Foto
+                </span>
+              </div>
+
+              <!-- Tombol Navigasi Kiri / Kanan -->
+              <button
+                type="button"
+                id="btn-slider-prev"
+                aria-label="Foto Sebelumnya"
+                style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 34px; height: 34px; border-radius: 50%; background: rgba(0,0,0,0.55); border: 1px solid rgba(255,255,255,0.25); color: #fff; font-size: 20px; line-height: 1; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10; backdrop-filter: blur(4px); transition: all 0.2s;"
+              >‹</button>
+              <button
+                type="button"
+                id="btn-slider-next"
+                aria-label="Foto Berikutnya"
+                style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); width: 34px; height: 34px; border-radius: 50%; background: rgba(0,0,0,0.55); border: 1px solid rgba(255,255,255,0.25); color: #fff; font-size: 20px; line-height: 1; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10; backdrop-filter: blur(4px); transition: all 0.2s;"
+              >›</button>
+
+              <!-- Titik Indikator Slide (Bawah Tengah) -->
+              <div style="position: absolute; bottom: 12px; left: 0; right: 0; display: flex; justify-content: center; align-items: center; gap: 6px; z-index: 10;">
+                ${photos.map((_, pIdx) => `
+                  <button
+                    type="button"
+                    class="slider-dot-btn"
+                    data-slide-target="${pIdx}"
+                    aria-label="Pindah ke foto ${pIdx + 1}"
+                    style="width: ${pIdx === 0 ? '22px' : '8px'}; height: 8px; border-radius: 9999px; background: ${pIdx === 0 ? '#10b981' : 'rgba(255,255,255,0.5)'}; border: none; padding: 0; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 1px 4px rgba(0,0,0,0.6);"
+                  ></button>
+                `).join('')}
+              </div>
             </div>
-          ` : ''}
+          `}
         </div>
 
         <!-- Kolom Kanan: Identitas & Metrik Faktual -->
-        <div style="display: flex; flex-direction: column; justify-content: space-between;">
+        <div style="display: flex; flex-direction: column; justify-content: flex-start; gap: 16px;">
           <div>
             <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
               <span style="font-size: 20px;">🌿</span>
@@ -610,55 +672,55 @@ function renderSpeciesDetailView(container, sp) {
               ${escapeHtml(sp.common_name)}
             </h1>
 
-            <div style="font-size: 16px; font-style: italic; color: var(--clr-primary-light); font-weight: 600; margin-bottom: 16px;">
+            <div style="font-size: 16px; font-style: italic; color: var(--clr-primary-light); font-weight: 600;">
               ${escapeHtml(sp.scientific_name)} ${sp.family ? `<span style="font-style: normal; color: var(--clr-text-muted); font-size: 14px; font-weight: 400;">• Famili ${escapeHtml(sp.family)}</span>` : ''}
-            </div>
-
-            <!-- Tabel Identitas Ringkas -->
-            <div style="background: rgba(0, 0, 0, 0.28); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 14px 16px; margin-bottom: 18px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 13px;">
-              <div>
-                <span style="color: var(--clr-text-dim); display: block; font-size: 11px; text-transform: uppercase; font-weight: 600;">Nama Daerah / Lokal</span>
-                <strong style="color: #f1f5f9; font-weight: 600;">${escapeHtml(sp.local_name || 'Data belum tersedia')}</strong>
-              </div>
-              <div>
-                <span style="color: var(--clr-text-dim); display: block; font-size: 11px; text-transform: uppercase; font-weight: 600;">Klasifikasi Famili</span>
-                <span style="color: #e2e8f0;">${escapeHtml(sp.family || 'Data belum tersedia')}</span>
-              </div>
-              <div>
-                <span style="color: var(--clr-text-dim); display: block; font-size: 11px; text-transform: uppercase; font-weight: 600;">Status Asal Spesies</span>
-                <span style="color: #e2e8f0;">${escapeHtml(originLabel)}</span>
-              </div>
-              <div>
-                <span style="color: var(--clr-text-dim); display: block; font-size: 11px; text-transform: uppercase; font-weight: 600;">Status Publikasi</span>
-                <span style="color: #6ee7b7; font-weight: 600;">✓ Terverifikasi Aktif</span>
-              </div>
             </div>
           </div>
 
-          <!-- Statistik Ringkas (Faktual) -->
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px;">
-            <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 10px; padding: 10px 14px;">
-              <span style="font-size: 11px; color: var(--clr-text-muted); display: block; margin-bottom: 2px;">Total Bibit Ditanam</span>
-              <strong style="font-size: 15px; color: ${hasPlanted ? 'var(--clr-primary-light)' : 'var(--clr-text-muted)'};">
+          <!-- Posisi Box Faktual: Total Bibit Ditanam & Kegiatan Penanaman -->
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px;">
+            <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 10px; padding: 12px 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+              <span style="font-size: 11px; color: var(--clr-text-muted); display: block; margin-bottom: 3px; font-weight: 500;">Total Bibit Ditanam</span>
+              <strong style="font-size: 15px; color: ${hasPlanted ? 'var(--clr-primary-light)' : 'var(--clr-text-muted)'}; font-weight: 700;">
                 ${totalPlantedStr}
               </strong>
             </div>
 
-            <div style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 10px; padding: 10px 14px;">
-              <span style="font-size: 11px; color: var(--clr-text-muted); display: block; margin-bottom: 2px;">Kegiatan Penanaman</span>
-              <strong style="font-size: 15px; color: #38bdf8;">
+            <div style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 10px; padding: 12px 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+              <span style="font-size: 11px; color: var(--clr-text-muted); display: block; margin-bottom: 3px; font-weight: 500;">Kegiatan Penanaman</span>
+              <strong style="font-size: 15px; color: #38bdf8; font-weight: 700;">
                 ${plantings.length > 0 ? `${plantings.length} Kegiatan Tercatat` : 'Belum Ada'}
               </strong>
             </div>
 
             ${survey && survey.scope === 'spesies' ? `
-              <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 10px; padding: 10px 14px;">
-                <span style="font-size: 11px; color: var(--clr-text-muted); display: block; margin-bottom: 2px;">Status Pemantauan</span>
-                <strong style="font-size: 14px; color: #fcd34d;">
+              <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 10px; padding: 12px 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+                <span style="font-size: 11px; color: var(--clr-text-muted); display: block; margin-bottom: 3px; font-weight: 500;">Status Pemantauan</span>
+                <strong style="font-size: 14px; color: #fcd34d; font-weight: 700;">
                   ${survey.survival_rate !== null ? `Hidup ${survey.survival_rate}%` : capitalize(survey.health_condition || 'Terpantau')}
                 </strong>
               </div>
             ` : ''}
+          </div>
+
+          <!-- Tabel Identitas Ringkas -->
+          <div style="background: rgba(0, 0, 0, 0.32); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 14px 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 13px;">
+            <div>
+              <span style="color: var(--clr-text-dim); display: block; font-size: 11px; text-transform: uppercase; font-weight: 600;">Nama Daerah / Lokal</span>
+              <strong style="color: #f1f5f9; font-weight: 600;">${escapeHtml(sp.local_name || 'Data belum tersedia')}</strong>
+            </div>
+            <div>
+              <span style="color: var(--clr-text-dim); display: block; font-size: 11px; text-transform: uppercase; font-weight: 600;">Klasifikasi Famili</span>
+              <span style="color: #e2e8f0;">${escapeHtml(sp.family || 'Data belum tersedia')}</span>
+            </div>
+            <div>
+              <span style="color: var(--clr-text-dim); display: block; font-size: 11px; text-transform: uppercase; font-weight: 600;">Status Asal Spesies</span>
+              <span style="color: #e2e8f0;">${escapeHtml(originLabel)}</span>
+            </div>
+            <div>
+              <span style="color: var(--clr-text-dim); display: block; font-size: 11px; text-transform: uppercase; font-weight: 600;">Status Publikasi</span>
+              <span style="color: #6ee7b7; font-weight: 600;">✓ Terverifikasi Aktif</span>
+            </div>
           </div>
         </div>
       </div>
@@ -909,29 +971,99 @@ function renderSpeciesDetailView(container, sp) {
   document.getElementById('btn-back-to-catalog')?.addEventListener('click', backToCatalogList);
   document.getElementById('btn-bottom-back-to-catalog')?.addEventListener('click', backToCatalogList);
 
-  // Pasang listener thumbnail foto galeri
-  const mainPhoto = document.getElementById('catalog-species-main-photo');
-  const photoCounter = document.getElementById('catalog-species-photo-counter');
-  container.querySelectorAll('.species-thumb-btn').forEach((thumbBtn) => {
-    thumbBtn.addEventListener('click', () => {
-      const url = thumbBtn.getAttribute('data-photo-url');
-      const idx = thumbBtn.getAttribute('data-photo-idx');
-      if (mainPhoto && url) {
-        mainPhoto.style.opacity = '0.4';
-        setTimeout(() => {
-          mainPhoto.src = url;
-          mainPhoto.style.opacity = '1';
-        }, 120);
+  // Pasang auto slider foto jika foto lebih dari 1
+  if (photos.length > 1) {
+    const sliderContainer = document.getElementById('catalog-species-slider-box');
+    const slides = container.querySelectorAll('.catalog-slide-item');
+    const dots = container.querySelectorAll('.slider-dot-btn');
+    const counter = document.getElementById('catalog-species-photo-counter');
+    const btnPrev = document.getElementById('btn-slider-prev');
+    const btnNext = document.getElementById('btn-slider-next');
+    let currentIndex = 0;
+
+    function goToSlide(targetIndex) {
+      if (targetIndex < 0) {
+        currentIndex = photos.length - 1;
+      } else if (targetIndex >= photos.length) {
+        currentIndex = 0;
+      } else {
+        currentIndex = targetIndex;
       }
-      if (photoCounter && idx && sp.gallery_photos) {
-        photoCounter.textContent = `${idx} / ${sp.gallery_photos.length} Foto`;
-      }
-      container.querySelectorAll('.species-thumb-btn').forEach((b) => {
-        b.style.borderColor = 'rgba(255,255,255,0.15)';
+
+      slides.forEach((slide, idx) => {
+        if (idx === currentIndex) {
+          slide.style.opacity = '1';
+          slide.style.pointerEvents = 'auto';
+          slide.style.zIndex = '2';
+        } else {
+          slide.style.opacity = '0';
+          slide.style.pointerEvents = 'none';
+          slide.style.zIndex = '1';
+        }
       });
-      thumbBtn.style.borderColor = '#10b981';
+
+      dots.forEach((dot, idx) => {
+        if (idx === currentIndex) {
+          dot.style.width = '22px';
+          dot.style.background = '#10b981';
+        } else {
+          dot.style.width = '8px';
+          dot.style.background = 'rgba(255,255,255,0.5)';
+        }
+      });
+
+      if (counter) {
+        counter.textContent = `${currentIndex + 1} / ${photos.length} Foto`;
+      }
+    }
+
+    function startAutoSlide() {
+      clearDetailSlideTimer();
+      detailSlideTimer = setInterval(() => {
+        goToSlide(currentIndex + 1);
+      }, 3500);
+    }
+
+    function resetAutoSlide() {
+      startAutoSlide();
+    }
+
+    btnPrev?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      goToSlide(currentIndex - 1);
+      resetAutoSlide();
     });
-  });
+
+    btnNext?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      goToSlide(currentIndex + 1);
+      resetAutoSlide();
+    });
+
+    dots.forEach((dot) => {
+      dot.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const target = parseInt(dot.getAttribute('data-slide-target'), 10);
+        if (!isNaN(target)) {
+          goToSlide(target);
+          resetAutoSlide();
+        }
+      });
+    });
+
+    // Pause on hover, resume on leave
+    if (sliderContainer) {
+      sliderContainer.addEventListener('mouseenter', () => {
+        clearDetailSlideTimer();
+      });
+      sliderContainer.addEventListener('mouseleave', () => {
+        startAutoSlide();
+      });
+    }
+
+    // Jalankan auto sliding
+    startAutoSlide();
+  }
 
   // Pasang listener jump scene
   container.querySelectorAll('.btn-jump-scene-detail').forEach((btn) => {
