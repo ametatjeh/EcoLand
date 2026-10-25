@@ -290,6 +290,6 @@ export default defineConfig({
 
   // Tambahan untuk mengatur peringatan ukuran bundle
   build: {
-    chunkSizeWarningLimit: 1000, // Batas peringatan 1000 kB (1 MB)
+    chunkSizeWarningLimit: 3000, // Batas peringatan 1000 kB (1 MB)
   },
 });
