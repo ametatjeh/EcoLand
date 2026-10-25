@@ -1,5 +1,5 @@
 /**
- * Public Gallery Module for EcoZone 360
+ * Public Gallery Module for EcoZone 360 / Eco Land
  * Menampilkan galeri foto kawasan publik dengan filter kawasan, kategori, pencarian, dan lightbox interaktif.
  */
 
@@ -13,6 +13,10 @@ let currentCategoryFilter = 'all';
 let currentSearchTerm = '';
 let currentLightboxIndex = -1;
 let filteredPhotos = [];
+let isLightboxListenersAttached = false;
+
+// Fallback high-contrast dark placeholder SVG if image is broken or missing
+const FALLBACK_PHOTO_SVG = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="600" height="375" viewBox="0 0 600 375" fill="%230b1511"><rect width="600" height="375" fill="%2307120e"/><rect x="4" y="4" width="592" height="367" rx="16" fill="none" stroke="%2310b981" stroke-width="1.5" stroke-opacity="0.25" stroke-dasharray="8 8"/><circle cx="230" cy="150" r="34" fill="%2310b981" fill-opacity="0.25"/><path d="M120 300l110-120 80 80 55-60 115 100H120z" fill="%2310b981" fill-opacity="0.18"/><text x="300" y="325" fill="%2394a3b8" font-family="system-ui,sans-serif" font-size="13" font-weight="600" text-anchor="middle">Dokumentasi Silvikultur Kawasan</text></svg>`;
 
 export async function initPublicGallery(containerId = 'public-gallery-container') {
   const container = document.getElementById(containerId);
@@ -21,19 +25,39 @@ export async function initPublicGallery(containerId = 'public-gallery-container'
   container.innerHTML = `
     <div class="gallery-wrapper">
       <!-- Section Header Hero Banner -->
-      <div class="hero-section text-center relative overflow-hidden" style="padding: 28px 24px; margin-bottom: 24px;">
+      <div class="hero-section text-center relative overflow-hidden" style="padding: 36px 24px 32px; margin-bottom: 28px;">
         <div class="hero-badge" style="margin-bottom: 14px;">
-          <span>📸</span> Dokumentasi Visual & Silvikultur Kawasan
+          <span>📸</span> Dokumentasi Visual &amp; Silvikultur Kawasan
         </div>
-        <h1 class="hero-title" style="font-size: 32px; margin-bottom: 10px;">
+        <h1 class="hero-title" style="font-size: 34px; margin-bottom: 12px; font-weight: 800;">
           Galeri Foto Kawasan Restorasi
         </h1>
-        <p class="hero-subtitle text-slate-300 text-sm w-full max-w-full mx-auto leading-relaxed text-center" style="text-align: center; margin-bottom: 0; padding-left: 24px; padding-right: 24px; max-width: 100%;">
-          Dokumentasi visual perkembangan kawasan pemulihan lahan &plusmn;2 hektare, pelaksanaan penanaman, pertumbuhan tutupan tajuk, dan monitoring berkala.
+        <p class="hero-subtitle text-slate-300 text-sm max-w-2xl mx-auto leading-relaxed text-center" style="margin-bottom: 20px;">
+          Dokumentasi visual perkembangan kawasan pemulihan lahan &plusmn;2 hektare, pelaksanaan silvikultur, pertumbuhan tutupan tajuk pohon, dan pemantauan kelestarian berkala.
         </p>
+
+        <!-- Hero Quick Stats Bar -->
+        <div class="flex flex-wrap items-center justify-center gap-2.5 sm:gap-3 text-xs">
+          <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-300 shadow-sm">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span id="gallery-stat-total" class="font-semibold">Memuat Foto...</span>
+          </div>
+          <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-800/80 border border-slate-700/80 text-slate-300">
+            <span>🏞️</span>
+            <span id="gallery-stat-zones">Kawasan Konservasi</span>
+          </div>
+          <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-800/80 border border-slate-700/80 text-slate-300">
+            <span>🏷️</span>
+            <span id="gallery-stat-categories">Kategori Silvikultur</span>
+          </div>
+          <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-800/80 border border-slate-700/80 text-slate-300">
+            <span>⭐</span>
+            <span>Arsip Resmi Terverifikasi</span>
+          </div>
+        </div>
       </div>
 
-      <!-- Filters & Search Toolbar (Modern & Proportionate) -->
+      <!-- Filters & Search Toolbar (Modern, Proportionate, Glassmorphic) -->
       <div class="gallery-filter-bar">
         <!-- 1. Search Box -->
         <div class="gallery-search-box">
@@ -46,9 +70,10 @@ export async function initPublicGallery(containerId = 'public-gallery-container'
           <input
             type="text"
             id="gallery-search-input"
-            placeholder="Cari foto, judul, keterangan..."
+            placeholder="Cari judul, keterangan, kategori..."
             class="gallery-search-field"
             autocomplete="off"
+            aria-label="Pencarian galeri foto"
           />
           <button id="gallery-search-clear" class="gallery-search-clear" style="display: none;" title="Hapus pencarian">✕</button>
         </div>
@@ -94,7 +119,7 @@ export async function initPublicGallery(containerId = 'public-gallery-container'
 
           <!-- Counter Badge -->
           <span class="gallery-count-badge" id="gallery-count-badge" title="Total foto yang ditampilkan">
-            <span id="gallery-count-num">0</span> Foto
+            <span id="gallery-count-num">0</span> Foto Ditemukan
           </span>
 
           <!-- Reset Filter Button -->
@@ -105,60 +130,88 @@ export async function initPublicGallery(containerId = 'public-gallery-container'
         </div>
       </div>
 
-      <!-- Grid Foto Galeri -->
+      <!-- Grid Foto Galeri (Well-Proportioned 3-Column Layout) -->
       <div id="gallery-grid-container" class="min-h-[320px]">
-        <div class="flex items-center justify-center py-20 text-slate-400 gap-2">
-          <span class="loading-spinner"></span> Memuat galeri foto...
+        <div class="flex items-center justify-center py-24 text-slate-400 gap-3">
+          <span class="loading-spinner"></span>
+          <span class="text-sm font-medium">Memuat dokumentasi galeri foto...</span>
         </div>
       </div>
     </div>
 
-    <!-- Lightbox Modal Container -->
-    <div id="gallery-lightbox-modal" class="fixed inset-0 z-50 bg-black/95 backdrop-blur-md hidden flex flex-col justify-between" role="dialog" aria-modal="true" aria-label="Penampil Foto Kawasan">
+    <!-- Lightbox Modal Container (High z-index to exceed navbar) -->
+    <div id="gallery-lightbox-modal" class="fixed inset-0 z-[99999] bg-slate-950/95 backdrop-blur-xl hidden flex flex-col justify-between select-none" role="dialog" aria-modal="true" aria-label="Penampil Foto Kawasan">
       <!-- Lightbox Header -->
-      <div class="flex items-center justify-between px-5 py-3.5 bg-slate-900/90 border-b border-slate-800 text-white select-none z-20">
-        <div class="flex items-center gap-3">
-          <span id="lightbox-counter" class="text-xs font-mono text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20">1 / 1</span>
-          <span id="lightbox-category-badge" class="text-xs font-medium text-slate-300 bg-slate-800 px-2.5 py-1 rounded-lg border border-slate-700">Kategori</span>
+      <div class="lightbox-header-bar flex items-center justify-between px-5 sm:px-8 py-4 bg-slate-900/95 border-b border-white/10 text-white z-30 shrink-0">
+        <div class="flex items-center gap-3 sm:gap-4 flex-wrap">
+          <span class="text-xs sm:text-sm font-semibold text-white/90 hidden sm:inline-flex items-center gap-2">
+            <span>📸</span> Galeri Restorasi
+          </span>
+          <span class="text-slate-600 hidden sm:inline">•</span>
+          <span id="lightbox-counter" class="text-xs sm:text-sm font-mono font-bold text-emerald-400 bg-emerald-500/15 px-3 py-1 rounded-lg border border-emerald-500/30">1 / 1</span>
+          <span id="lightbox-category-badge" class="text-xs sm:text-sm font-medium text-slate-200 bg-slate-800/90 px-3 py-1 rounded-lg border border-slate-700">Kategori</span>
+          <span id="lightbox-cover-badge" class="hidden text-xs sm:text-sm font-bold text-amber-950 bg-amber-400 px-3 py-1 rounded-lg border border-amber-300">⭐ Foto Sampul</span>
         </div>
-        <button id="btn-close-lightbox" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-red-500/20 text-slate-300 hover:text-red-400 border border-slate-700 hover:border-red-500/40 transition cursor-pointer font-bold text-sm" aria-label="Tutup penampil foto (Escape)">
-          <span>Tutup</span>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
-        </button>
+
+        <div class="flex items-center gap-3">
+          <kbd class="hidden md:inline-flex items-center gap-1.5 text-xs font-mono text-slate-400 bg-white/5 border border-white/10 px-3 py-1 rounded-lg">
+            <span>Navigasi</span> <span>←</span> <span>→</span> <span class="ml-1 font-bold text-slate-200">ESC</span>
+          </kbd>
+          <button id="btn-close-lightbox" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 hover:bg-rose-500/25 text-slate-200 hover:text-rose-300 border border-white/15 hover:border-rose-500/40 transition-all cursor-pointer font-bold text-xs sm:text-sm" aria-label="Tutup penampil foto (Escape)">
+            <span>Tutup</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
       </div>
 
       <!-- Lightbox Main Stage -->
-      <div class="relative flex-1 flex items-center justify-center p-4 overflow-hidden select-none cursor-pointer" id="lightbox-stage">
+      <div class="relative flex-1 flex items-center justify-center p-4 sm:p-6 overflow-hidden cursor-pointer" id="lightbox-stage">
         <!-- Prev Button -->
-        <button id="btn-lightbox-prev" class="absolute left-4 z-20 p-3 rounded-full bg-slate-900/80 hover:bg-slate-800 text-white border border-slate-700 shadow-xl transition hover:scale-110 cursor-pointer" aria-label="Foto sebelumnya">
+        <button id="btn-lightbox-prev" class="absolute left-3 sm:left-8 z-30 w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-slate-900/85 hover:bg-emerald-600/90 text-white border border-white/15 hover:border-emerald-400 shadow-2xl backdrop-blur-md flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95 cursor-pointer" aria-label="Foto sebelumnya (Panah Kiri)" title="Sebelumnya (←)">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
         </button>
 
-        <!-- Main Displayed Image (Stops propagation so clicking backdrop closes) -->
-        <div class="max-w-5xl max-h-[75vh] flex items-center justify-center transition-all duration-300 cursor-default" id="lightbox-img-wrapper">
-          <img id="lightbox-img" src="" alt="" class="max-h-[72vh] max-w-full rounded-xl object-contain shadow-2xl border border-slate-800/80" />
-          <div id="lightbox-error-msg" class="hidden bg-slate-900 border border-slate-800 rounded-xl p-8 text-center text-slate-400">
-            <span class="text-3xl mb-2 block">⚠️</span>
-            <p class="font-semibold text-white text-sm">Gagal memuat gambar foto</p>
-            <p class="text-xs text-slate-400 mt-1">Berkas gambar tidak ditemukan atau belum tersedia.</p>
+        <!-- Main Displayed Image Wrapper -->
+        <div class="relative max-w-5xl w-full flex items-center justify-center cursor-default transition-transform duration-200" id="lightbox-img-wrapper">
+          <div id="lightbox-loading-spinner" class="absolute inset-0 flex items-center justify-center z-10 hidden">
+            <span class="loading-spinner"></span>
+          </div>
+          <img id="lightbox-img" src="" alt="" class="max-h-[64vh] sm:max-h-[70vh] md:max-h-[72vh] max-w-full rounded-2xl object-contain shadow-2xl border border-white/15 transition-all duration-300" />
+          <div id="lightbox-error-msg" class="hidden bg-slate-900 border border-slate-800 rounded-2xl p-8 text-center text-slate-400 shadow-2xl max-w-md">
+            <span class="text-4xl mb-3 block">⚠️</span>
+            <h4 class="font-bold text-white text-base">Gagal Memuat Gambar</h4>
+            <p class="text-xs text-slate-400 mt-1.5 leading-relaxed">Berkas foto tidak dapat diakses atau belum tersedia di server.</p>
           </div>
         </div>
 
         <!-- Next Button -->
-        <button id="btn-lightbox-next" class="absolute right-4 z-20 p-3 rounded-full bg-slate-900/80 hover:bg-slate-800 text-white border border-slate-700 shadow-xl transition hover:scale-110 cursor-pointer" aria-label="Foto berikutnya">
+        <button id="btn-lightbox-next" class="absolute right-3 sm:right-8 z-30 w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-slate-900/85 hover:bg-emerald-600/90 text-white border border-white/15 hover:border-emerald-400 shadow-2xl backdrop-blur-md flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95 cursor-pointer" aria-label="Foto berikutnya (Panah Kanan)" title="Berikutnya (→)">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
         </button>
       </div>
 
-      <!-- Lightbox Footer (Info & Caption) -->
-      <div class="px-6 py-4 bg-slate-900/90 border-t border-slate-800 text-white flex flex-col md:flex-row md:items-center justify-between gap-3 z-20 select-none">
-        <div>
-          <h3 id="lightbox-title" class="text-base font-bold text-white leading-snug">Judul Foto</h3>
-          <p id="lightbox-caption" class="text-xs text-slate-300 mt-1 max-w-2xl leading-relaxed">Deskripsi foto</p>
+      <!-- Filmstrip Thumbnail Strip (Jump directly to any photo) -->
+      <div id="lightbox-thumb-strip" class="px-5 sm:px-8 py-3 bg-slate-950/85 border-t border-white/10 flex items-center justify-start sm:justify-center gap-2.5 overflow-x-auto z-20 shrink-0">
+        <!-- Dynamically injected thumbnails -->
+      </div>
+
+      <!-- Lightbox Footer (Info & Caption & Raw Link) -->
+      <div class="lightbox-footer-bar px-5 sm:px-8 py-4 bg-slate-900/95 border-t border-white/10 text-white flex flex-col md:flex-row md:items-center justify-between gap-3.5 z-30 shrink-0">
+        <div class="max-w-3xl">
+          <h2 id="lightbox-title" class="text-base sm:text-lg font-bold text-white leading-snug tracking-tight">Judul Foto</h2>
+          <p id="lightbox-caption" class="text-xs sm:text-sm text-slate-300 mt-1 leading-relaxed">Deskripsi foto dokumentasi kawasan restorasi.</p>
         </div>
-        <div class="flex items-center gap-4 text-xs text-slate-400 shrink-0">
-          <span id="lightbox-zone-name">🏞️ Kawasan</span>
-          <span id="lightbox-date">📅 Tanggal</span>
+        <div class="flex items-center gap-3 flex-wrap shrink-0 text-xs sm:text-sm">
+          <span id="lightbox-zone-name" class="font-medium text-slate-300 bg-slate-800/80 px-3.5 py-1.5 rounded-lg border border-slate-700 flex items-center gap-2">
+            <span>🏞️</span> <span>Kawasan</span>
+          </span>
+          <span id="lightbox-date" class="font-mono text-emerald-400 bg-emerald-500/10 px-3.5 py-1.5 rounded-lg border border-emerald-500/25 flex items-center gap-2">
+            <span>📅</span> <span>Tanggal</span>
+          </span>
+          <a id="lightbox-raw-btn" href="#" target="_blank" rel="noopener noreferrer" class="font-semibold text-slate-200 hover:text-white bg-white/10 hover:bg-emerald-600/80 px-3.5 py-1.5 rounded-lg border border-white/15 hover:border-emerald-500 transition-all flex items-center gap-2" title="Buka foto dalam resolusi penuh di tab baru">
+            <span>Resolusi Asli</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          </a>
         </div>
       </div>
     </div>
@@ -227,18 +280,25 @@ export async function initPublicGallery(containerId = 'public-gallery-container'
 
   if (resetBtn) {
     resetBtn.addEventListener('click', () => {
-      currentZoneFilter = 'all';
-      currentCategoryFilter = 'all';
-      currentSearchTerm = '';
-      if (zoneSelect) zoneSelect.value = 'all';
-      if (catSelect) catSelect.value = 'all';
-      if (searchInput) searchInput.value = '';
-      applyFilters();
+      resetAllFilters();
     });
   }
 
   // Setup Lightbox bindings
   setupLightboxListeners();
+}
+
+function resetAllFilters() {
+  currentZoneFilter = 'all';
+  currentCategoryFilter = 'all';
+  currentSearchTerm = '';
+  const zoneSelect = document.getElementById('gallery-filter-zone');
+  const catSelect = document.getElementById('gallery-filter-category');
+  const searchInput = document.getElementById('gallery-search-input');
+  if (zoneSelect) zoneSelect.value = 'all';
+  if (catSelect) catSelect.value = 'all';
+  if (searchInput) searchInput.value = '';
+  applyFilters();
 }
 
 async function loadAndRenderPhotos() {
@@ -252,6 +312,9 @@ async function loadAndRenderPhotos() {
     // Dynamically populate available categories
     populateCategoryDropdown(cachedPublicPhotos);
 
+    // Update hero stats
+    updateHeroStats(cachedPublicPhotos, cachedZones);
+
     applyFilters();
   } catch (err) {
     console.error('Error loading gallery photos:', err);
@@ -261,6 +324,24 @@ async function loadAndRenderPhotos() {
         <p class="text-xs text-red-300">${escapeHtml(err.message)}</p>
       </div>
     `;
+  }
+}
+
+function updateHeroStats(photos, zones) {
+  const statTotal = document.getElementById('gallery-stat-total');
+  const statZones = document.getElementById('gallery-stat-zones');
+  const statCats = document.getElementById('gallery-stat-categories');
+
+  if (statTotal) {
+    statTotal.textContent = `${photos.length} Foto Dokumentasi`;
+  }
+  if (statZones) {
+    const zoneCount = new Set(photos.map((p) => p.planting_zone_id).filter(Boolean)).size || zones.length || 1;
+    statZones.textContent = `${zoneCount} Kawasan Restorasi`;
+  }
+  if (statCats) {
+    const catCount = new Set(photos.map((p) => p.category).filter(Boolean)).size;
+    statCats.textContent = `${catCount > 0 ? catCount : '7'} Kategori Silvikultur`;
   }
 }
 
@@ -343,22 +424,34 @@ function renderPhotoGrid() {
 
   if (filteredPhotos.length === 0) {
     gridContainer.innerHTML = `
-      <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-12 text-center text-slate-400">
-        <div class="text-4xl mb-3">📷</div>
-        <h4 class="text-base font-bold text-white mb-1">Belum Ada Foto Dokumentasi</h4>
-        <p class="text-xs text-slate-400 max-w-md mx-auto">
-          Tidak ditemukan foto yang sesuai dengan filter yang dipilih atau belum ada foto yang dipublikasikan.
+      <div class="bg-slate-900/60 backdrop-blur-md border border-white/10 rounded-2xl p-12 text-center text-slate-300 max-w-lg mx-auto my-6 shadow-xl">
+        <div class="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto mb-4 text-3xl">
+          📷
+        </div>
+        <h4 class="text-lg font-bold text-white mb-2">Tidak Ada Foto Ditemukan</h4>
+        <p class="text-xs sm:text-sm text-slate-400 mb-5 leading-relaxed">
+          Tidak ditemukan foto yang sesuai dengan filter kawasan, kategori, atau pencarian yang Anda pilih.
         </p>
+        <button id="gallery-empty-reset" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600/90 hover:bg-emerald-500 text-white font-semibold text-xs shadow-lg shadow-emerald-950/40 transition-all cursor-pointer">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          Reset Semua Filter
+        </button>
       </div>
     `;
+
+    const emptyResetBtn = document.getElementById('gallery-empty-reset');
+    if (emptyResetBtn) {
+      emptyResetBtn.addEventListener('click', resetAllFilters);
+    }
     return;
   }
 
+  // 3-Column Responsive Grid (sm:grid-cols-2 lg:grid-cols-3)
   gridContainer.innerHTML = `
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-7">
       ${filteredPhotos.map((photo, index) => {
     const zoneName = photo.zone ? photo.zone.name : 'Kawasan Penanaman';
-    const docDate = formatDateDisplay(photo.documented_at);
+    const docDate = photo.documented_at ? formatDateIndo(photo.documented_at) : formatDateDisplay(photo.created_at);
     let rawUrl = photo.thumbnail_url || photo.file_url || photo.file_path || '';
     let imgUrl = rawUrl;
     if (imgUrl && !imgUrl.startsWith('http://') && !imgUrl.startsWith('https://') && !imgUrl.startsWith('/')) {
@@ -367,29 +460,35 @@ function renderPhotoGrid() {
 
     return `
           <div
-            class="gallery-card group bg-slate-900/60 backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl hover:border-emerald-500/40 hover:shadow-emerald-500/10 transition-all duration-300 flex flex-col cursor-pointer hover:-translate-y-1.5"
+            class="gallery-card group bg-slate-900/75 backdrop-blur-md border border-white/10 hover:border-emerald-500/50 rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl hover:shadow-emerald-950/30 transition-all duration-300 flex flex-col cursor-pointer hover:-translate-y-1.5"
             data-index="${index}"
           >
-            <!-- Thumbnail Box -->
-            <div class="relative aspect-4/3 bg-slate-950 overflow-hidden">
+            <!-- Thumbnail Media Box (16:10 aspect ratio) -->
+            <div class="relative gallery-img-box bg-slate-950 overflow-hidden">
               <img
                 src="${imgUrl}"
                 alt="${escapeHtml(photo.alt_text || photo.title || 'Foto Kawasan')}"
                 loading="lazy"
                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                onerror="this.src='/favicon.svg'"
+                onerror="this.onerror=null; this.src='${FALLBACK_PHOTO_SVG}';"
               />
-              <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-3.5">
-                <span class="text-xs font-semibold text-white flex items-center gap-1.5 bg-black/75 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/10 shadow-lg">
-                  <span>🔍</span> Perbesar Foto
+              <!-- Subtle Dark Gradient & Expand Button on Hover -->
+              <div class="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-between p-3.5 sm:p-4">
+                <span class="text-xs font-semibold text-white flex items-center gap-2 bg-slate-900/90 backdrop-blur-md px-3.5 py-1.5 rounded-xl border border-white/20 shadow-lg group-hover:border-emerald-400/50">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-emerald-400"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+                  <span>Perbesar Foto</span>
+                </span>
+                <span class="text-[11px] font-mono text-slate-300 bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-lg border border-white/10">
+                  #${index + 1}
                 </span>
               </div>
-              <div class="absolute top-3 left-3 flex flex-wrap gap-1.5">
-                <span class="text-[11px] font-semibold bg-slate-950/80 backdrop-blur-md text-emerald-400 border border-emerald-500/30 px-2.5 py-1 rounded-lg shadow-sm">
+              <!-- Top Badges -->
+              <div class="absolute top-3 left-3 right-3 flex items-center justify-between pointer-events-none">
+                <span class="text-[11px] font-semibold bg-slate-950/85 backdrop-blur-md text-emerald-400 border border-emerald-500/30 px-2.5 py-1 rounded-lg shadow-md">
                   ${escapeHtml(photo.category || 'Dokumentasi')}
                 </span>
                 ${photo.is_cover ? `
-                  <span class="text-[11px] font-bold bg-amber-500 text-slate-950 px-2.5 py-1 rounded-lg shadow-sm flex items-center gap-1">
+                  <span class="text-[11px] font-bold bg-amber-500 text-slate-950 px-2.5 py-1 rounded-lg shadow-md flex items-center gap-1">
                     <span>⭐</span> Sampul
                   </span>
                 ` : ''}
@@ -397,26 +496,21 @@ function renderPhotoGrid() {
             </div>
 
             <!-- Content Details -->
-            <div class="p-4 flex-1 flex flex-col justify-between gap-3 bg-slate-900/30">
+            <div class="p-5 flex-1 flex flex-col justify-between gap-3 bg-slate-900/40">
               <div>
-                <h4 class="text-sm font-bold text-white line-clamp-1 group-hover:text-emerald-400 transition-colors tracking-tight">
+                <h3 class="text-base font-bold text-white line-clamp-2 group-hover:text-emerald-400 transition-colors leading-snug tracking-tight">
                   ${escapeHtml(photo.title || 'Dokumentasi Kawasan')}
-                </h4>
-                ${photo.caption ? `
-                  <p class="text-xs text-slate-400 line-clamp-2 mt-1.5 leading-relaxed">
-                    ${escapeHtml(photo.caption)}
-                  </p>
-                ` : `
-                  <p class="text-xs text-slate-500 italic mt-1.5 line-clamp-1">
-                    Foto dokumentasi resmi kawasan penanaman
-                  </p>
-                `}
+                </h3>
+                <p class="text-xs text-slate-300 line-clamp-2 mt-2 leading-relaxed">
+                  ${escapeHtml(photo.caption || 'Foto dokumentasi resmi kegiatan penanaman dan pemulihan tutupan lahan kawasan.')}
+                </p>
               </div>
-              <div class="pt-3 border-t border-white/5 flex items-center justify-between text-[11px] text-slate-400">
-                <span class="truncate max-w-[130px] font-medium text-slate-300 flex items-center gap-1" title="${escapeHtml(zoneName)}">
-                  <span>🏞️</span> ${escapeHtml(zoneName)}
+              <div class="pt-3 border-t border-white/10 flex items-center justify-between text-xs text-slate-400 gap-2">
+                <span class="truncate font-medium text-slate-300 flex items-center gap-1.5" title="${escapeHtml(zoneName)}">
+                  <span>🏞️</span>
+                  <span class="truncate">${escapeHtml(zoneName)}</span>
                 </span>
-                <span class="font-mono text-emerald-400/90 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                <span class="font-mono text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-md border border-emerald-500/20 shrink-0 text-[11px]">
                   📅 ${docDate}
                 </span>
               </div>
@@ -453,7 +547,7 @@ function setupLightboxListeners() {
   const imgWrapper = document.getElementById('lightbox-img-wrapper');
   if (stage) {
     stage.addEventListener('click', (e) => {
-      // If clicked directly on stage (outside image wrapper)
+      // If clicked on stage (outside the image box and buttons)
       if (e.target === stage) {
         closeLightbox();
       }
@@ -465,29 +559,35 @@ function setupLightboxListeners() {
     });
   }
 
-  // Keyboard navigation
-  window.addEventListener('keydown', (e) => {
-    if (!modal || modal.classList.contains('hidden')) return;
-    if (e.key === 'Escape') closeLightbox();
-    else if (e.key === 'ArrowLeft') prevLightboxPhoto();
-    else if (e.key === 'ArrowRight') nextLightboxPhoto();
-  });
+  // Prevent multiple bindings if initPublicGallery is called again
+  if (!isLightboxListenersAttached) {
+    isLightboxListenersAttached = true;
 
-  // Touch swipe support on lightbox stage
-  if (stage) {
-    let touchStartX = 0;
-    stage.addEventListener('touchstart', (e) => {
-      touchStartX = e.changedTouches[0].screenX;
-    }, { passive: true });
+    // Keyboard navigation
+    window.addEventListener('keydown', (e) => {
+      const activeModal = document.getElementById('gallery-lightbox-modal');
+      if (!activeModal || activeModal.classList.contains('hidden')) return;
+      if (e.key === 'Escape') closeLightbox();
+      else if (e.key === 'ArrowLeft') prevLightboxPhoto();
+      else if (e.key === 'ArrowRight') nextLightboxPhoto();
+    });
 
-    stage.addEventListener('touchend', (e) => {
-      const touchEndX = e.changedTouches[0].screenX;
-      const diff = touchEndX - touchStartX;
-      if (Math.abs(diff) > 50) {
-        if (diff > 0) prevLightboxPhoto();
-        else nextLightboxPhoto();
-      }
-    }, { passive: true });
+    // Touch swipe support on lightbox stage
+    if (stage) {
+      let touchStartX = 0;
+      stage.addEventListener('touchstart', (e) => {
+        touchStartX = e.changedTouches[0].screenX;
+      }, { passive: true });
+
+      stage.addEventListener('touchend', (e) => {
+        const touchEndX = e.changedTouches[0].screenX;
+        const diff = touchEndX - touchStartX;
+        if (Math.abs(diff) > 50) {
+          if (diff > 0) prevLightboxPhoto();
+          else nextLightboxPhoto();
+        }
+      }, { passive: true });
+    }
   }
 }
 
@@ -529,31 +629,126 @@ function updateLightboxContent() {
   const photo = filteredPhotos[currentLightboxIndex];
 
   const img = document.getElementById('lightbox-img');
+  const spinner = document.getElementById('lightbox-loading-spinner');
   const title = document.getElementById('lightbox-title');
   const caption = document.getElementById('lightbox-caption');
   const zoneName = document.getElementById('lightbox-zone-name');
   const date = document.getElementById('lightbox-date');
   const counter = document.getElementById('lightbox-counter');
   const catBadge = document.getElementById('lightbox-category-badge');
-
+  const coverBadge = document.getElementById('lightbox-cover-badge');
+  const rawBtn = document.getElementById('lightbox-raw-btn');
   const errorMsg = document.getElementById('lightbox-error-msg');
+  const btnPrev = document.getElementById('btn-lightbox-prev');
+  const btnNext = document.getElementById('btn-lightbox-next');
+
+  // Show/hide navigation arrows based on count
+  if (btnPrev && btnNext) {
+    const showNav = filteredPhotos.length > 1;
+    btnPrev.style.display = showNav ? 'flex' : 'none';
+    btnNext.style.display = showNav ? 'flex' : 'none';
+  }
+
+  let fullUrl = photo.file_url || photo.file_path || photo.thumbnail_url || '';
+  if (fullUrl && !fullUrl.startsWith('http://') && !fullUrl.startsWith('https://') && !fullUrl.startsWith('/')) {
+    fullUrl = '/' + fullUrl;
+  }
 
   if (img) {
     img.classList.remove('hidden');
     if (errorMsg) errorMsg.classList.add('hidden');
+    if (spinner) spinner.classList.remove('hidden');
+
+    img.onload = () => {
+      if (spinner) spinner.classList.add('hidden');
+    };
     img.onerror = () => {
+      if (spinner) spinner.classList.add('hidden');
       img.classList.add('hidden');
       if (errorMsg) errorMsg.classList.remove('hidden');
     };
-    img.src = photo.file_url || photo.file_path;
+    img.src = fullUrl;
     img.alt = photo.alt_text || photo.title || 'Foto Kawasan';
   }
+
   if (title) title.textContent = photo.title || 'Dokumentasi Kawasan';
-  if (caption) caption.textContent = photo.caption || '-';
-  if (zoneName) zoneName.textContent = `🏞️ ${photo.zone ? photo.zone.name : 'Kawasan Penanaman'}`;
-  if (date) date.textContent = `📅 ${photo.documented_at ? formatDateIndo(photo.documented_at) : '-'}`;
-  if (counter) counter.textContent = `${currentLightboxIndex + 1} / ${filteredPhotos.length}`;
+  if (caption) caption.textContent = photo.caption || 'Foto dokumentasi resmi penanaman kawasan restorasi.';
+  if (zoneName) {
+    const zName = photo.zone ? photo.zone.name : 'Kawasan Penanaman';
+    zoneName.innerHTML = `<span>🏞️</span> <span class="truncate max-w-[220px]">${escapeHtml(zName)}</span>`;
+  }
+  if (date) {
+    const docDate = photo.documented_at ? formatDateIndo(photo.documented_at) : formatDateDisplay(photo.created_at);
+    date.innerHTML = `<span>📅</span> <span>${escapeHtml(docDate)}</span>`;
+  }
+  if (counter) counter.textContent = `Foto ${currentLightboxIndex + 1} dari ${filteredPhotos.length}`;
   if (catBadge) catBadge.textContent = photo.category || 'Dokumentasi';
+
+  if (coverBadge) {
+    if (photo.is_cover) {
+      coverBadge.classList.remove('hidden');
+    } else {
+      coverBadge.classList.add('hidden');
+    }
+  }
+
+  if (rawBtn) {
+    rawBtn.href = fullUrl || '#';
+  }
+
+  // Render thumbnail strip
+  renderLightboxThumbStrip();
+}
+
+function renderLightboxThumbStrip() {
+  const strip = document.getElementById('lightbox-thumb-strip');
+  if (!strip) return;
+
+  if (filteredPhotos.length <= 1) {
+    strip.style.display = 'none';
+    return;
+  }
+  strip.style.display = 'flex';
+
+  strip.innerHTML = filteredPhotos.map((p, idx) => {
+    const isActive = idx === currentLightboxIndex;
+    let url = p.thumbnail_url || p.file_url || p.file_path || '';
+    if (url && !url.startsWith('http://') && !url.startsWith('https://') && !url.startsWith('/')) {
+      url = '/' + url;
+    }
+    return `
+      <button
+        type="button"
+        class="lightbox-thumb-btn shrink-0 w-14 h-10 sm:w-16 sm:h-11 rounded-lg overflow-hidden border-2 transition-all duration-200 cursor-pointer ${
+          isActive
+            ? 'border-emerald-400 ring-2 ring-emerald-500/50 scale-105 opacity-100 shadow-md'
+            : 'border-white/10 opacity-50 hover:opacity-90 hover:border-white/40'
+        }"
+        data-thumb-index="${idx}"
+        title="${escapeHtml(p.title || `Foto ${idx + 1}`)}"
+        aria-label="Lihat foto ${idx + 1}"
+      >
+        <img src="${url}" class="w-full h-full object-cover" alt="" onerror="this.onerror=null; this.src='${FALLBACK_PHOTO_SVG}';" />
+      </button>
+    `;
+  }).join('');
+
+  strip.querySelectorAll('.lightbox-thumb-btn').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const idx = parseInt(btn.getAttribute('data-thumb-index'), 10);
+      if (!isNaN(idx)) {
+        currentLightboxIndex = idx;
+        updateLightboxContent();
+      }
+    });
+  });
+
+  // Smoothly center the active thumbnail in view
+  const activeBtn = strip.querySelector(`[data-thumb-index="${currentLightboxIndex}"]`);
+  if (activeBtn) {
+    activeBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+  }
 }
 
 function formatDateIndo(dateStr) {

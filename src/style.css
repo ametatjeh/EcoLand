@@ -821,6 +821,89 @@ body:has(#view-admin.active) #public-global-footer,
   }
 }
 
+/* ======================================================================
+   Public Gallery Cards & Lightbox Modal Enhancements
+   ====================================================================== */
+#gallery-lightbox-modal {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 99999 !important;
+  background: rgba(2, 6, 23, 0.96) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  overflow: hidden !important;
+}
+
+#gallery-lightbox-modal.hidden {
+  display: none !important;
+}
+
+.lightbox-header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 24px;
+  background: rgba(9, 18, 14, 0.96);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  z-index: 40;
+  flex-shrink: 0;
+}
+
+.lightbox-footer-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 24px;
+  background: rgba(9, 18, 14, 0.96);
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  z-index: 40;
+  flex-shrink: 0;
+}
+
+.gallery-card {
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.25s ease,
+              box-shadow 0.25s ease;
+}
+
+.gallery-card:hover {
+  transform: translateY(-5px);
+  border-color: rgba(16, 185, 129, 0.45) !important;
+  box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.7), 0 0 24px rgba(16, 185, 129, 0.15) !important;
+}
+
+.gallery-card:hover img {
+  transform: scale(1.05);
+}
+
+.gallery-img-box {
+  aspect-ratio: 16 / 10;
+}
+
+#lightbox-thumb-strip::-webkit-scrollbar {
+  height: 6px;
+}
+
+#lightbox-thumb-strip::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 9999px;
+}
+
+#lightbox-thumb-strip::-webkit-scrollbar-thumb {
+  background: rgba(16, 185, 129, 0.35);
+  border-radius: 9999px;
+}
+
+#lightbox-thumb-strip::-webkit-scrollbar-thumb:hover {
+  background: rgba(16, 185, 129, 0.6);
+}
+
 
 .hero-section {
   position: relative;
