@@ -106,7 +106,7 @@
   <!-- App Container -->
   <div id="app">
     <!-- Main Navbar -->
-    <header id="main-navbar" class="header-navbar sticky top-0 z-50 w-full backdrop-blur-xl bg-slate-950/85 border-b border-white/10">
+    <header id="main-navbar" class="header-navbar sticky top-0 z-50 w-full backdrop-blur-xl border-b border-white/10">
       <div class="header-container max-w-[1320px] mx-auto px-5 w-full flex items-center justify-between h-[72px] gap-4">
         <!-- Brand Identity (Left) -->
         <div class="brand-wrapper group cursor-pointer flex items-center gap-3 shrink-0" id="brand-btn" title="Kembali ke Beranda">
@@ -1212,7 +1212,7 @@
     <!-- ==========================================
            SHARED PUBLIC FOOTER (GLOBAL)
            ========================================== -->
-    <footer id="public-global-footer" class="public-global-footer border-t border-white/10 bg-slate-950/90 backdrop-blur-xl mt-auto relative z-10 text-xs text-slate-400 w-full">
+    <footer id="public-global-footer" class="public-global-footer border-t border-white/10 backdrop-blur-xl mt-auto relative z-10 text-xs text-slate-400 w-full">
       <div class="footer-container max-w-[1320px] mx-auto px-5 w-full flex flex-col sm:flex-row items-center justify-between gap-4 py-5">
         <!-- Brand Logo & Identity (Left) -->
         <a href="#beranda" class="brand-wrapper group cursor-pointer flex items-center gap-3 shrink-0" title="Kembali ke Beranda">

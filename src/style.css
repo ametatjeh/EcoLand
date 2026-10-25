@@ -91,15 +91,15 @@ body {
   top: 0;
   z-index: 1000;
   height: var(--header-h, 72px);
-  background: rgba(2, 6, 23, 0.88) !important;
+  background: rgba(12, 20, 16, 0.92) !important;
   -webkit-backdrop-filter: blur(24px);
   backdrop-filter: blur(24px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid rgba(16, 185, 129, 0.2);
   display: flex;
   align-items: center;
   width: 100%;
   padding: 0;
-  box-shadow: 0 4px 24px -2px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 4px 24px -2px rgba(0, 0, 0, 0.5);
   transition: background 0.25s ease, border-color 0.25s ease;
 }
 
@@ -171,13 +171,13 @@ body {
   display: flex;
   align-items: center;
   gap: 3px;
-  background: rgba(15, 23, 42, 0.7);
+  background: rgba(14, 28, 22, 0.85);
   -webkit-backdrop-filter: blur(20px);
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.22);
   padding: 4px 6px;
   border-radius: 9999px;
-  box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.08);
   margin: 0;
 }
 
@@ -1025,22 +1025,22 @@ body:has(#view-admin.active) #public-global-footer,
 }
 
 .stat-card {
-  background: rgba(15, 23, 42, 0.6);
+  background: rgba(14, 28, 22, 0.75);
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.18);
   border-radius: 16px;
   padding: 22px 24px;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
   transition: all 0.25s var(--ease);
 }
 
 .stat-card:hover {
   border-color: rgba(16, 185, 129, 0.4);
   transform: translateY(-2px);
-  box-shadow: 0 14px 28px -6px rgba(0, 0, 0, 0.55);
+  box-shadow: 0 14px 28px -6px rgba(0, 0, 0, 0.65), 0 0 16px rgba(16, 185, 129, 0.15);
 }
 
 .stat-label {
@@ -1097,16 +1097,16 @@ body:has(#view-admin.active) #public-global-footer,
 }
 
 .point-card {
-  background: rgba(15, 23, 42, 0.6);
+  background: rgba(14, 28, 22, 0.75);
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.18);
   border-radius: 16px;
   padding: 22px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
   transition: all 0.25s var(--ease);
 }
 
@@ -1878,10 +1878,10 @@ body:has(#view-admin.active) #public-global-footer,
 
 /* Modern Jadwal Silvikultur */
 .silvikultur-modern-container {
-  background: rgba(15, 23, 42, 0.7);
+  background: rgba(14, 28, 22, 0.85);
   -webkit-backdrop-filter: blur(16px);
   backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.22);
   border-radius: 20px;
   padding: 26px 24px;
   margin: 24px 0 32px;
@@ -2114,13 +2114,13 @@ body:has(#view-admin.active) #public-global-footer,
   border-collapse: separate;
   border-spacing: 0;
   margin: 20px 0 32px;
-  background: rgba(15, 23, 42, 0.6);
+  background: rgba(14, 28, 22, 0.75);
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
   border-radius: 16px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(16, 185, 129, 0.18);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
 }
 .species-table th,
 .species-table td {
@@ -2130,7 +2130,7 @@ body:has(#view-admin.active) #public-global-footer,
   border-bottom: 1px solid rgba(255, 255, 255, 0.07);
 }
 .species-table th {
-  background: rgba(16, 185, 129, 0.08);
+  background: rgba(16, 185, 129, 0.12);
   color: var(--clr-primary-light);
   font-weight: 700;
   font-size: 12px;
@@ -2138,7 +2138,7 @@ body:has(#view-admin.active) #public-global-footer,
   letter-spacing: 0.04em;
 }
 .species-table tr:hover td {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(16, 185, 129, 0.06);
 }
 .species-table tr:last-child td {
   border-bottom: none;
@@ -2152,21 +2152,21 @@ body:has(#view-admin.active) #public-global-footer,
   margin: 20px 0 32px;
 }
 .gallery-card {
-  background: rgba(15, 23, 42, 0.6);
+  background: rgba(14, 28, 22, 0.75);
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.18);
   border-radius: 16px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 8px 20px -4px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 8px 20px -4px rgba(0, 0, 0, 0.5);
   transition: all 0.25s var(--ease);
 }
 .gallery-card:hover {
   transform: translateY(-3px);
-  border-color: rgba(16, 185, 129, 0.35);
-  box-shadow: 0 14px 28px -6px rgba(0, 0, 0, 0.55);
+  border-color: rgba(16, 185, 129, 0.45);
+  box-shadow: 0 14px 28px -6px rgba(0, 0, 0, 0.65), 0 0 16px rgba(16, 185, 129, 0.15);
 }
 .gallery-card-img {
   width: 100%;
@@ -2186,14 +2186,14 @@ body:has(#view-admin.active) #public-global-footer,
 
 /* Info Sidebar */
 .info-sidebar-card {
-  background: rgba(15, 23, 42, 0.6);
+  background: rgba(14, 28, 22, 0.75);
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.18);
   border-radius: 16px;
   padding: 24px;
   margin-bottom: 24px;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
 }
 .info-sidebar-card h4 {
   font-size: 15px;
@@ -2630,8 +2630,8 @@ body:has(#view-admin.active) #public-global-footer,
     top: auto;
     min-width: 100%;
     width: 100%;
-    background: rgba(15, 23, 42, 0.65);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(10, 24, 20, 0.95);
+    border: 1px solid rgba(16, 185, 129, 0.2);
     border-radius: 12px;
     margin-top: 4px;
     margin-bottom: 4px;
@@ -4767,8 +4767,8 @@ body:has(#view-admin.active) #public-global-footer,
    PUBLIC GLOBAL FOOTER (RICH 4-COLUMN RESPONSIVE LAYOUT)
    ====================================================================== */
 .public-global-footer {
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  background: linear-gradient(180deg, rgba(4, 15, 11, 0.96) 0%, rgba(2, 6, 23, 0.99) 100%);
+  border-top: 1px solid rgba(16, 185, 129, 0.2);
+  background: linear-gradient(180deg, #10251B 0%, #0B1712 100%);
   -webkit-backdrop-filter: blur(20px);
   backdrop-filter: blur(20px);
   margin-top: auto;
@@ -5028,8 +5028,8 @@ body:has(#view-admin.active) #public-global-footer,
 
 /* Info General Description Box */
 #info-general-desc {
-  background: rgba(15, 23, 42, 0.45);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(14, 28, 22, 0.75);
+  border: 1px solid rgba(16, 185, 129, 0.2);
   border-radius: 14px;
   padding: 14px 18px;
   margin: 12px 0 16px;
@@ -5278,8 +5278,8 @@ body:has(#view-admin.active) #public-global-footer,
 }
 
 .zonasi-list li {
-  background: rgba(15, 23, 42, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(14, 28, 22, 0.75);
+  border: 1px solid rgba(16, 185, 129, 0.18);
   border-radius: 12px;
   padding: 12px 16px;
   font-size: 13px;
@@ -5289,8 +5289,8 @@ body:has(#view-admin.active) #public-global-footer,
 }
 
 .zonasi-list li:hover {
-  border-color: rgba(16, 185, 129, 0.3);
-  background: rgba(15, 23, 42, 0.7);
+  border-color: rgba(16, 185, 129, 0.4);
+  background: rgba(19, 39, 31, 0.9);
 }
 
 .zonasi-list li strong {
@@ -5640,8 +5640,8 @@ body:has(#view-admin.active) #public-global-footer,
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 10px;
-  background: rgba(15, 23, 42, 0.65);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(14, 28, 22, 0.75);
+  border: 1px solid rgba(16, 185, 129, 0.2);
   border-radius: 14px;
   padding: 14px 18px;
 }
@@ -5672,8 +5672,8 @@ body:has(#view-admin.active) #public-global-footer,
   align-items: center;
   flex-wrap: wrap;
   gap: 16px;
-  background: rgba(15, 23, 42, 0.45);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(14, 28, 22, 0.65);
+  border: 1px solid rgba(16, 185, 129, 0.2);
   border-radius: 14px;
   padding: 12px 18px;
   margin-bottom: 24px;
@@ -5713,8 +5713,8 @@ body:has(#view-admin.active) #public-global-footer,
   margin-bottom: 32px;
 }
 .carbon-kpi-card {
-  background: rgba(15, 23, 42, 0.55);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(14, 28, 22, 0.75);
+  border: 1px solid rgba(16, 185, 129, 0.2);
   border-radius: 16px;
   padding: 18px 20px;
   display: flex;
@@ -5723,19 +5723,19 @@ body:has(#view-admin.active) #public-global-footer,
 }
 .carbon-kpi-card:hover {
   transform: translateY(-2px);
-  border-color: rgba(16, 185, 129, 0.35);
+  border-color: rgba(16, 185, 129, 0.45);
 }
 .carbon-kpi-card.highlight-green {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(15, 23, 42, 0.6) 100%);
-  border-color: rgba(16, 185, 129, 0.3);
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(14, 28, 22, 0.8) 100%);
+  border-color: rgba(16, 185, 129, 0.35);
 }
 .carbon-kpi-card.highlight-cyan {
-  background: linear-gradient(135deg, rgba(56, 189, 248, 0.1) 0%, rgba(15, 23, 42, 0.6) 100%);
-  border-color: rgba(56, 189, 248, 0.3);
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.12) 0%, rgba(14, 28, 22, 0.8) 100%);
+  border-color: rgba(56, 189, 248, 0.35);
 }
 .carbon-kpi-card.highlight-amber {
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(15, 23, 42, 0.6) 100%);
-  border-color: rgba(245, 158, 11, 0.3);
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(14, 28, 22, 0.8) 100%);
+  border-color: rgba(245, 158, 11, 0.35);
 }
 .kpi-header {
   display: flex;
@@ -5980,8 +5980,8 @@ body:has(#view-admin.active) #public-global-footer,
   display: flex;
   align-items: center;
   gap: 10px;
-  background: rgba(15, 23, 42, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(14, 28, 22, 0.85);
+  border: 1px solid rgba(16, 185, 129, 0.2);
   border-radius: 10px;
   padding: 8px 12px;
   font-size: 12px;
@@ -6106,8 +6106,8 @@ body:has(#view-admin.active) #public-global-footer,
 
 /* 5. Education Flow Section */
 .carbon-education-section {
-  background: rgba(15, 23, 42, 0.45);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(14, 28, 22, 0.75);
+  border: 1px solid rgba(16, 185, 129, 0.2);
   border-radius: 20px;
   padding: 28px 24px;
   margin-bottom: 40px;
@@ -6182,8 +6182,8 @@ body:has(#view-admin.active) #public-global-footer,
 
 /* 6. Comparison Section (Stock vs Credit) */
 .carbon-credit-comparison-section {
-  background: rgba(15, 23, 42, 0.45);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(14, 28, 22, 0.75);
+  border: 1px solid rgba(16, 185, 129, 0.2);
   border-radius: 20px;
   padding: 28px 24px;
   margin-bottom: 40px;
@@ -6286,8 +6286,8 @@ body:has(#view-admin.active) #public-global-footer,
 
 /* 7. Table Section */
 .carbon-table-section {
-  background: rgba(15, 23, 42, 0.55);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(14, 28, 22, 0.75);
+  border: 1px solid rgba(16, 185, 129, 0.2);
   border-radius: 18px;
   padding: 22px;
   margin-bottom: 40px;
@@ -6359,8 +6359,8 @@ body:has(#view-admin.active) #public-global-footer,
 
 /* 8. Methodology Section */
 .carbon-methodology-card {
-  background: rgba(15, 23, 42, 0.45);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(14, 28, 22, 0.75);
+  border: 1px solid rgba(16, 185, 129, 0.2);
   border-radius: 18px;
   padding: 24px;
 }
@@ -6487,7 +6487,8 @@ body:has(#view-admin.active) #public-global-footer,
     gap: 8px !important;
     padding: 10px 12px !important;
     border-radius: 12px !important;
-    background: rgba(15, 23, 42, 0.75) !important;
+    background: rgba(14, 28, 22, 0.85) !important;
+    border: 1px solid rgba(16, 185, 129, 0.2) !important;
   }
   .status-strip-item {
     font-size: 11px !important;
