@@ -105,7 +105,7 @@ export async function initPublicGallery(containerId = 'public-gallery-container'
           Galeri / Album
         </h1>
         <p class="hero-subtitle text-slate-300 text-sm max-w-2xl mx-auto leading-relaxed text-center" style="margin-bottom: 0;">
-          Dokumentasi visual perkembangan kawasan pemulihan lahan &plusmn;2 hektare, pelaksanaan silvikultur, pertumbuhan tutupan tajuk pohon, dan pemantauan kelestarian berkala.
+          Dokumentasi visual perkembangan kawasan Rsorasi, pelaksanaan silvikultur, Pamantasan kelestarian berkala dan Kegiatan Lainnya.
         </p>
       </div>
 
