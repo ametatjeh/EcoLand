@@ -865,12 +865,12 @@ function renderAlbumGrid() {
             </div>
 
             <!-- Footer Action -->
-            <div style="padding: 12px 18px 16px; border-top: 1px solid rgba(255, 255, 255, 0.08); display: flex; align-items: center; gap: 8px;">
+            <div style="padding: 12px 18px 16px; border-top: 1px solid rgba(255, 255, 255, 0.08);">
               <button
                 type="button"
                 class="btn-view-album"
                 data-album-slug="${album.slug || album.id}"
-                style="flex: 1; display: flex; justify-content: center; align-items: center; gap: 8px; font-weight: 600; font-size: 13px; padding: 9px 14px; border-radius: 10px; background: rgba(16, 185, 129, 0.12); color: #ecfdf5; border: 1px solid rgba(16, 185, 129, 0.3); cursor: pointer; transition: all 0.2s ease;"
+                style="width: 100%; display: flex; justify-content: center; align-items: center; gap: 8px; font-weight: 600; font-size: 13px; padding: 9px 14px; border-radius: 10px; background: rgba(16, 185, 129, 0.12); color: #ecfdf5; border: 1px solid rgba(16, 185, 129, 0.3); cursor: pointer; transition: all 0.2s ease;"
               >
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                   <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
@@ -879,18 +879,6 @@ function renderAlbumGrid() {
                 </svg>
                 <span>Buka Album (${photoCount} Foto)</span>
                 <span style="margin-left: 2px; transition: transform 0.2s ease;">→</span>
-              </button>
-              <button
-                type="button"
-                class="btn-copy-album-link-card"
-                data-album-slug="${album.slug || album.id}"
-                title="Salin tautan langsung album ini"
-                style="padding: 9px 12px; border-radius: 10px; background: rgba(255,255,255,0.06); color: #94a3b8; border: 1px solid rgba(255,255,255,0.12); cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; justify-content: center;"
-              >
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
-                  <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
-                </svg>
               </button>
             </div>
           </div>
@@ -901,19 +889,9 @@ function renderAlbumGrid() {
 
   // Attach album card click handlers
   gridContainer.querySelectorAll('.gallery-album-card').forEach(card => {
-    card.addEventListener('click', (e) => {
-      if (e.target.closest('.btn-copy-album-link-card')) return;
+    card.addEventListener('click', () => {
       const albumSlug = card.getAttribute('data-album-slug') || card.getAttribute('data-album-id');
       if (albumSlug) loadAlbumDetail(albumSlug, true);
-    });
-  });
-
-  // Attach quick copy buttons on cards
-  gridContainer.querySelectorAll('.btn-copy-album-link-card').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const slug = btn.getAttribute('data-album-slug');
-      if (slug) copyAlbumShareUrl(slug, btn);
     });
   });
 }
