@@ -6252,6 +6252,10 @@ File foto dan catatannya akan dihapus jika tidak digunakan di album/fitur lain.`
           <kbd class="hidden md:inline-flex items-center gap-1.5 text-xs font-mono text-slate-400 bg-white/5 border border-white/10 px-3 py-1 rounded-lg">
             <span>Navigasi</span> <span>←</span> <span>→</span> <span class="ml-1 font-bold text-slate-200">ESC</span>
           </kbd>
+          <a id="lightbox-raw-btn" href="#" target="_blank" rel="noopener noreferrer" class="font-semibold text-slate-200 hover:text-white bg-white/10 hover:bg-emerald-600/80 px-3.5 py-2 rounded-xl border border-white/15 hover:border-emerald-500 transition-all flex items-center gap-2 text-xs sm:text-sm" title="Buka foto dalam resolusi penuh di tab baru">
+            <span>Resolusi Asli</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          </a>
           <button id="btn-close-lightbox" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 hover:bg-rose-500/25 text-slate-200 hover:text-rose-300 border border-white/15 hover:border-rose-500/40 transition-all cursor-pointer font-bold text-xs sm:text-sm" aria-label="Tutup penampil foto (Escape)">
             <span>Tutup</span>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
@@ -6298,10 +6302,6 @@ File foto dan catatannya akan dihapus jika tidak digunakan di album/fitur lain.`
           <span id="lightbox-date" class="font-mono text-emerald-400 bg-emerald-500/10 px-3.5 py-1.5 rounded-lg border border-emerald-500/25 flex items-center gap-2">
             <span>📅</span> <span>Tanggal</span>
           </span>
-          <a id="lightbox-raw-btn" href="#" target="_blank" rel="noopener noreferrer" class="font-semibold text-slate-200 hover:text-white bg-white/10 hover:bg-emerald-600/80 px-3.5 py-1.5 rounded-lg border border-white/15 hover:border-emerald-500 transition-all flex items-center gap-2" title="Buka foto dalam resolusi penuh di tab baru">
-            <span>Resolusi Asli</span>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-          </a>
         </div>
       </div>
     </div>
