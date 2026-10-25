@@ -110,13 +110,10 @@ function renderAlbumLayout(container) {
             </div>
             <div>
               <h2 class="zones-hero-title">Manajemen Album Kegiatan Galeri</h2>
-              <p class="zones-hero-desc">
-                Pusat dokumentasi visual kegiatan silvikultur, sensus pohon, penanaman bersama mitra, dan pemantauan kawasan restorasi &plusmn;2 hektare.
-              </p>
             </div>
           </div>
-          <div class="flex items-center gap-3 w-full sm:w-auto shrink-0">
-            <button id="btn-album-create-new" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-bold text-xs sm:text-sm shadow-lg shadow-blue-500/25 transition-all duration-200 hover:scale-[1.02] cursor-pointer">
+          <div class="flex items-center gap-3 w-full sm:w-auto shrink-0 z-10">
+            <button id="btn-album-create-new" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm cursor-pointer transition-all duration-200">
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
               <span>+ Buat Album Baru</span>
             </button>
@@ -750,23 +747,9 @@ async function renderAlbumForm(container) {
 
   container.innerHTML = `
     <div class="zone-form-card space-y-6">
-      <!-- Breadcrumb Nav Inside Form -->
-      <nav class="flex items-center gap-2 text-xs text-slate-400">
-        <button id="btn-breadcrumb-albums" class="hover:text-blue-400 transition cursor-pointer font-medium">
-          ← Kembali ke Semua Album
-        </button>
-        <span class="text-slate-600">/</span>
-        <span class="text-blue-400 font-semibold">${isEdit ? 'Sunting Album Kegiatan' : 'Formulir Tambah Album Baru'}</span>
-      </nav>
-
       <!-- Form Header -->
       <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-800/80 gap-3">
         <div>
-          <div class="inline-flex items-center gap-2 text-xs text-blue-400 font-semibold mb-1">
-            <span>📸 Album Dokumentasi Kegiatan</span>
-            <span>&bull;</span>
-            <span>${isEdit ? 'Mode Perubahan' : 'Penambahan Baru'}</span>
-          </div>
           <h3 class="text-lg font-bold text-white tracking-tight">
             ${isEdit ? `Sunting Album: ${escapeHtml(albumData.title)}` : 'Buat Album Kegiatan Galeri Baru'}
           </h3>

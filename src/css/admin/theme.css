@@ -1172,12 +1172,19 @@
   border-radius: 8px !important;
   font-weight: 600 !important;
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.1) !important;
-  transition: all 0.15s ease !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  cursor: pointer !important;
 }
 
 #view-admin .btn-primary-action:hover {
-  filter: brightness(1.1) !important;
-  transform: translateY(-1px) !important;
+  filter: brightness(1.12) !important;
+  transform: translateY(-1.5px) !important;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35) !important;
+}
+
+#view-admin .btn-primary-action:active {
+  transform: translateY(0) scale(0.98) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15) !important;
 }
 
 #view-admin.theme-light .btn-primary-action,
@@ -1185,6 +1192,12 @@
   background-color: #2563EB !important;
   color: #FFFFFF !important;
   border-color: #1D4ED8 !important;
+}
+
+#view-admin.theme-light .btn-primary-action:hover,
+[data-admin-theme="light"] #view-admin .btn-primary-action:hover {
+  background-color: #1D4ED8 !important;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3) !important;
 }
 
 /* Admin Header Status Pills */
@@ -1550,6 +1563,27 @@
   color: #FFFFFF !important;
   border: 1px solid #3B82F6 !important;
   box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3) !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+#view-admin.theme-dark #btn-album-create-new:hover,
+#view-admin.theme-dark #btn-empty-create-album:hover,
+#view-admin.theme-dark #btn-submit-add-photos:hover,
+#view-admin.theme-dark #btn-save-edit-photo:hover,
+[data-admin-theme="dark"] #view-admin #btn-album-create-new:hover,
+[data-admin-theme="dark"] #view-admin #btn-empty-create-album:hover,
+[data-admin-theme="dark"] #view-admin #btn-submit-add-photos:hover,
+[data-admin-theme="dark"] #view-admin #btn-save-edit-photo:hover {
+  background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%) !important;
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.45) !important;
+  transform: translateY(-1.5px) !important;
+  filter: brightness(1.08) !important;
+}
+
+#view-admin.theme-dark #btn-album-create-new:active,
+[data-admin-theme="dark"] #view-admin #btn-album-create-new:active {
+  transform: translateY(0) scale(0.98) !important;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3) !important;
 }
 
 #view-admin.theme-light #btn-album-create-new,
@@ -1564,6 +1598,26 @@
   color: #FFFFFF !important;
   border: 1px solid #1D4ED8 !important;
   box-shadow: 0 2px 8px rgba(37, 99, 235, 0.2) !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+#view-admin.theme-light #btn-album-create-new:hover,
+#view-admin.theme-light #btn-empty-create-album:hover,
+#view-admin.theme-light #btn-submit-add-photos:hover,
+#view-admin.theme-light #btn-save-edit-photo:hover,
+[data-admin-theme="light"] #view-admin #btn-album-create-new:hover,
+[data-admin-theme="light"] #view-admin #btn-empty-create-album:hover,
+[data-admin-theme="light"] #view-admin #btn-submit-add-photos:hover,
+[data-admin-theme="light"] #view-admin #btn-save-edit-photo:hover {
+  background: #1D4ED8 !important;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35) !important;
+  transform: translateY(-1.5px) !important;
+}
+
+#view-admin.theme-light #btn-album-create-new:active,
+[data-admin-theme="light"] #view-admin #btn-album-create-new:active {
+  transform: translateY(0) scale(0.98) !important;
+  box-shadow: 0 1px 4px rgba(37, 99, 235, 0.2) !important;
 }
 
 #view-admin.theme-dark .btn-manage-photos,
@@ -2571,4 +2625,10 @@
 
 #topbar-profile-chevron.rotated {
   transform: rotate(180deg);
+}
+
+#view-admin .zone-form-card {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
 }

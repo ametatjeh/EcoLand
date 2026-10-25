@@ -1309,13 +1309,6 @@ Kelangsungan Hidup: 95%`,O(p.value),this.showToast(`Template kegiatan penanaman 
     <!-- Hero Banner Card & Navigasi -->
     <div class="zones-hero-card" style="margin-bottom: 20px;">
       <div style="flex: 1; min-width: 280px;">
-        <nav style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--clr-text-muted); margin-bottom: 8px;">
-          <a href="#admin/dashboard" style="color: var(--clr-text-muted); text-decoration: none;">Dashboard</a>
-          <span>&rsaquo;</span>
-          <button type="button" id="breadcrumb-btn-species-list" style="background: none; border: none; color: var(--clr-text-muted); cursor: pointer; padding: 0; font-size: 12px; text-decoration: underline;">Master Jenis Pohon</button>
-          <span>&rsaquo;</span>
-          <span style="color: #34d399; font-weight: 600;">${n?`Edit Spesies`:`Tambah Spesies`}</span>
-        </nav>
         <h2 class="zones-hero-title">
           <span class="zones-hero-icon">${n?`✏️`:`🌱`}</span>
           <span>${r}</span>
@@ -1693,15 +1686,6 @@ Kelangsungan Hidup: 95%`,O(p.value),this.showToast(`Template kegiatan penanaman 
     <!-- Hero Banner Card & Navigasi -->
     <div class="zones-hero-card" style="margin-bottom: 20px;">
       <div style="flex: 1; min-width: 280px;">
-        <nav style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--clr-text-muted); margin-bottom: 8px;">
-          <a href="#admin/dashboard" style="color: var(--clr-text-muted); text-decoration: none;">Dashboard</a>
-          <span>&rsaquo;</span>
-          <span style="color: var(--clr-text-muted);">Data Penanaman</span>
-          <span>&rsaquo;</span>
-          <button type="button" id="breadcrumb-btn-act-list" style="background: none; border: none; color: var(--clr-text-muted); cursor: pointer; padding: 0; font-size: 12px; text-decoration: underline;">Kegiatan Penanaman</button>
-          <span>&rsaquo;</span>
-          <span style="color: ${i?`#38bdf8`:`#10b981`}; font-weight: 600;">${i?`Edit`:`Catat Baru`}</span>
-        </nav>
         <h2 class="zones-hero-title">
           <span class="zones-hero-icon">${i?`✏️`:`🌱`}</span>
           <span>${i?`Edit Kegiatan Penanaman: ${K(e.batch_code)}`:`Catat Kegiatan Penanaman Baru`}</span>
@@ -1957,15 +1941,6 @@ Kelangsungan Hidup: 95%`,O(p.value),this.showToast(`Template kegiatan penanaman 
     <!-- Hero Banner Card & Navigasi -->
     <div class="zones-hero-card" style="margin-bottom: 20px;">
       <div style="flex: 1; min-width: 280px;">
-        <nav style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--clr-text-muted); margin-bottom: 8px;">
-          <a href="#admin/dashboard" style="color: var(--clr-text-muted); text-decoration: none;">Dashboard</a>
-          <span>&rsaquo;</span>
-          <span style="color: var(--clr-text-muted);">Data Penanaman</span>
-          <span>&rsaquo;</span>
-          <button type="button" id="breadcrumb-btn-srv-list" style="background: none; border: none; color: var(--clr-text-muted); cursor: pointer; padding: 0; font-size: 12px; text-decoration: underline;">Pemantauan Tanaman</button>
-          <span>&rsaquo;</span>
-          <span style="color: #38bdf8; font-weight: 600;">${n?`Edit`:`Catat Baru`}</span>
-        </nav>
         <h2 class="zones-hero-title">
           <span class="zones-hero-icon">${n?`✏️`:`📋`}</span>
           <span>${n?`Edit Pemantauan Tanaman: ${K(e.batch_code||e.id)}`:`Catat Hasil Survei Pemantauan Tanaman`}</span>
@@ -2188,15 +2163,6 @@ Kelangsungan Hidup: 95%`,O(p.value),this.showToast(`Template kegiatan penanaman 
     <!-- Hero Banner Card & Navigasi -->
     <div class="zones-hero-card" style="margin-bottom: 20px;">
       <div style="flex: 1; min-width: 280px;">
-        <nav style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--clr-text-muted); margin-bottom: 8px;">
-          <a href="#admin/dashboard" style="color: var(--clr-text-muted); text-decoration: none;">Dashboard</a>
-          <span>&rsaquo;</span>
-          <span style="color: var(--clr-text-muted);">Data Penanaman</span>
-          <span>&rsaquo;</span>
-          <button type="button" id="breadcrumb-btn-mnt-list" style="background: none; border: none; color: var(--clr-text-muted); cursor: pointer; padding: 0; font-size: 12px; text-decoration: underline;">Perawatan dan Penyulaman</button>
-          <span>&rsaquo;</span>
-          <span style="color: #38bdf8; font-weight: 600;">${n?`Edit`:`Catat Baru`}</span>
-        </nav>
         <h2 class="zones-hero-title">
           <span class="zones-hero-icon">${n?`✏️`:`🛠️`}</span>
           <span>${n?`Edit Perawatan &amp; Penyulaman: ${K(e.batch_code||e.id)}`:`Catat Tindakan Perawatan / Penyulaman`}</span>
@@ -4194,13 +4160,10 @@ Kelangsungan Hidup: 95%`,O(p.value),this.showToast(`Template kegiatan penanaman 
             </div>
             <div>
               <h2 class="zones-hero-title">Manajemen Album Kegiatan Galeri</h2>
-              <p class="zones-hero-desc">
-                Pusat dokumentasi visual kegiatan silvikultur, sensus pohon, penanaman bersama mitra, dan pemantauan kawasan restorasi &plusmn;2 hektare.
-              </p>
             </div>
           </div>
-          <div class="flex items-center gap-3 w-full sm:w-auto shrink-0">
-            <button id="btn-album-create-new" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-bold text-xs sm:text-sm shadow-lg shadow-blue-500/25 transition-all duration-200 hover:scale-[1.02] cursor-pointer">
+          <div class="flex items-center gap-3 w-full sm:w-auto shrink-0 z-10">
+            <button id="btn-album-create-new" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm cursor-pointer transition-all duration-200">
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
               <span>+ Buat Album Baru</span>
             </button>
@@ -4560,23 +4523,9 @@ Kelangsungan Hidup: 95%`,O(p.value),this.showToast(`Template kegiatan penanaman 
         </div>
       `,document.getElementById(`btn-err-back-to-albums`)?.addEventListener(`click`,()=>{cd(`list`)});return}let i=[];try{i=(await H.getAvailablePhotosForAlbum({album_id:Y||``})).photos||[]}catch(e){console.warn(`Gagal memuat foto tersedia:`,e)}let a=new Set(r.map(e=>e.id)),o=t.cover_photo_id||(r.length>0?r[0].id:null);e.innerHTML=`
     <div class="zone-form-card space-y-6">
-      <!-- Breadcrumb Nav Inside Form -->
-      <nav class="flex items-center gap-2 text-xs text-slate-400">
-        <button id="btn-breadcrumb-albums" class="hover:text-blue-400 transition cursor-pointer font-medium">
-          ← Kembali ke Semua Album
-        </button>
-        <span class="text-slate-600">/</span>
-        <span class="text-blue-400 font-semibold">${n?`Sunting Album Kegiatan`:`Formulir Tambah Album Baru`}</span>
-      </nav>
-
       <!-- Form Header -->
       <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-800/80 gap-3">
         <div>
-          <div class="inline-flex items-center gap-2 text-xs text-blue-400 font-semibold mb-1">
-            <span>📸 Album Dokumentasi Kegiatan</span>
-            <span>&bull;</span>
-            <span>${n?`Mode Perubahan`:`Penambahan Baru`}</span>
-          </div>
           <h3 class="text-lg font-bold text-white tracking-tight">
             ${n?`Sunting Album: ${Z(t.title)}`:`Buat Album Kegiatan Galeri Baru`}
           </h3>

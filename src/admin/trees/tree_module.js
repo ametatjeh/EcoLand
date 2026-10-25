@@ -615,13 +615,6 @@ function renderSpeciesFormView(item = null, container) {
     <!-- Hero Banner Card & Navigasi -->
     <div class="zones-hero-card" style="margin-bottom: 20px;">
       <div style="flex: 1; min-width: 280px;">
-        <nav style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--clr-text-muted); margin-bottom: 8px;">
-          <a href="#admin/dashboard" style="color: var(--clr-text-muted); text-decoration: none;">Dashboard</a>
-          <span>&rsaquo;</span>
-          <button type="button" id="breadcrumb-btn-species-list" style="background: none; border: none; color: var(--clr-text-muted); cursor: pointer; padding: 0; font-size: 12px; text-decoration: underline;">Master Jenis Pohon</button>
-          <span>&rsaquo;</span>
-          <span style="color: #34d399; font-weight: 600;">${isEdit ? 'Edit Spesies' : 'Tambah Spesies'}</span>
-        </nav>
         <h2 class="zones-hero-title">
           <span class="zones-hero-icon">${isEdit ? '✏️' : '🌱'}</span>
           <span>${pageTitle}</span>
@@ -1524,15 +1517,6 @@ async function renderActivityFormView(activity = null, container, scenes = [], z
     <!-- Hero Banner Card & Navigasi -->
     <div class="zones-hero-card" style="margin-bottom: 20px;">
       <div style="flex: 1; min-width: 280px;">
-        <nav style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--clr-text-muted); margin-bottom: 8px;">
-          <a href="#admin/dashboard" style="color: var(--clr-text-muted); text-decoration: none;">Dashboard</a>
-          <span>&rsaquo;</span>
-          <span style="color: var(--clr-text-muted);">Data Penanaman</span>
-          <span>&rsaquo;</span>
-          <button type="button" id="breadcrumb-btn-act-list" style="background: none; border: none; color: var(--clr-text-muted); cursor: pointer; padding: 0; font-size: 12px; text-decoration: underline;">Kegiatan Penanaman</button>
-          <span>&rsaquo;</span>
-          <span style="color: ${isEdit ? '#38bdf8' : '#10b981'}; font-weight: 600;">${isEdit ? 'Edit' : 'Catat Baru'}</span>
-        </nav>
         <h2 class="zones-hero-title">
           <span class="zones-hero-icon">${isEdit ? '✏️' : '🌱'}</span>
           <span>${isEdit ? `Edit Kegiatan Penanaman: ${escapeHtml(activity.batch_code)}` : 'Catat Kegiatan Penanaman Baru'}</span>
@@ -2171,15 +2155,6 @@ async function renderSurveyFormView(survey = null, container) {
     <!-- Hero Banner Card & Navigasi -->
     <div class="zones-hero-card" style="margin-bottom: 20px;">
       <div style="flex: 1; min-width: 280px;">
-        <nav style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--clr-text-muted); margin-bottom: 8px;">
-          <a href="#admin/dashboard" style="color: var(--clr-text-muted); text-decoration: none;">Dashboard</a>
-          <span>&rsaquo;</span>
-          <span style="color: var(--clr-text-muted);">Data Penanaman</span>
-          <span>&rsaquo;</span>
-          <button type="button" id="breadcrumb-btn-srv-list" style="background: none; border: none; color: var(--clr-text-muted); cursor: pointer; padding: 0; font-size: 12px; text-decoration: underline;">Pemantauan Tanaman</button>
-          <span>&rsaquo;</span>
-          <span style="color: #38bdf8; font-weight: 600;">${isEdit ? 'Edit' : 'Catat Baru'}</span>
-        </nav>
         <h2 class="zones-hero-title">
           <span class="zones-hero-icon">${isEdit ? '✏️' : '📋'}</span>
           <span>${isEdit ? `Edit Pemantauan Tanaman: ${escapeHtml(survey.batch_code || survey.id)}` : 'Catat Hasil Survei Pemantauan Tanaman'}</span>
@@ -2648,15 +2623,6 @@ async function renderMaintenanceFormView(log = null, container) {
     <!-- Hero Banner Card & Navigasi -->
     <div class="zones-hero-card" style="margin-bottom: 20px;">
       <div style="flex: 1; min-width: 280px;">
-        <nav style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--clr-text-muted); margin-bottom: 8px;">
-          <a href="#admin/dashboard" style="color: var(--clr-text-muted); text-decoration: none;">Dashboard</a>
-          <span>&rsaquo;</span>
-          <span style="color: var(--clr-text-muted);">Data Penanaman</span>
-          <span>&rsaquo;</span>
-          <button type="button" id="breadcrumb-btn-mnt-list" style="background: none; border: none; color: var(--clr-text-muted); cursor: pointer; padding: 0; font-size: 12px; text-decoration: underline;">Perawatan dan Penyulaman</button>
-          <span>&rsaquo;</span>
-          <span style="color: #38bdf8; font-weight: 600;">${isEdit ? 'Edit' : 'Catat Baru'}</span>
-        </nav>
         <h2 class="zones-hero-title">
           <span class="zones-hero-icon">${isEdit ? '✏️' : '🛠️'}</span>
           <span>${isEdit ? `Edit Perawatan &amp; Penyulaman: ${escapeHtml(log.batch_code || log.id)}` : 'Catat Tindakan Perawatan / Penyulaman'}</span>
