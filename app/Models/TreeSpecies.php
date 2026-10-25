@@ -25,12 +25,14 @@ class TreeSpecies extends Model
         'benefits',
         'description',
         'photo_path',
+        'gallery_photos',
         'reference_source',
         'is_active',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
+        'gallery_photos' => 'array',
     ];
 
     protected static function boot()
@@ -89,6 +91,18 @@ class TreeSpecies extends Model
     {
         return (int) $this->activityItems()->sum('quantity');
     }
+
+    /**
+     * Dapatkan daftar seluruh URL foto pohon (gallery_photos atau fallback photo_path)
+     * @return array<string>
+     */
+     public function getPhotosListAttribute(): array
+     {
+         if (!empty($this->gallery_photos) && is_array($this->gallery_photos)) {
+             return array_values(array_filter($this->gallery_photos));
+         }
+         return !empty($this->photo_path) ? [$this->photo_path] : [];
+     }
 
     /**
      * Format data publik yang aman (tanpa data sensitif internal), faktual, dan transparan
@@ -163,6 +177,8 @@ class TreeSpecies extends Model
                 'zone' => $it->activity?->location_zone,
             ])->unique('scene_id')->values();
 
+        $photos = $this->photos_list;
+
         return [
             'id' => $this->id,
             'local_name' => $this->local_name,
@@ -178,7 +194,8 @@ class TreeSpecies extends Model
             'ecological_function' => $this->ecological_function,
             'benefits' => $this->benefits,
             'description' => $this->description,
-            'photo_path' => $this->photo_path,
+            'photo_path' => $this->photo_path ?: ($photos[0] ?? null),
+            'gallery_photos' => $photos,
             'reference_source' => $this->reference_source,
             'has_planted_data' => $hasPlanted,
             'total_planted' => $totalPlanted,

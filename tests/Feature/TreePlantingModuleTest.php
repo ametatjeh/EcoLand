@@ -12,6 +12,7 @@ use App\Models\TreeSurvey;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class TreePlantingModuleTest extends TestCase
@@ -460,5 +461,51 @@ class TreePlantingModuleTest extends TestCase
         ]);
 
         $res->assertStatus(401);
+    }
+
+    /**
+     * Skenario 13: Admin dapat mengunggah lebih dari 1 berkas foto untuk spesies pohon.
+     */
+    public function test_admin_can_upload_multiple_photos_for_tree_species()
+    {
+        Storage::fake('public');
+
+        $file1 = \Illuminate\Http\UploadedFile::fake()->image('daun_jeumpa.jpg', 600, 400);
+        $file2 = \Illuminate\Http\UploadedFile::fake()->image('bunga_jeumpa.jpg', 600, 400);
+        $file3 = \Illuminate\Http\UploadedFile::fake()->image('pohon_jeumpa.jpg', 600, 400);
+
+        $res = $this->withHeader('Authorization', "Bearer {$this->adminToken}")
+            ->post('/api/admin/trees/species', [
+                'common_name' => 'Jeumpa Uji Multi',
+                'scientific_name' => 'Magnolia ujiensis',
+                'origin_status' => 'lokal_asli',
+                'photos' => [$file1, $file2, $file3],
+            ]);
+
+        $res->assertStatus(201)
+            ->assertJson([
+                'success' => true,
+            ]);
+
+        $species = TreeSpecies::where('scientific_name', 'Magnolia ujiensis')->first();
+        $this->assertNotNull($species);
+        $this->assertCount(3, $species->gallery_photos);
+        $this->assertEquals($species->gallery_photos[0], $species->photo_path);
+
+        // Update: upload file tambahan dan simpan foto yang ada
+        $file4 = \Illuminate\Http\UploadedFile::fake()->image('buah_jeumpa.jpg', 600, 400);
+        $updateRes = $this->withHeader('Authorization', "Bearer {$this->adminToken}")
+            ->post("/api/admin/trees/species/{$species->id}", [
+                '_method' => 'PUT',
+                'common_name' => 'Jeumpa Uji Multi Updated',
+                'scientific_name' => 'Magnolia ujiensis',
+                'origin_status' => 'lokal_asli',
+                'existing_photos' => json_encode([$species->gallery_photos[0], $species->gallery_photos[1]]),
+                'photos' => [$file4],
+            ]);
+
+        $updateRes->assertStatus(200);
+        $species->refresh();
+        $this->assertCount(3, $species->gallery_photos);
     }
 }

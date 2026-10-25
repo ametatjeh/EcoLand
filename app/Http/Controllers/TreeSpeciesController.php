@@ -51,7 +51,8 @@ class TreeSpeciesController extends Controller
                     'ecological_function' => $s->ecological_function,
                     'benefits' => $s->benefits,
                     'description' => $s->description,
-                    'photo_path' => $s->photo_path,
+                    'photo_path' => $s->photo_path ?: ($s->photos_list[0] ?? null),
+                    'gallery_photos' => $s->photos_list,
                     'reference_source' => $s->reference_source,
                     'is_active' => $s->is_active,
                     'total_planted' => $s->total_planted_count,
@@ -118,6 +119,7 @@ class TreeSpeciesController extends Controller
         return response()->json([
             'success' => true,
             'species' => $species,
+            'photos_list' => $species->photos_list,
             'total_planted' => $species->total_planted_count,
         ]);
     }
@@ -129,10 +131,17 @@ class TreeSpeciesController extends Controller
     {
         return DB::transaction(function () use ($request) {
             $data = $request->validated();
-            if ($request->hasFile('photo')) {
-                $path = $request->file('photo')->store('tree-species', 'public');
-                $data['photo_path'] = '/storage/' . $path;
+            
+            $photoData = $this->resolvePhotosPayload($request);
+            if (!empty($photoData['gallery_photos'])) {
+                $data['gallery_photos'] = $photoData['gallery_photos'];
+                $data['photo_path'] = $photoData['photo_path'];
+            } elseif ($request->filled('photo_path')) {
+                $data['photo_path'] = $request->photo_path;
+                $data['gallery_photos'] = [$request->photo_path];
             }
+
+            unset($data['photos'], $data['existing_photos'], $data['cover_photo']);
             $species = TreeSpecies::create($data);
 
             return response()->json([
@@ -164,16 +173,35 @@ class TreeSpeciesController extends Controller
             'benefits' => ['nullable', 'string'],
             'description' => ['nullable', 'string'],
             'photo' => ['nullable', 'image', 'max:5120'],
+            'photos' => ['nullable', 'array'],
+            'photos.*' => ['image', 'max:5120'],
             'photo_path' => ['nullable', 'string', 'max:255'],
+            'cover_photo' => ['nullable', 'string', 'max:255'],
+            'gallery_photos' => ['nullable'],
+            'existing_photos' => ['nullable'],
             'reference_source' => ['nullable', 'string', 'max:255'],
             'is_active' => ['nullable', 'boolean'],
         ]);
 
         return DB::transaction(function () use ($species, $request, $validated) {
-            if ($request->hasFile('photo')) {
-                $path = $request->file('photo')->store('tree-species', 'public');
-                $validated['photo_path'] = '/storage/' . $path;
+            $hasPhotoInput = $request->hasFile('photos') 
+                || $request->hasFile('photo') 
+                || $request->has('existing_photos') 
+                || $request->has('gallery_photos') 
+                || $request->filled('cover_photo') 
+                || $request->filled('photo_path');
+
+            if ($hasPhotoInput) {
+                $photoData = $this->resolvePhotosPayload(
+                    $request,
+                    $species->gallery_photos ?: ($species->photo_path ? [$species->photo_path] : []),
+                    $species->photo_path
+                );
+                $validated['gallery_photos'] = $photoData['gallery_photos'];
+                $validated['photo_path'] = $photoData['photo_path'];
             }
+
+            unset($validated['photos'], $validated['existing_photos'], $validated['cover_photo']);
             $species->update($validated);
 
             return response()->json([
@@ -182,6 +210,95 @@ class TreeSpeciesController extends Controller
                 'species' => $species,
             ]);
         });
+    }
+
+    /**
+     * Memproses multi-upload berkas foto dan sinkronisasi gallery_photos serta photo_path (cover).
+     */
+    protected function resolvePhotosPayload(Request $request, ?array $currentGallery = [], ?string $currentCover = null): array
+    {
+        // 1. Ambil daftar existing photos jika dikirimkan (bisa array atau JSON string)
+        $existing = [];
+        if ($request->has('existing_photos')) {
+            $input = $request->input('existing_photos');
+            if (is_string($input)) {
+                $decoded = json_decode($input, true);
+                $existing = is_array($decoded) ? $decoded : [];
+            } elseif (is_array($input)) {
+                $existing = $input;
+            }
+        } elseif ($request->has('gallery_photos') && is_array($request->input('gallery_photos'))) {
+            $existing = $request->input('gallery_photos');
+        } elseif (!empty($currentGallery)) {
+            $existing = $currentGallery;
+        } elseif ($currentCover) {
+            $existing = [$currentCover];
+        }
+
+        // Filter URLs yang valid (string)
+        $gallery = array_values(array_filter($existing, fn($p) => is_string($p) && trim($p) !== ''));
+
+        // 2. Simpan file baru dari photos[] (multiple)
+        $newUploadedUrls = [];
+        if ($request->hasFile('photos')) {
+            $files = $request->file('photos');
+            if (!is_array($files)) {
+                $files = [$files];
+            }
+            foreach ($files as $file) {
+                if ($file && $file->isValid()) {
+                    $path = $file->store('tree-species', 'public');
+                    $url = '/storage/' . $path;
+                    $newUploadedUrls[] = $url;
+                    $gallery[] = $url;
+                }
+            }
+        }
+
+        // 3. Fallback jika ada single file 'photo'
+        if ($request->hasFile('photo')) {
+            $file = $request->file('photo');
+            if ($file && $file->isValid()) {
+                $path = $file->store('tree-species', 'public');
+                $singleUrl = '/storage/' . $path;
+                $newUploadedUrls[] = $singleUrl;
+                if (!in_array($singleUrl, $gallery)) {
+                    $gallery[] = $singleUrl;
+                }
+            }
+        }
+
+        // 4. Jika ada manual photo_path baru yang diinput dan belum ada di list
+        if ($request->filled('photo_path')) {
+            $manualPath = trim($request->input('photo_path'));
+            if ($manualPath && !in_array($manualPath, $gallery)) {
+                $gallery[] = $manualPath;
+            }
+        }
+
+        // Hapus duplikasi path
+        $gallery = array_values(array_unique($gallery));
+
+        // 5. Tentukan foto sampul utama (photo_path)
+        $cover = null;
+        if ($request->has('cover_photo_new_index')) {
+            $idx = (int) $request->input('cover_photo_new_index');
+            if (isset($newUploadedUrls[$idx])) {
+                $cover = $newUploadedUrls[$idx];
+            }
+        }
+        if (!$cover && $request->filled('cover_photo') && in_array($request->input('cover_photo'), $gallery)) {
+            $cover = $request->input('cover_photo');
+        } elseif (!$cover && $request->filled('photo_path') && in_array($request->input('photo_path'), $gallery)) {
+            $cover = $request->input('photo_path');
+        } elseif (!$cover && !empty($gallery)) {
+            $cover = $gallery[0];
+        }
+
+        return [
+            'gallery_photos' => $gallery,
+            'photo_path' => $cover,
+        ];
     }
 
     /**

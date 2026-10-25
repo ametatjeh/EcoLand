@@ -572,51 +572,69 @@ function renderSpeciesFormView(item = null, container) {
 
         <!-- CARD 4: FOTO DAN REFERENSI -->
         <div class="admin-pane-card" style="background: var(--clr-surface); border: 1px solid var(--clr-border); border-radius: 12px; padding: 22px;">
-          <div style="border-bottom: 1px solid var(--clr-border-subtle); padding-bottom: 12px; margin-bottom: 18px;">
+          <div style="border-bottom: 1px solid var(--clr-border-subtle); padding-bottom: 12px; margin-bottom: 18px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
             <h3 style="font-size: 15px; font-weight: 700; color: #fff; margin: 0; display: flex; align-items: center; gap: 8px;">
               <span>📸</span> Card 4 — Foto dan Referensi
             </h3>
+            <span id="sp-photos-count-badge" style="font-size: 11px; background: rgba(16, 185, 129, 0.15); color: #6ee7b7; padding: 3px 10px; border-radius: 6px; border: 1px solid rgba(16, 185, 129, 0.3); font-weight: 600;">
+              0 Foto Terpilih
+            </span>
           </div>
 
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 20px;">
             <div style="display: flex; flex-direction: column; gap: 14px;">
               <div class="form-group">
                 <label for="page-sp-photo-file" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
-                  Upload Berkas Foto Pohon:
+                  Upload Berkas Foto Pohon (Bisa Lebih Dari 1 Foto):
                 </label>
-                <input type="file" id="page-sp-photo-file" class="form-input" accept="image/*" />
-                <small style="color: var(--clr-text-muted); font-size: 11px;">Format JPEG/PNG/WebP, maksimal 5MB.</small>
+                <div id="sp-dropzone" style="border: 2px dashed rgba(16, 185, 129, 0.35); background: rgba(16, 185, 129, 0.04); border-radius: 10px; padding: 18px 14px; text-align: center; cursor: pointer; transition: all 0.2s;">
+                  <span style="font-size: 28px; display: block; margin-bottom: 4px;">📁</span>
+                  <span style="color: #6ee7b7; font-weight: 600; font-size: 13px;">Klik atau Tarik Berkas Foto ke Sini</span>
+                  <p style="color: var(--clr-text-muted); font-size: 11.5px; margin: 4px 0 10px;">
+                    Mendukung unggah lebih dari satu foto sekaligus (JPEG/PNG/WebP, maks 5MB per file)
+                  </p>
+                  <label for="page-sp-photo-file" class="btn-secondary-action btn-sm" style="display: inline-flex; align-items: center; gap: 6px; cursor: pointer; margin: 0 auto;">
+                    <span>📂</span> Pilih Berkas Foto...
+                  </label>
+                  <input type="file" id="page-sp-photo-file" accept="image/*" multiple style="display: none;" />
+                </div>
               </div>
 
               <div class="form-group">
                 <label for="page-sp-photo-path" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
-                  Atau URL / Path Foto Tersimpan:
+                  Atau Tambahkan URL / Path Foto:
                 </label>
-                <input type="text" id="page-sp-photo-path" class="form-input" placeholder="/storage/tree-species/merbau.jpg" value="${escapeHtml(item?.photo_path || '')}" />
+                <div style="display: flex; gap: 8px;">
+                  <input type="text" id="page-sp-photo-path" class="form-input" placeholder="/storage/tree-species/merbau.jpg atau URL eksternal" />
+                  <button type="button" id="btn-add-url-photo" class="btn-secondary-action btn-sm" style="white-space: nowrap; display: inline-flex; align-items: center; gap: 4px;">
+                    <span>➕</span> Tambah
+                  </button>
+                </div>
+                <small style="color: var(--clr-text-muted); font-size: 11px;">Ketik URL/path foto lalu klik Tambah untuk memasukkan ke galeri foto.</small>
               </div>
 
               <div class="form-group">
                 <label for="page-sp-ref" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
                   Sumber Referensi Identifikasi:
                 </label>
-                <input type="text" id="page-sp-ref" class="form-input" placeholder="Buku Flora Malesiana" value="${escapeHtml(item?.reference_source || '')}" />
+                <input type="text" id="page-sp-ref" class="form-input" placeholder="Buku Flora Malesiana / Balai Litbang" value="${escapeHtml(item?.reference_source || '')}" />
                 <small style="color: var(--clr-text-muted); font-size: 11px;">Rujukan pustaka atau tim surveyor yang mengidentifikasi spesies.</small>
               </div>
             </div>
 
-            <!-- Preview Card Foto -->
-            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.25); border: 1px dashed var(--clr-border); border-radius: 8px; padding: 16px; min-height: 220px;">
-              <div id="sp-photo-preview-box" style="width: 100%; height: 180px; display: flex; align-items: center; justify-content: center; overflow: hidden; border-radius: 6px; background: rgba(255,255,255,0.02);">
-                ${
-                  item?.photo_path
-                    ? `<img src="${item.photo_path}" alt="Foto ${escapeHtml(item.common_name)}" style="max-width: 100%; max-height: 100%; object-fit: cover;" id="img-sp-preview" />`
-                    : `<div style="text-align: center; color: var(--clr-text-muted); font-size: 12px;" id="placeholder-sp-preview">
-                         <span style="font-size: 32px; display: block; margin-bottom: 6px;">📷</span>
-                         Belum ada foto yang dipilih
-                       </div>`
-                }
+            <!-- Preview Card Galeri Multi-Foto -->
+            <div style="display: flex; flex-direction: column; background: rgba(0,0,0,0.25); border: 1px solid var(--clr-border); border-radius: 10px; padding: 14px; min-height: 240px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.06);">
+                <span style="font-size: 12.5px; font-weight: 600; color: #e2e8f0;">Daftar Foto Dokumentasi Pohon</span>
+                <span style="font-size: 11px; color: var(--clr-text-muted);">⭐ = Foto Sampul</span>
               </div>
-              <span style="font-size: 11px; color: var(--clr-text-muted); margin-top: 8px;">Pratinjau Foto Spesies</span>
+              <div id="sp-gallery-preview-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; max-height: 320px; overflow-y: auto; padding-right: 4px;">
+                <!-- Populated by JS -->
+              </div>
+              <div id="sp-gallery-empty-state" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 160px; color: var(--clr-text-muted); font-size: 12px; text-align: center;">
+                <span style="font-size: 32px; margin-bottom: 6px;">📷</span>
+                Belum ada foto yang dipilih.<br><span style="font-size: 11px;">Pilih satu atau lebih file foto di sebelah kiri.</span>
+              </div>
             </div>
           </div>
         </div>
@@ -650,23 +668,204 @@ function renderSpeciesFormView(item = null, container) {
     </div>
   `;
 
-  // Bind Form Interaction & Live Preview
+  // ─────────────────────────────────────────────────────────────
+  // Multi-Foto State & Interaksi Galeri
+  // ─────────────────────────────────────────────────────────────
+  let existingPhotos = [];
+  if (item) {
+    if (Array.isArray(item.gallery_photos) && item.gallery_photos.length > 0) {
+      existingPhotos = [...item.gallery_photos];
+    } else if (item.photo_path) {
+      existingPhotos = [item.photo_path];
+    }
+  }
+
+  let stagedFiles = []; // Array of { file: File, id: string, previewUrl: string }
+  let selectedCoverKey = null; // 'existing:URL' or 'staged:id'
+
+  if (existingPhotos.length > 0) {
+    selectedCoverKey = `existing:${item?.photo_path || existingPhotos[0]}`;
+  }
+
+  const galleryGrid = document.getElementById('sp-gallery-preview-grid');
+  const emptyState = document.getElementById('sp-gallery-empty-state');
+  const countBadge = document.getElementById('sp-photos-count-badge');
   const photoFileInput = document.getElementById('page-sp-photo-file');
+  const dropzone = document.getElementById('sp-dropzone');
   const photoPathInput = document.getElementById('page-sp-photo-path');
-  const previewBox = document.getElementById('sp-photo-preview-box');
+  const btnAddUrl = document.getElementById('btn-add-url-photo');
+
+  const updateGalleryUI = () => {
+    const totalCount = existingPhotos.length + stagedFiles.length;
+    if (countBadge) {
+      countBadge.textContent = `${totalCount} Foto Terpilih`;
+      countBadge.style.color = totalCount > 0 ? '#6ee7b7' : '#94a3b8';
+    }
+
+    if (totalCount === 0) {
+      if (galleryGrid) galleryGrid.innerHTML = '';
+      if (emptyState) emptyState.style.display = 'flex';
+      selectedCoverKey = null;
+      return;
+    }
+
+    if (emptyState) emptyState.style.display = 'none';
+
+    // Auto-select cover if none selected or if previous cover was deleted
+    let coverExists = false;
+    if (selectedCoverKey) {
+      if (selectedCoverKey.startsWith('existing:') && existingPhotos.includes(selectedCoverKey.replace('existing:', ''))) {
+        coverExists = true;
+      } else if (selectedCoverKey.startsWith('staged:')) {
+        const fileId = selectedCoverKey.replace('staged:', '');
+        if (stagedFiles.some((f) => f.id === fileId)) coverExists = true;
+      }
+    }
+    if (!coverExists) {
+      if (existingPhotos.length > 0) {
+        selectedCoverKey = `existing:${existingPhotos[0]}`;
+      } else if (stagedFiles.length > 0) {
+        selectedCoverKey = `staged:${stagedFiles[0].id}`;
+      }
+    }
+
+    let html = '';
+
+    // Render Existing Photos
+    existingPhotos.forEach((url, idx) => {
+      const isCover = selectedCoverKey === `existing:${url}`;
+      html += `
+        <div style="position: relative; border-radius: 8px; overflow: hidden; border: 2px solid ${isCover ? '#10b981' : 'rgba(255,255,255,0.12)'}; background: #070d0a; aspect-ratio: 1/1; box-shadow: 0 4px 10px rgba(0,0,0,0.4);">
+          <img src="${url}" alt="Foto ${idx + 1}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='/favicon.svg'" />
+          
+          <button type="button" class="btn-toggle-cover" data-cover-key="existing:${url}" title="${isCover ? 'Foto Sampul Utama' : 'Klik untuk jadikan Foto Sampul'}" style="position: absolute; top: 4px; left: 4px; background: ${isCover ? '#10b981' : 'rgba(15,23,42,0.85)'}; color: ${isCover ? '#fff' : '#f59e0b'}; border: 1px solid rgba(255,255,255,0.2); border-radius: 5px; padding: 2px 6px; font-size: 10px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 3px; z-index: 2;">
+            ${isCover ? '★ Sampul' : '☆ Sampul'}
+          </button>
+
+          <button type="button" class="btn-delete-photo" data-type="existing" data-idx="${idx}" title="Hapus Foto" style="position: absolute; top: 4px; right: 4px; background: rgba(239,68,68,0.88); color: #fff; border: none; border-radius: 5px; width: 22px; height: 22px; font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 2;">
+            ✕
+          </button>
+
+          <span style="position: absolute; bottom: 3px; right: 4px; background: rgba(0,0,0,0.7); color: #cbd5e1; font-size: 9.5px; padding: 1px 5px; border-radius: 3px;">
+            Tersimpan
+          </span>
+        </div>
+      `;
+    });
+
+    // Render Staged New Files
+    stagedFiles.forEach((item, idx) => {
+      const isCover = selectedCoverKey === `staged:${item.id}`;
+      html += `
+        <div style="position: relative; border-radius: 8px; overflow: hidden; border: 2px solid ${isCover ? '#10b981' : 'rgba(16,185,129,0.35)'}; background: #070d0a; aspect-ratio: 1/1; box-shadow: 0 4px 10px rgba(0,0,0,0.4);">
+          <img src="${item.previewUrl}" alt="${escapeHtml(item.file.name)}" style="width: 100%; height: 100%; object-fit: cover;" />
+          
+          <button type="button" class="btn-toggle-cover" data-cover-key="staged:${item.id}" title="${isCover ? 'Foto Sampul Utama' : 'Klik untuk jadikan Foto Sampul'}" style="position: absolute; top: 4px; left: 4px; background: ${isCover ? '#10b981' : 'rgba(15,23,42,0.85)'}; color: ${isCover ? '#fff' : '#f59e0b'}; border: 1px solid rgba(255,255,255,0.2); border-radius: 5px; padding: 2px 6px; font-size: 10px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 3px; z-index: 2;">
+            ${isCover ? '★ Sampul' : '☆ Sampul'}
+          </button>
+
+          <button type="button" class="btn-delete-photo" data-type="staged" data-idx="${idx}" title="Hapus Foto" style="position: absolute; top: 4px; right: 4px; background: rgba(239,68,68,0.88); color: #fff; border: none; border-radius: 5px; width: 22px; height: 22px; font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 2;">
+            ✕
+          </button>
+
+          <span style="position: absolute; bottom: 3px; right: 4px; background: rgba(16,185,129,0.85); color: #fff; font-size: 9.5px; padding: 1px 5px; border-radius: 3px; font-weight: 600;">
+            Baru
+          </span>
+        </div>
+      `;
+    });
+
+    if (galleryGrid) {
+      galleryGrid.innerHTML = html;
+
+      // Bind Set Cover
+      galleryGrid.querySelectorAll('.btn-toggle-cover').forEach((btn) => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          selectedCoverKey = btn.getAttribute('data-cover-key');
+          updateGalleryUI();
+        });
+      });
+
+      // Bind Delete Photo
+      galleryGrid.querySelectorAll('.btn-delete-photo').forEach((btn) => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const type = btn.getAttribute('data-type');
+          const idx = parseInt(btn.getAttribute('data-idx'), 10);
+          if (type === 'existing') {
+            existingPhotos.splice(idx, 1);
+          } else if (type === 'staged') {
+            const removed = stagedFiles.splice(idx, 1);
+            if (removed[0]?.previewUrl) URL.revokeObjectURL(removed[0].previewUrl);
+          }
+          updateGalleryUI();
+        });
+      });
+    }
+  };
+
+  // Initial gallery render
+  updateGalleryUI();
+
+  // Add files helper (supports multiple files selected or dragged)
+  const addFiles = (files) => {
+    if (!files || files.length === 0) return;
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      if (file.type.startsWith('image/')) {
+        stagedFiles.push({
+          file,
+          id: 'staged_' + Math.random().toString(36).substring(2, 9),
+          previewUrl: URL.createObjectURL(file),
+        });
+      }
+    }
+    updateGalleryUI();
+  };
 
   photoFileInput?.addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const url = URL.createObjectURL(file);
-      previewBox.innerHTML = `<img src="${url}" alt="Preview" style="max-width: 100%; max-height: 100%; object-fit: cover;" />`;
-    }
+    addFiles(e.target.files);
+    photoFileInput.value = ''; // Reset so same file can be re-added if removed
   });
 
-  photoPathInput?.addEventListener('input', (e) => {
-    const val = e.target.value.trim();
-    if (val && !photoFileInput.files[0]) {
-      previewBox.innerHTML = `<img src="${val}" alt="Preview" style="max-width: 100%; max-height: 100%; object-fit: cover;" onerror="this.onerror=null; this.parentElement.innerHTML='<div style=\\\'text-align: center; color: #ef4444; font-size: 12px;\\\'>⚠️ Gagal memuat URL foto</div>';" />`;
+  // Drag and drop events
+  if (dropzone) {
+    ['dragenter', 'dragover'].forEach((eventName) => {
+      dropzone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropzone.style.borderColor = '#10b981';
+        dropzone.style.background = 'rgba(16, 185, 129, 0.12)';
+      });
+    });
+
+    ['dragleave', 'drop'].forEach((eventName) => {
+      dropzone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropzone.style.borderColor = 'rgba(16, 185, 129, 0.35)';
+        dropzone.style.background = 'rgba(16, 185, 129, 0.04)';
+      });
+    });
+
+    dropzone.addEventListener('drop', (e) => {
+      if (e.dataTransfer && e.dataTransfer.files) {
+        addFiles(e.dataTransfer.files);
+      }
+    });
+  }
+
+  // Add manual photo URL
+  btnAddUrl?.addEventListener('click', () => {
+    const val = photoPathInput.value.trim();
+    if (!val) return;
+    if (!existingPhotos.includes(val)) {
+      existingPhotos.push(val);
+      photoPathInput.value = '';
+      updateGalleryUI();
+    } else {
+      EcoToast.info('URL foto sudah ada di daftar.');
     }
   });
 
@@ -701,8 +900,36 @@ function renderSpeciesFormView(item = null, container) {
     const benefits = document.getElementById('page-sp-benefits').value.trim() || '-';
     const ref = document.getElementById('page-sp-ref').value.trim() || '-';
 
+    // Resolve cover preview image
+    let previewImgSrc = '';
+    if (selectedCoverKey) {
+      if (selectedCoverKey.startsWith('existing:')) {
+        previewImgSrc = selectedCoverKey.replace('existing:', '');
+      } else if (selectedCoverKey.startsWith('staged:')) {
+        const fId = selectedCoverKey.replace('staged:', '');
+        const target = stagedFiles.find((f) => f.id === fId);
+        if (target) previewImgSrc = target.previewUrl;
+      }
+    }
+    if (!previewImgSrc) {
+      if (existingPhotos.length > 0) previewImgSrc = existingPhotos[0];
+      else if (stagedFiles.length > 0) previewImgSrc = stagedFiles[0].previewUrl;
+    }
+
+    const totalPhotos = existingPhotos.length + stagedFiles.length;
+
     previewBody.innerHTML = `
       <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--clr-border); border-radius: 8px; padding: 16px;">
+        ${
+          previewImgSrc
+            ? `<div style="width: 100%; height: 180px; border-radius: 8px; overflow: hidden; margin-bottom: 12px; position: relative;">
+                 <img src="${previewImgSrc}" alt="${escapeHtml(common)}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='/favicon.svg'" />
+                 <span style="position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.7); color: #6ee7b7; font-size: 11px; padding: 2px 8px; border-radius: 4px;">
+                   📷 ${totalPhotos} Foto Dokumentasi
+                 </span>
+               </div>`
+            : ''
+        }
         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
           <div>
             <h3 style="color: #fff; margin: 0; font-size: 16px;">${escapeHtml(common)}</h3>
@@ -763,42 +990,42 @@ function renderSpeciesFormView(item = null, container) {
 
     try {
       const id = document.getElementById('page-sp-id').value;
-      const file = photoFileInput.files[0];
 
-      let payload;
-      if (file) {
-        // Use FormData for file upload
-        const fd = new FormData();
-        fd.append('common_name', commonName);
-        fd.append('scientific_name', scientificName);
-        fd.append('local_name', document.getElementById('page-sp-local').value.trim());
-        fd.append('family', document.getElementById('page-sp-family').value.trim());
-        fd.append('origin_status', document.getElementById('page-sp-origin').value);
-        fd.append('reference_source', document.getElementById('page-sp-ref').value.trim());
-        fd.append('ecological_function', document.getElementById('page-sp-ecological').value.trim());
-        fd.append('benefits', document.getElementById('page-sp-benefits').value.trim());
-        fd.append('description', document.getElementById('page-sp-desc').value.trim());
-        fd.append('is_active', document.getElementById('page-sp-active').checked ? '1' : '0');
-        fd.append('photo', file);
-        payload = fd;
-      } else {
-        // JSON payload
-        payload = {
-          common_name: commonName,
-          scientific_name: scientificName,
-          local_name: document.getElementById('page-sp-local').value.trim(),
-          family: document.getElementById('page-sp-family').value.trim(),
-          origin_status: document.getElementById('page-sp-origin').value,
-          reference_source: document.getElementById('page-sp-ref').value.trim(),
-          ecological_function: document.getElementById('page-sp-ecological').value.trim(),
-          benefits: document.getElementById('page-sp-benefits').value.trim(),
-          description: document.getElementById('page-sp-desc').value.trim(),
-          photo_path: document.getElementById('page-sp-photo-path').value.trim(),
-          is_active: document.getElementById('page-sp-active').checked,
-        };
+      // Always use FormData to support multi-photos and existing photos
+      const fd = new FormData();
+      fd.append('common_name', commonName);
+      fd.append('scientific_name', scientificName);
+      fd.append('local_name', document.getElementById('page-sp-local').value.trim());
+      fd.append('family', document.getElementById('page-sp-family').value.trim());
+      fd.append('origin_status', document.getElementById('page-sp-origin').value);
+      fd.append('reference_source', document.getElementById('page-sp-ref').value.trim());
+      fd.append('ecological_function', document.getElementById('page-sp-ecological').value.trim());
+      fd.append('benefits', document.getElementById('page-sp-benefits').value.trim());
+      fd.append('description', document.getElementById('page-sp-desc').value.trim());
+      fd.append('is_active', document.getElementById('page-sp-active').checked ? '1' : '0');
+
+      // Append staged files
+      stagedFiles.forEach((item) => {
+        fd.append('photos[]', item.file);
+      });
+
+      // Append existing photos JSON string
+      fd.append('existing_photos', JSON.stringify(existingPhotos));
+
+      // Append cover photo info
+      if (selectedCoverKey) {
+        if (selectedCoverKey.startsWith('existing:')) {
+          fd.append('cover_photo', selectedCoverKey.replace('existing:', ''));
+        } else if (selectedCoverKey.startsWith('staged:')) {
+          const targetId = selectedCoverKey.replace('staged:', '');
+          const newIdx = stagedFiles.findIndex((f) => f.id === targetId);
+          if (newIdx !== -1) {
+            fd.append('cover_photo_new_index', newIdx.toString());
+          }
+        }
       }
 
-      await ApiService.saveTreeSpecies(payload, id || null);
+      await ApiService.saveTreeSpecies(fd, id || null);
       if (isEdit) {
         EcoToast.updated(`Data jenis pohon '${commonName}' berhasil disimpan.`);
       } else {

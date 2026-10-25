@@ -23,7 +23,12 @@ class StoreTreeSpeciesRequest extends FormRequest
             'benefits' => ['nullable', 'string'],
             'description' => ['nullable', 'string'],
             'photo' => ['nullable', 'image', 'max:5120'],
+            'photos' => ['nullable', 'array'],
+            'photos.*' => ['image', 'max:5120'],
             'photo_path' => ['nullable', 'string', 'max:255'],
+            'cover_photo' => ['nullable', 'string', 'max:255'],
+            'gallery_photos' => ['nullable'],
+            'existing_photos' => ['nullable'],
             'reference_source' => ['nullable', 'string', 'max:255'],
             'is_active' => ['nullable', 'boolean'],
         ];

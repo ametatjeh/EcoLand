@@ -32,6 +32,7 @@ dist-ssr
 /storage/framework/cache/data/*
 /storage/framework/sessions/*
 /storage/framework/views/*
+/storage/framework/testing/*
 /storage/logs/*
 /storage/app/public/*
 !/storage/app/public/settings/

@@ -1529,47 +1529,69 @@ Kelangsungan Hidup: 95%`,O(p.value),this.showToast(`Template kegiatan penanaman 
 
         <!-- CARD 4: FOTO DAN REFERENSI -->
         <div class="admin-pane-card" style="background: var(--clr-surface); border: 1px solid var(--clr-border); border-radius: 12px; padding: 22px;">
-          <div style="border-bottom: 1px solid var(--clr-border-subtle); padding-bottom: 12px; margin-bottom: 18px;">
+          <div style="border-bottom: 1px solid var(--clr-border-subtle); padding-bottom: 12px; margin-bottom: 18px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
             <h3 style="font-size: 15px; font-weight: 700; color: #fff; margin: 0; display: flex; align-items: center; gap: 8px;">
               <span>📸</span> Card 4 — Foto dan Referensi
             </h3>
+            <span id="sp-photos-count-badge" style="font-size: 11px; background: rgba(16, 185, 129, 0.15); color: #6ee7b7; padding: 3px 10px; border-radius: 6px; border: 1px solid rgba(16, 185, 129, 0.3); font-weight: 600;">
+              0 Foto Terpilih
+            </span>
           </div>
 
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 20px;">
             <div style="display: flex; flex-direction: column; gap: 14px;">
               <div class="form-group">
                 <label for="page-sp-photo-file" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
-                  Upload Berkas Foto Pohon:
+                  Upload Berkas Foto Pohon (Bisa Lebih Dari 1 Foto):
                 </label>
-                <input type="file" id="page-sp-photo-file" class="form-input" accept="image/*" />
-                <small style="color: var(--clr-text-muted); font-size: 11px;">Format JPEG/PNG/WebP, maksimal 5MB.</small>
+                <div id="sp-dropzone" style="border: 2px dashed rgba(16, 185, 129, 0.35); background: rgba(16, 185, 129, 0.04); border-radius: 10px; padding: 18px 14px; text-align: center; cursor: pointer; transition: all 0.2s;">
+                  <span style="font-size: 28px; display: block; margin-bottom: 4px;">📁</span>
+                  <span style="color: #6ee7b7; font-weight: 600; font-size: 13px;">Klik atau Tarik Berkas Foto ke Sini</span>
+                  <p style="color: var(--clr-text-muted); font-size: 11.5px; margin: 4px 0 10px;">
+                    Mendukung unggah lebih dari satu foto sekaligus (JPEG/PNG/WebP, maks 5MB per file)
+                  </p>
+                  <label for="page-sp-photo-file" class="btn-secondary-action btn-sm" style="display: inline-flex; align-items: center; gap: 6px; cursor: pointer; margin: 0 auto;">
+                    <span>📂</span> Pilih Berkas Foto...
+                  </label>
+                  <input type="file" id="page-sp-photo-file" accept="image/*" multiple style="display: none;" />
+                </div>
               </div>
 
               <div class="form-group">
                 <label for="page-sp-photo-path" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
-                  Atau URL / Path Foto Tersimpan:
+                  Atau Tambahkan URL / Path Foto:
                 </label>
-                <input type="text" id="page-sp-photo-path" class="form-input" placeholder="/storage/tree-species/merbau.jpg" value="${Z(e?.photo_path||``)}" />
+                <div style="display: flex; gap: 8px;">
+                  <input type="text" id="page-sp-photo-path" class="form-input" placeholder="/storage/tree-species/merbau.jpg atau URL eksternal" />
+                  <button type="button" id="btn-add-url-photo" class="btn-secondary-action btn-sm" style="white-space: nowrap; display: inline-flex; align-items: center; gap: 4px;">
+                    <span>➕</span> Tambah
+                  </button>
+                </div>
+                <small style="color: var(--clr-text-muted); font-size: 11px;">Ketik URL/path foto lalu klik Tambah untuk memasukkan ke galeri foto.</small>
               </div>
 
               <div class="form-group">
                 <label for="page-sp-ref" style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
                   Sumber Referensi Identifikasi:
                 </label>
-                <input type="text" id="page-sp-ref" class="form-input" placeholder="Buku Flora Malesiana" value="${Z(e?.reference_source||``)}" />
+                <input type="text" id="page-sp-ref" class="form-input" placeholder="Buku Flora Malesiana / Balai Litbang" value="${Z(e?.reference_source||``)}" />
                 <small style="color: var(--clr-text-muted); font-size: 11px;">Rujukan pustaka atau tim surveyor yang mengidentifikasi spesies.</small>
               </div>
             </div>
 
-            <!-- Preview Card Foto -->
-            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.25); border: 1px dashed var(--clr-border); border-radius: 8px; padding: 16px; min-height: 220px;">
-              <div id="sp-photo-preview-box" style="width: 100%; height: 180px; display: flex; align-items: center; justify-content: center; overflow: hidden; border-radius: 6px; background: rgba(255,255,255,0.02);">
-                ${e?.photo_path?`<img src="${e.photo_path}" alt="Foto ${Z(e.common_name)}" style="max-width: 100%; max-height: 100%; object-fit: cover;" id="img-sp-preview" />`:`<div style="text-align: center; color: var(--clr-text-muted); font-size: 12px;" id="placeholder-sp-preview">
-                         <span style="font-size: 32px; display: block; margin-bottom: 6px;">📷</span>
-                         Belum ada foto yang dipilih
-                       </div>`}
+            <!-- Preview Card Galeri Multi-Foto -->
+            <div style="display: flex; flex-direction: column; background: rgba(0,0,0,0.25); border: 1px solid var(--clr-border); border-radius: 10px; padding: 14px; min-height: 240px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.06);">
+                <span style="font-size: 12.5px; font-weight: 600; color: #e2e8f0;">Daftar Foto Dokumentasi Pohon</span>
+                <span style="font-size: 11px; color: var(--clr-text-muted);">⭐ = Foto Sampul</span>
               </div>
-              <span style="font-size: 11px; color: var(--clr-text-muted); margin-top: 8px;">Pratinjau Foto Spesies</span>
+              <div id="sp-gallery-preview-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; max-height: 320px; overflow-y: auto; padding-right: 4px;">
+                <!-- Populated by JS -->
+              </div>
+              <div id="sp-gallery-empty-state" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 160px; color: var(--clr-text-muted); font-size: 12px; text-align: center;">
+                <span style="font-size: 32px; margin-bottom: 6px;">📷</span>
+                Belum ada foto yang dipilih.<br><span style="font-size: 11px;">Pilih satu atau lebih file foto di sebelah kiri.</span>
+              </div>
             </div>
           </div>
         </div>
@@ -1601,14 +1623,52 @@ Kelangsungan Hidup: 95%`,O(p.value),this.showToast(`Template kegiatan penanaman 
         </div>
       </div>
     </div>
-  `;let i=document.getElementById(`page-sp-photo-file`),a=document.getElementById(`page-sp-photo-path`),o=document.getElementById(`sp-photo-preview-box`);i?.addEventListener(`change`,e=>{let t=e.target.files[0];if(t){let e=URL.createObjectURL(t);o.innerHTML=`<img src="${e}" alt="Preview" style="max-width: 100%; max-height: 100%; object-fit: cover;" />`}}),a?.addEventListener(`input`,e=>{let t=e.target.value.trim();t&&!i.files[0]&&(o.innerHTML=`<img src="${t}" alt="Preview" style="max-width: 100%; max-height: 100%; object-fit: cover;" onerror="this.onerror=null; this.parentElement.innerHTML='<div style=\\\'text-align: center; color: #ef4444; font-size: 12px;\\\'>⚠️ Gagal memuat URL foto</div>';" />`)});let s=()=>{let n=document.getElementById(`page-sp-common`).value.trim();(!n||e&&n===e.common_name||confirm(`Perubahan belum disimpan. Kembali ke daftar jenis pohon?`))&&Dl(t)};document.getElementById(`breadcrumb-btn-species-list`)?.addEventListener(`click`,s),document.getElementById(`btn-back-to-species`)?.addEventListener(`click`,s),document.getElementById(`btn-cancel-species-form`)?.addEventListener(`click`,s),document.getElementById(`btn-cancel-species-bottom`)?.addEventListener(`click`,s);let c=document.getElementById(`modal-species-preview`),l=document.getElementById(`modal-species-preview-body`);document.getElementById(`btn-preview-species-form`)?.addEventListener(`click`,()=>{let e=document.getElementById(`page-sp-common`).value.trim()||`(Nama belum diisi)`,t=document.getElementById(`page-sp-scientific`).value.trim()||`(Nama ilmiah belum diisi)`,n=document.getElementById(`page-sp-local`).value.trim()||`-`,r=document.getElementById(`page-sp-family`).value.trim()||`-`,i=document.getElementById(`page-sp-origin`).value,a=i===`lokal_asli`?`Lokal / Asli`:i===`introduksi`?`Introduksi`:`Belum Diverifikasi`,o=document.getElementById(`page-sp-ecological`).value.trim()||`-`,s=document.getElementById(`page-sp-benefits`).value.trim()||`-`,u=document.getElementById(`page-sp-ref`).value.trim()||`-`;l.innerHTML=`
+  `;let i=[];e&&(Array.isArray(e.gallery_photos)&&e.gallery_photos.length>0?i=[...e.gallery_photos]:e.photo_path&&(i=[e.photo_path]));let a=[],o=null;i.length>0&&(o=`existing:${e?.photo_path||i[0]}`);let s=document.getElementById(`sp-gallery-preview-grid`),c=document.getElementById(`sp-gallery-empty-state`),l=document.getElementById(`sp-photos-count-badge`),u=document.getElementById(`page-sp-photo-file`),d=document.getElementById(`sp-dropzone`),f=document.getElementById(`page-sp-photo-path`),p=document.getElementById(`btn-add-url-photo`),h=()=>{let e=i.length+a.length;if(l&&(l.textContent=`${e} Foto Terpilih`,l.style.color=e>0?`#6ee7b7`:`#94a3b8`),e===0){s&&(s.innerHTML=``),c&&(c.style.display=`flex`),o=null;return}c&&(c.style.display=`none`);let t=!1;if(o){if(o.startsWith(`existing:`)&&i.includes(o.replace(`existing:`,``)))t=!0;else if(o.startsWith(`staged:`)){let e=o.replace(`staged:`,``);a.some(t=>t.id===e)&&(t=!0)}}t||(i.length>0?o=`existing:${i[0]}`:a.length>0&&(o=`staged:${a[0].id}`));let n=``;i.forEach((e,t)=>{let r=o===`existing:${e}`;n+=`
+        <div style="position: relative; border-radius: 8px; overflow: hidden; border: 2px solid ${r?`#10b981`:`rgba(255,255,255,0.12)`}; background: #070d0a; aspect-ratio: 1/1; box-shadow: 0 4px 10px rgba(0,0,0,0.4);">
+          <img src="${e}" alt="Foto ${t+1}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='/favicon.svg'" />
+          
+          <button type="button" class="btn-toggle-cover" data-cover-key="existing:${e}" title="${r?`Foto Sampul Utama`:`Klik untuk jadikan Foto Sampul`}" style="position: absolute; top: 4px; left: 4px; background: ${r?`#10b981`:`rgba(15,23,42,0.85)`}; color: ${r?`#fff`:`#f59e0b`}; border: 1px solid rgba(255,255,255,0.2); border-radius: 5px; padding: 2px 6px; font-size: 10px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 3px; z-index: 2;">
+            ${r?`★ Sampul`:`☆ Sampul`}
+          </button>
+
+          <button type="button" class="btn-delete-photo" data-type="existing" data-idx="${t}" title="Hapus Foto" style="position: absolute; top: 4px; right: 4px; background: rgba(239,68,68,0.88); color: #fff; border: none; border-radius: 5px; width: 22px; height: 22px; font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 2;">
+            ✕
+          </button>
+
+          <span style="position: absolute; bottom: 3px; right: 4px; background: rgba(0,0,0,0.7); color: #cbd5e1; font-size: 9.5px; padding: 1px 5px; border-radius: 3px;">
+            Tersimpan
+          </span>
+        </div>
+      `}),a.forEach((e,t)=>{let r=o===`staged:${e.id}`;n+=`
+        <div style="position: relative; border-radius: 8px; overflow: hidden; border: 2px solid ${r?`#10b981`:`rgba(16,185,129,0.35)`}; background: #070d0a; aspect-ratio: 1/1; box-shadow: 0 4px 10px rgba(0,0,0,0.4);">
+          <img src="${e.previewUrl}" alt="${Z(e.file.name)}" style="width: 100%; height: 100%; object-fit: cover;" />
+          
+          <button type="button" class="btn-toggle-cover" data-cover-key="staged:${e.id}" title="${r?`Foto Sampul Utama`:`Klik untuk jadikan Foto Sampul`}" style="position: absolute; top: 4px; left: 4px; background: ${r?`#10b981`:`rgba(15,23,42,0.85)`}; color: ${r?`#fff`:`#f59e0b`}; border: 1px solid rgba(255,255,255,0.2); border-radius: 5px; padding: 2px 6px; font-size: 10px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 3px; z-index: 2;">
+            ${r?`★ Sampul`:`☆ Sampul`}
+          </button>
+
+          <button type="button" class="btn-delete-photo" data-type="staged" data-idx="${t}" title="Hapus Foto" style="position: absolute; top: 4px; right: 4px; background: rgba(239,68,68,0.88); color: #fff; border: none; border-radius: 5px; width: 22px; height: 22px; font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 2;">
+            ✕
+          </button>
+
+          <span style="position: absolute; bottom: 3px; right: 4px; background: rgba(16,185,129,0.85); color: #fff; font-size: 9.5px; padding: 1px 5px; border-radius: 3px; font-weight: 600;">
+            Baru
+          </span>
+        </div>
+      `}),s&&(s.innerHTML=n,s.querySelectorAll(`.btn-toggle-cover`).forEach(e=>{e.addEventListener(`click`,t=>{t.stopPropagation(),o=e.getAttribute(`data-cover-key`),h()})}),s.querySelectorAll(`.btn-delete-photo`).forEach(e=>{e.addEventListener(`click`,t=>{t.stopPropagation();let n=e.getAttribute(`data-type`),r=parseInt(e.getAttribute(`data-idx`),10);if(n===`existing`)i.splice(r,1);else if(n===`staged`){let e=a.splice(r,1);e[0]?.previewUrl&&URL.revokeObjectURL(e[0].previewUrl)}h()})}))};h();let g=e=>{if(e&&e.length!==0){for(let t=0;t<e.length;t++){let n=e[t];n.type.startsWith(`image/`)&&a.push({file:n,id:`staged_`+Math.random().toString(36).substring(2,9),previewUrl:URL.createObjectURL(n)})}h()}};u?.addEventListener(`change`,e=>{g(e.target.files),u.value=``}),d&&([`dragenter`,`dragover`].forEach(e=>{d.addEventListener(e,e=>{e.preventDefault(),e.stopPropagation(),d.style.borderColor=`#10b981`,d.style.background=`rgba(16, 185, 129, 0.12)`})}),[`dragleave`,`drop`].forEach(e=>{d.addEventListener(e,e=>{e.preventDefault(),e.stopPropagation(),d.style.borderColor=`rgba(16, 185, 129, 0.35)`,d.style.background=`rgba(16, 185, 129, 0.04)`})}),d.addEventListener(`drop`,e=>{e.dataTransfer&&e.dataTransfer.files&&g(e.dataTransfer.files)})),p?.addEventListener(`click`,()=>{let e=f.value.trim();e&&(i.includes(e)?m.info(`URL foto sudah ada di daftar.`):(i.push(e),f.value=``,h()))});let _=()=>{let n=document.getElementById(`page-sp-common`).value.trim();(!n||e&&n===e.common_name||confirm(`Perubahan belum disimpan. Kembali ke daftar jenis pohon?`))&&Dl(t)};document.getElementById(`breadcrumb-btn-species-list`)?.addEventListener(`click`,_),document.getElementById(`btn-back-to-species`)?.addEventListener(`click`,_),document.getElementById(`btn-cancel-species-form`)?.addEventListener(`click`,_),document.getElementById(`btn-cancel-species-bottom`)?.addEventListener(`click`,_);let v=document.getElementById(`modal-species-preview`),y=document.getElementById(`modal-species-preview-body`);document.getElementById(`btn-preview-species-form`)?.addEventListener(`click`,()=>{let e=document.getElementById(`page-sp-common`).value.trim()||`(Nama belum diisi)`,t=document.getElementById(`page-sp-scientific`).value.trim()||`(Nama ilmiah belum diisi)`,n=document.getElementById(`page-sp-local`).value.trim()||`-`,r=document.getElementById(`page-sp-family`).value.trim()||`-`,s=document.getElementById(`page-sp-origin`).value,c=s===`lokal_asli`?`Lokal / Asli`:s===`introduksi`?`Introduksi`:`Belum Diverifikasi`,l=document.getElementById(`page-sp-ecological`).value.trim()||`-`,u=document.getElementById(`page-sp-benefits`).value.trim()||`-`,d=document.getElementById(`page-sp-ref`).value.trim()||`-`,f=``;if(o){if(o.startsWith(`existing:`))f=o.replace(`existing:`,``);else if(o.startsWith(`staged:`)){let e=o.replace(`staged:`,``),t=a.find(t=>t.id===e);t&&(f=t.previewUrl)}}f||(i.length>0?f=i[0]:a.length>0&&(f=a[0].previewUrl));let p=i.length+a.length;y.innerHTML=`
       <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--clr-border); border-radius: 8px; padding: 16px;">
+        ${f?`<div style="width: 100%; height: 180px; border-radius: 8px; overflow: hidden; margin-bottom: 12px; position: relative;">
+                 <img src="${f}" alt="${Z(e)}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='/favicon.svg'" />
+                 <span style="position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.7); color: #6ee7b7; font-size: 11px; padding: 2px 8px; border-radius: 4px;">
+                   📷 ${p} Foto Dokumentasi
+                 </span>
+               </div>`:``}
         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
           <div>
             <h3 style="color: #fff; margin: 0; font-size: 16px;">${Z(e)}</h3>
             <span style="font-size: 13px; font-style: italic; color: #34d399;">${Z(t)}</span>
           </div>
-          <span class="admin-header-pill pill-success" style="font-size: 11px;">${a}</span>
+          <span class="admin-header-pill pill-success" style="font-size: 11px;">${c}</span>
         </div>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12px; margin-bottom: 12px; color: var(--clr-text-muted);">
           <div><strong>Famili:</strong> ${Z(r)}</div>
@@ -1616,17 +1676,17 @@ Kelangsungan Hidup: 95%`,O(p.value),this.showToast(`Template kegiatan penanaman 
         </div>
         <div style="font-size: 12px; color: var(--clr-text); margin-bottom: 8px;">
           <strong>Fungsi Ekologis:</strong><br />
-          <p style="margin: 4px 0 0; color: var(--clr-text-muted); line-height: 1.4;">${Z(o)}</p>
+          <p style="margin: 4px 0 0; color: var(--clr-text-muted); line-height: 1.4;">${Z(l)}</p>
         </div>
         <div style="font-size: 12px; color: var(--clr-text); margin-bottom: 8px;">
           <strong>Manfaat:</strong><br />
-          <p style="margin: 4px 0 0; color: var(--clr-text-muted); line-height: 1.4;">${Z(s)}</p>
+          <p style="margin: 4px 0 0; color: var(--clr-text-muted); line-height: 1.4;">${Z(u)}</p>
         </div>
         <div style="font-size: 11px; color: var(--clr-text-muted); border-top: 1px solid var(--clr-border-subtle); padding-top: 8px;">
-          <strong>Referensi:</strong> ${Z(u)}
+          <strong>Referensi:</strong> ${Z(d)}
         </div>
       </div>
-    `,c.classList.remove(`hidden`)}),document.getElementById(`btn-close-species-preview-modal`)?.addEventListener(`click`,()=>c.classList.add(`hidden`)),document.getElementById(`btn-dismiss-species-preview`)?.addEventListener(`click`,()=>c.classList.add(`hidden`));let u=async()=>{let e=document.getElementById(`species-form-alert`),r=document.getElementById(`page-sp-common`).value.trim(),a=document.getElementById(`page-sp-scientific`).value.trim();if(!r){e.className=`alert-box error`,e.textContent=`Nama umum pohon (Indonesia) wajib diisi.`,e.scrollIntoView({behavior:`smooth`,block:`center`});return}if(!a){e.className=`alert-box error`,e.textContent=`Nama ilmiah (spesies) wajib diisi.`,e.scrollIntoView({behavior:`smooth`,block:`center`});return}let o=[document.getElementById(`btn-save-species-form`),document.getElementById(`btn-save-species-bottom`)];o.forEach(e=>{e&&(e.disabled=!0,e.innerHTML=`⏳ Menyimpan...`)});try{let e=document.getElementById(`page-sp-id`).value,o=i.files[0],s;if(o){let e=new FormData;e.append(`common_name`,r),e.append(`scientific_name`,a),e.append(`local_name`,document.getElementById(`page-sp-local`).value.trim()),e.append(`family`,document.getElementById(`page-sp-family`).value.trim()),e.append(`origin_status`,document.getElementById(`page-sp-origin`).value),e.append(`reference_source`,document.getElementById(`page-sp-ref`).value.trim()),e.append(`ecological_function`,document.getElementById(`page-sp-ecological`).value.trim()),e.append(`benefits`,document.getElementById(`page-sp-benefits`).value.trim()),e.append(`description`,document.getElementById(`page-sp-desc`).value.trim()),e.append(`is_active`,document.getElementById(`page-sp-active`).checked?`1`:`0`),e.append(`photo`,o),s=e}else s={common_name:r,scientific_name:a,local_name:document.getElementById(`page-sp-local`).value.trim(),family:document.getElementById(`page-sp-family`).value.trim(),origin_status:document.getElementById(`page-sp-origin`).value,reference_source:document.getElementById(`page-sp-ref`).value.trim(),ecological_function:document.getElementById(`page-sp-ecological`).value.trim(),benefits:document.getElementById(`page-sp-benefits`).value.trim(),description:document.getElementById(`page-sp-desc`).value.trim(),photo_path:document.getElementById(`page-sp-photo-path`).value.trim(),is_active:document.getElementById(`page-sp-active`).checked};await X.saveTreeSpecies(s,e||null),n?m.updated(`Data jenis pohon '${r}' berhasil disimpan.`):m.created(`Data jenis pohon '${r}' berhasil disimpan.`),await Dl(t)}catch(t){e.className=`alert-box error`,e.textContent=`Gagal menyimpan jenis pohon: ${t.message}. Seluruh data input tetap dipertahankan.`,e.scrollIntoView({behavior:`smooth`,block:`center`}),m.error(`✕ Gagal menyimpan jenis pohon`,t.message),o.forEach(e=>{e&&(e.disabled=!1,e.innerHTML=`💾 ${n?`Simpan Perubahan`:`Simpan Jenis Pohon`}`)})}};document.getElementById(`btn-save-species-form`)?.addEventListener(`click`,u),document.getElementById(`btn-save-species-bottom`)?.addEventListener(`click`,u)}async function jl(e,t){t&&t.length>0&&(xl=t),e.innerHTML=`<div style="text-align: center; padding: 30px;">⏳ Memuat kegiatan penanaman...</div>`;let[n,r,i]=await Promise.all([X.getPlantingActivities(),X.getTreeSpecies(),X.getZones()]);yl=n.activities||[],vl=r.species||[],bl=i.zones||[],e.innerHTML=`
+    `,v.classList.remove(`hidden`)}),document.getElementById(`btn-close-species-preview-modal`)?.addEventListener(`click`,()=>v.classList.add(`hidden`)),document.getElementById(`btn-dismiss-species-preview`)?.addEventListener(`click`,()=>v.classList.add(`hidden`));let b=async()=>{let e=document.getElementById(`species-form-alert`),r=document.getElementById(`page-sp-common`).value.trim(),s=document.getElementById(`page-sp-scientific`).value.trim();if(!r){e.className=`alert-box error`,e.textContent=`Nama umum pohon (Indonesia) wajib diisi.`,e.scrollIntoView({behavior:`smooth`,block:`center`});return}if(!s){e.className=`alert-box error`,e.textContent=`Nama ilmiah (spesies) wajib diisi.`,e.scrollIntoView({behavior:`smooth`,block:`center`});return}let c=[document.getElementById(`btn-save-species-form`),document.getElementById(`btn-save-species-bottom`)];c.forEach(e=>{e&&(e.disabled=!0,e.innerHTML=`⏳ Menyimpan...`)});try{let e=document.getElementById(`page-sp-id`).value,c=new FormData;if(c.append(`common_name`,r),c.append(`scientific_name`,s),c.append(`local_name`,document.getElementById(`page-sp-local`).value.trim()),c.append(`family`,document.getElementById(`page-sp-family`).value.trim()),c.append(`origin_status`,document.getElementById(`page-sp-origin`).value),c.append(`reference_source`,document.getElementById(`page-sp-ref`).value.trim()),c.append(`ecological_function`,document.getElementById(`page-sp-ecological`).value.trim()),c.append(`benefits`,document.getElementById(`page-sp-benefits`).value.trim()),c.append(`description`,document.getElementById(`page-sp-desc`).value.trim()),c.append(`is_active`,document.getElementById(`page-sp-active`).checked?`1`:`0`),a.forEach(e=>{c.append(`photos[]`,e.file)}),c.append(`existing_photos`,JSON.stringify(i)),o){if(o.startsWith(`existing:`))c.append(`cover_photo`,o.replace(`existing:`,``));else if(o.startsWith(`staged:`)){let e=o.replace(`staged:`,``),t=a.findIndex(t=>t.id===e);t!==-1&&c.append(`cover_photo_new_index`,t.toString())}}await X.saveTreeSpecies(c,e||null),n?m.updated(`Data jenis pohon '${r}' berhasil disimpan.`):m.created(`Data jenis pohon '${r}' berhasil disimpan.`),await Dl(t)}catch(t){e.className=`alert-box error`,e.textContent=`Gagal menyimpan jenis pohon: ${t.message}. Seluruh data input tetap dipertahankan.`,e.scrollIntoView({behavior:`smooth`,block:`center`}),m.error(`✕ Gagal menyimpan jenis pohon`,t.message),c.forEach(e=>{e&&(e.disabled=!1,e.innerHTML=`💾 ${n?`Simpan Perubahan`:`Simpan Jenis Pohon`}`)})}};document.getElementById(`btn-save-species-form`)?.addEventListener(`click`,b),document.getElementById(`btn-save-species-bottom`)?.addEventListener(`click`,b)}async function jl(e,t){t&&t.length>0&&(xl=t),e.innerHTML=`<div style="text-align: center; padding: 30px;">⏳ Memuat kegiatan penanaman...</div>`;let[n,r,i]=await Promise.all([X.getPlantingActivities(),X.getTreeSpecies(),X.getZones()]);yl=n.activities||[],vl=r.species||[],bl=i.zones||[],e.innerHTML=`
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
       <div style="display: flex; gap: 8px; flex: 1;">
         <input type="text" id="filter-act-search" class="form-input" placeholder="Cari batch, kegiatan, zona..." style="max-width: 320px;" />
@@ -4067,6 +4127,14 @@ Kelangsungan Hidup: 95%`,O(p.value),this.showToast(`Template kegiatan penanaman 
               ${$(t)}
             </span>
           </div>
+
+          ${e.gallery_photos&&e.gallery_photos.length>1?`
+            <div style="position: absolute; top: 12px; right: 12px; z-index: 2;">
+              <span style="font-size: 11px; padding: 3px 8px; border-radius: 9999px; font-weight: 600; background: rgba(0, 0, 0, 0.72); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.35); backdrop-filter: blur(4px);">
+                📷 ${e.gallery_photos.length} Foto
+              </span>
+            </div>
+          `:``}
         </div>
 
         <!-- Konten Informasi Pohon -->
@@ -4155,9 +4223,10 @@ Kelangsungan Hidup: 95%`,O(p.value),this.showToast(`Template kegiatan penanaman 
           <div style="width: 100%; aspect-ratio: 4 / 3; border-radius: 14px; overflow: hidden; background: #070d0a; border: 1px solid rgba(255, 255, 255, 0.1); position: relative;">
             ${i?`
               <img
+                id="catalog-species-main-photo"
                 src="${a}"
                 alt="Foto Dokumentasi ${$(t.common_name)} (${$(t.scientific_name)})"
-                style="width: 100%; height: 100%; object-fit: cover;"
+                style="width: 100%; height: 100%; object-fit: cover; transition: opacity 0.25s ease;"
                 onerror="this.parentElement.innerHTML = getNeutralPhotoPlaceholderHtml();"
               />
             `:lf()}
@@ -4167,7 +4236,32 @@ Kelangsungan Hidup: 95%`,O(p.value),this.showToast(`Template kegiatan penanaman 
                 ${$(n)}
               </span>
             </div>
+
+            ${t.gallery_photos&&t.gallery_photos.length>1?`
+              <div style="position: absolute; bottom: 12px; right: 12px;">
+                <span id="catalog-species-photo-counter" style="font-size: 11px; padding: 3px 10px; border-radius: 9999px; font-weight: 600; background: rgba(0,0,0,0.75); color: #fff; border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(4px);">
+                  1 / ${t.gallery_photos.length} Foto
+                </span>
+              </div>
+            `:``}
           </div>
+
+          <!-- Thumbnail Strip jika lebih dari 1 foto -->
+          ${t.gallery_photos&&t.gallery_photos.length>1?`
+            <div style="display: flex; gap: 8px; margin-top: 12px; overflow-x: auto; padding-bottom: 4px;" id="catalog-species-thumbnails">
+              ${t.gallery_photos.map((e,t)=>`
+                <button
+                  type="button"
+                  class="species-thumb-btn ${t===0?`active`:``}"
+                  data-photo-url="${$(e)}"
+                  data-photo-idx="${t+1}"
+                  style="flex: 0 0 68px; height: 52px; border-radius: 8px; overflow: hidden; border: 2px solid ${t===0?`#10b981`:`rgba(255,255,255,0.15)`}; background: #070d0a; padding: 0; cursor: pointer; transition: all 0.2s;"
+                >
+                  <img src="${$(e)}" alt="Thumbnail ${t+1}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='/favicon.svg'" />
+                </button>
+              `).join(``)}
+            </div>
+          `:``}
 
           ${t.reference_source?`
             <div style="margin-top: 10px; font-size: 11.5px; color: var(--clr-text-dim); line-height: 1.4; padding: 6px 10px; background: rgba(0,0,0,0.25); border-radius: 6px;">
@@ -4482,7 +4576,7 @@ Kelangsungan Hidup: 95%`,O(p.value),this.showToast(`Template kegiatan penanaman 
         </button>
       </div>
     </div>
-  `,document.getElementById(`btn-breadcrumb-back`)?.addEventListener(`click`,df),document.getElementById(`btn-back-to-catalog`)?.addEventListener(`click`,df),document.getElementById(`btn-bottom-back-to-catalog`)?.addEventListener(`click`,df),e.querySelectorAll(`.btn-jump-scene-detail`).forEach(e=>{e.addEventListener(`click`,()=>{let t=e.getAttribute(`data-scene-id`);qd&&t&&qd(t)})})}function pf(e,t){e.innerHTML=`
+  `,document.getElementById(`btn-breadcrumb-back`)?.addEventListener(`click`,df),document.getElementById(`btn-back-to-catalog`)?.addEventListener(`click`,df),document.getElementById(`btn-bottom-back-to-catalog`)?.addEventListener(`click`,df);let u=document.getElementById(`catalog-species-main-photo`),d=document.getElementById(`catalog-species-photo-counter`);e.querySelectorAll(`.species-thumb-btn`).forEach(n=>{n.addEventListener(`click`,()=>{let r=n.getAttribute(`data-photo-url`),i=n.getAttribute(`data-photo-idx`);u&&r&&(u.style.opacity=`0.4`,setTimeout(()=>{u.src=r,u.style.opacity=`1`},120)),d&&i&&t.gallery_photos&&(d.textContent=`${i} / ${t.gallery_photos.length} Foto`),e.querySelectorAll(`.species-thumb-btn`).forEach(e=>{e.style.borderColor=`rgba(255,255,255,0.15)`}),n.style.borderColor=`#10b981`})}),e.querySelectorAll(`.btn-jump-scene-detail`).forEach(e=>{e.addEventListener(`click`,()=>{let t=e.getAttribute(`data-scene-id`);qd&&t&&qd(t)})})}function pf(e,t){e.innerHTML=`
     <div class="catalog-wrapper" style="max-width: 800px; margin: 40px auto; padding: 40px 24px; text-align: center; background: rgba(15, 28, 22, 0.85); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 20px; box-shadow: 0 16px 36px -12px rgba(0,0,0,0.6);">
       <span style="font-size: 48px; display: block; margin-bottom: 12px;">🔍</span>
       <h2 style="font-size: 22px; font-weight: 800; color: #ffffff; margin-bottom: 8px;">

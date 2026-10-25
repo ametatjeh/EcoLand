@@ -400,6 +400,14 @@ function renderSpeciesCard(sp) {
               ${escapeHtml(originLabel)}
             </span>
           </div>
+
+          ${sp.gallery_photos && sp.gallery_photos.length > 1 ? `
+            <div style="position: absolute; top: 12px; right: 12px; z-index: 2;">
+              <span style="font-size: 11px; padding: 3px 8px; border-radius: 9999px; font-weight: 600; background: rgba(0, 0, 0, 0.72); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.35); backdrop-filter: blur(4px);">
+                📷 ${sp.gallery_photos.length} Foto
+              </span>
+            </div>
+          ` : ''}
         </div>
 
         <!-- Konten Informasi Pohon -->
@@ -541,9 +549,10 @@ function renderSpeciesDetailView(container, sp) {
           <div style="width: 100%; aspect-ratio: 4 / 3; border-radius: 14px; overflow: hidden; background: #070d0a; border: 1px solid rgba(255, 255, 255, 0.1); position: relative;">
             ${hasPhoto ? `
               <img
+                id="catalog-species-main-photo"
                 src="${photoSrc}"
                 alt="Foto Dokumentasi ${escapeHtml(sp.common_name)} (${escapeHtml(sp.scientific_name)})"
-                style="width: 100%; height: 100%; object-fit: cover;"
+                style="width: 100%; height: 100%; object-fit: cover; transition: opacity 0.25s ease;"
                 onerror="this.parentElement.innerHTML = getNeutralPhotoPlaceholderHtml();"
               />
             ` : getNeutralPhotoPlaceholderHtml()}
@@ -553,7 +562,32 @@ function renderSpeciesDetailView(container, sp) {
                 ${escapeHtml(originLabel)}
               </span>
             </div>
+
+            ${sp.gallery_photos && sp.gallery_photos.length > 1 ? `
+              <div style="position: absolute; bottom: 12px; right: 12px;">
+                <span id="catalog-species-photo-counter" style="font-size: 11px; padding: 3px 10px; border-radius: 9999px; font-weight: 600; background: rgba(0,0,0,0.75); color: #fff; border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(4px);">
+                  1 / ${sp.gallery_photos.length} Foto
+                </span>
+              </div>
+            ` : ''}
           </div>
+
+          <!-- Thumbnail Strip jika lebih dari 1 foto -->
+          ${sp.gallery_photos && sp.gallery_photos.length > 1 ? `
+            <div style="display: flex; gap: 8px; margin-top: 12px; overflow-x: auto; padding-bottom: 4px;" id="catalog-species-thumbnails">
+              ${sp.gallery_photos.map((pUrl, pIdx) => `
+                <button
+                  type="button"
+                  class="species-thumb-btn ${pIdx === 0 ? 'active' : ''}"
+                  data-photo-url="${escapeHtml(pUrl)}"
+                  data-photo-idx="${pIdx + 1}"
+                  style="flex: 0 0 68px; height: 52px; border-radius: 8px; overflow: hidden; border: 2px solid ${pIdx === 0 ? '#10b981' : 'rgba(255,255,255,0.15)'}; background: #070d0a; padding: 0; cursor: pointer; transition: all 0.2s;"
+                >
+                  <img src="${escapeHtml(pUrl)}" alt="Thumbnail ${pIdx + 1}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='/favicon.svg'" />
+                </button>
+              `).join('')}
+            </div>
+          ` : ''}
 
           ${sp.reference_source ? `
             <div style="margin-top: 10px; font-size: 11.5px; color: var(--clr-text-dim); line-height: 1.4; padding: 6px 10px; background: rgba(0,0,0,0.25); border-radius: 6px;">
@@ -874,6 +908,30 @@ function renderSpeciesDetailView(container, sp) {
   document.getElementById('btn-breadcrumb-back')?.addEventListener('click', backToCatalogList);
   document.getElementById('btn-back-to-catalog')?.addEventListener('click', backToCatalogList);
   document.getElementById('btn-bottom-back-to-catalog')?.addEventListener('click', backToCatalogList);
+
+  // Pasang listener thumbnail foto galeri
+  const mainPhoto = document.getElementById('catalog-species-main-photo');
+  const photoCounter = document.getElementById('catalog-species-photo-counter');
+  container.querySelectorAll('.species-thumb-btn').forEach((thumbBtn) => {
+    thumbBtn.addEventListener('click', () => {
+      const url = thumbBtn.getAttribute('data-photo-url');
+      const idx = thumbBtn.getAttribute('data-photo-idx');
+      if (mainPhoto && url) {
+        mainPhoto.style.opacity = '0.4';
+        setTimeout(() => {
+          mainPhoto.src = url;
+          mainPhoto.style.opacity = '1';
+        }, 120);
+      }
+      if (photoCounter && idx && sp.gallery_photos) {
+        photoCounter.textContent = `${idx} / ${sp.gallery_photos.length} Foto`;
+      }
+      container.querySelectorAll('.species-thumb-btn').forEach((b) => {
+        b.style.borderColor = 'rgba(255,255,255,0.15)';
+      });
+      thumbBtn.style.borderColor = '#10b981';
+    });
+  });
 
   // Pasang listener jump scene
   container.querySelectorAll('.btn-jump-scene-detail').forEach((btn) => {
