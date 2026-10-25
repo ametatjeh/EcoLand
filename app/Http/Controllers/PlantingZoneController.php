@@ -692,10 +692,15 @@ class PlantingZoneController extends Controller
             'photos.*' => 'file|mimes:jpeg,jpg,png,webp|max:5120',
             'photo' => 'nullable|file|mimes:jpeg,jpg,png,webp|max:5120',
             'title' => 'nullable|string|max:255',
+            'titles' => 'nullable|array',
+            'titles.*' => 'nullable|string|max:255',
             'caption' => 'nullable|string',
+            'captions' => 'nullable|array',
+            'captions.*' => 'nullable|string',
             'alt_text' => 'nullable|string|max:255',
             'category' => 'nullable|string|max:100',
             'documented_at' => 'nullable|date',
+            'cover_index' => 'nullable|integer',
             'is_cover' => 'nullable|boolean',
             'is_published' => 'nullable|boolean',
         ]);
@@ -718,29 +723,52 @@ class PlantingZoneController extends Controller
         $savedPhotos = [];
         $isFirstPhotoForZone = PlantingZonePhoto::where('planting_zone_id', $zone->id)->count() === 0;
 
-        foreach ($files as $index => $file) {
-            $extension = $file->getClientOriginalExtension() ?: 'jpg';
-            $uniqueName = 'zone_' . $zone->id . '_' . date('Ymd_His') . '_' . Str::random(8) . '.' . strtolower($extension);
-            $storedPath = $file->storeAs("zones/{$zone->id}/photos", $uniqueName, 'public');
+        $category = $request->input('category') ?: 'Kondisi Kawasan';
+        $categorySlug = Str::slug($category) ?: 'kondisi-kawasan';
+        $titles = $request->input('titles', []);
+        $captions = $request->input('captions', []);
+        $coverIndex = $request->has('cover_index') ? (int) $request->input('cover_index') : null;
+        $requestIsCover = $request->boolean('is_cover');
 
-            $isCover = $request->boolean('is_cover');
-            if ($isFirstPhotoForZone && $index === 0 && empty($zone->main_photo_path)) {
+        foreach ($files as $index => $file) {
+            // Tentukan Judul Foto / Label individual atau fallback
+            $fileTitle = null;
+            if (is_array($titles) && isset($titles[$index]) && trim($titles[$index]) !== '') {
+                $fileTitle = trim($titles[$index]);
+            } elseif ($request->filled('title')) {
+                $fileTitle = count($files) > 1 ? trim($request->input('title')) . ' #' . ($index + 1) : trim($request->input('title'));
+            } else {
+                $fileTitle = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+            }
+
+            // Bangun path penyimpanan berdasarkan Kategori dan Judul Foto / Label
+            $titleSlug = Str::slug($fileTitle) ?: 'foto';
+            $extension = strtolower($file->getClientOriginalExtension() ?: 'jpg');
+            $uniqueName = $titleSlug . '_' . date('Ymd_His') . '_' . Str::random(6) . '.' . $extension;
+            $directory = "zones/{$zone->id}/photos/{$categorySlug}";
+            $storedPath = $file->storeAs($directory, $uniqueName, 'public');
+
+            // Tentukan apakah foto ini adalah sampul
+            $isCover = false;
+            if ($coverIndex !== null) {
+                $isCover = ($index === $coverIndex);
+            } elseif ($requestIsCover && $index === 0) {
+                $isCover = true;
+            } elseif ($isFirstPhotoForZone && $index === 0 && empty($zone->main_photo_path)) {
                 $isCover = true;
             }
 
-            $title = $request->input('title');
-            if (empty($title) || count($files) > 1) {
-                $title = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-            }
+            $photoCaption = is_array($captions) && isset($captions[$index]) ? $captions[$index] : $request->input('caption');
+            $photoAlt = $request->input('alt_text') ?: $fileTitle;
 
             $photo = PlantingZonePhoto::create([
                 'planting_zone_id' => $zone->id,
                 'file_path' => '/storage/' . $storedPath,
                 'thumbnail_path' => '/storage/' . $storedPath,
-                'title' => $title,
-                'caption' => $request->input('caption'),
-                'alt_text' => $request->input('alt_text') ?: $title,
-                'category' => $request->input('category') ?: 'Kondisi Kawasan',
+                'title' => $fileTitle,
+                'caption' => $photoCaption,
+                'alt_text' => $photoAlt,
+                'category' => $category,
                 'documented_at' => $request->input('documented_at') ?: now()->toDateString(),
                 'sort_order' => $maxSortOrder + $index + 1,
                 'is_cover' => $isCover,
@@ -792,12 +820,17 @@ class PlantingZoneController extends Controller
             'photo' => 'nullable|file|mimes:jpeg,jpg,png,webp|max:5120',
         ]);
 
-        // Ganti file jika disediakan
+        // Ganti file jika disediakan (dengan format path berdasarkan kategori dan judul foto)
         if ($request->hasFile('photo')) {
             $newFile = $request->file('photo');
-            $extension = $newFile->getClientOriginalExtension() ?: 'jpg';
-            $uniqueName = 'zone_' . $zone->id . '_' . date('Ymd_His') . '_' . Str::random(8) . '.' . strtolower($extension);
-            $storedPath = $newFile->storeAs("zones/{$zone->id}/photos", $uniqueName, 'public');
+            $categoryVal = $request->input('category') ?: $photo->category ?: 'Kondisi Kawasan';
+            $categorySlug = Str::slug($categoryVal) ?: 'kondisi-kawasan';
+            $fileTitle = $request->input('title') ?: $photo->title ?: pathinfo($newFile->getClientOriginalName(), PATHINFO_FILENAME);
+            $titleSlug = Str::slug($fileTitle) ?: 'foto';
+            $extension = strtolower($newFile->getClientOriginalExtension() ?: 'jpg');
+            $uniqueName = $titleSlug . '_' . date('Ymd_His') . '_' . Str::random(6) . '.' . $extension;
+            $directory = "zones/{$zone->id}/photos/{$categorySlug}";
+            $storedPath = $newFile->storeAs($directory, $uniqueName, 'public');
 
             // Hapus file lama setelah file baru berhasil disimpan
             if ($photo->file_path && str_starts_with($photo->file_path, '/storage/')) {

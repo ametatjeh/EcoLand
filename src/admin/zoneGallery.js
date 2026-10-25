@@ -13,6 +13,27 @@ let currentPhotos = [];
 let activeCategoryFilter = 'all';
 let currentSearchTerm = '';
 let activeStatusFilter = 'all';
+let stagedZoneFiles = [];
+let stagedCoverIndex = 0;
+
+function slugifyText(text) {
+  if (!text) return '';
+  return String(text)
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+function formatFileSize(bytes) {
+  if (!bytes || bytes <= 0) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+}
 
 export function renderAdminZoneGallery(container, zoneData) {
   currentZoneData = zoneData;
@@ -83,7 +104,7 @@ export function renderAdminZoneGallery(container, zoneData) {
 
     <!-- Upload Modal Container -->
     <div id="admin-upload-modal" class="admin-modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="upload-modal-title">
-      <div class="admin-modal-box" style="max-width: 620px;">
+      <div class="admin-modal-box" style="max-width: 680px; width: 95%;">
         <div class="admin-modal-header">
           <h3 id="upload-modal-title" style="margin: 0; font-size: 16px; font-weight: 700; color: #ffffff; display: flex; align-items: center; gap: 8px;">
             <span>📤</span> Unggah Foto Dokumentasi Kawasan
@@ -92,68 +113,95 @@ export function renderAdminZoneGallery(container, zoneData) {
         </div>
 
         <form id="admin-upload-form" style="display: flex; flex-direction: column; margin: 0; min-height: 0;">
-          <div class="admin-modal-body" style="display: flex; flex-direction: column; gap: 16px; max-height: calc(85vh - 140px); overflow-y: auto;">
+          <div class="admin-modal-body" style="display: flex; flex-direction: column; gap: 16px; max-height: calc(85vh - 130px); overflow-y: auto; padding-right: 6px;">
             <div id="admin-upload-error" class="hidden alert-box error" style="padding: 10px 14px; font-size: 12px; border-radius: 8px;"></div>
 
-            <!-- File Upload Zone -->
+            <!-- Path Structure Preview Banner -->
+            <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(6, 78, 59, 0.16)); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; padding: 12px 14px;">
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px;">
+                <span style="font-size: 12px; font-weight: 700; color: #34d399; display: flex; align-items: center; gap: 6px;">
+                  <span>📁</span> Struktur Jalur Penyimpanan Berkas:
+                </span>
+                <span style="font-size: 10.5px; font-weight: 600; color: #94a3b8; background: rgba(0, 0, 0, 0.4); padding: 2px 8px; border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.08);">
+                  Kategori / Judul Foto / Label
+                </span>
+              </div>
+              <div id="upload-live-path-preview" style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 11.5px; color: #6ee7b7; background: rgba(0, 0, 0, 0.55); padding: 7px 12px; border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.25); overflow-x: auto; white-space: nowrap; word-break: break-all;">
+                /storage/zones/.../photos/kondisi-kawasan/...
+              </div>
+              <p style="margin: 6px 0 0; font-size: 11px; color: #94a3b8;">
+                Berkas disimpan ke direktori kategori dan diberi penamaan terstruktur berdasarkan label judul masing-masing foto.
+              </p>
+            </div>
+
+            <!-- Kategori Foto (Global for this upload batch) -->
             <div>
               <label style="display: block; font-size: 12.5px; font-weight: 600; color: #e2e8f0; margin-bottom: 6px;">
-                Pilih File Foto (Bisa pilih beberapa sekaligus) <span style="color: #ef4444;">*</span>
+                Kategori Foto Dokumentasi <span style="color: #ef4444;">*</span>
               </label>
-              <div style="position: relative; border: 2px dashed rgba(16, 185, 129, 0.35); border-radius: 12px; background: rgba(16, 185, 129, 0.05); padding: 20px 16px; text-align: center; transition: all 0.2s ease;">
+              <select
+                id="upload-category-input"
+                style="width: 100%; padding: 10px 14px; background: rgba(15, 23, 42, 0.65); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 10px; color: #ffffff; font-size: 13px; outline: none; box-sizing: border-box;"
+              >
+                <option value="Lanskap & Topografi">Lanskap & Topografi</option>
+                <option value="Kegiatan Penanaman">Kegiatan Penanaman</option>
+                <option value="Bibit & Spesies">Bibit & Spesies</option>
+                <option value="Pertumbuhan Vegetasi">Pertumbuhan Vegetasi</option>
+                <option value="Pemantauan">Pemantauan</option>
+                <option value="Perawatan">Perawatan</option>
+                <option value="Kondisi Kawasan">Kondisi Kawasan</option>
+                <option value="Fasilitas">Fasilitas</option>
+                <option value="Dokumentasi Lainnya">Dokumentasi Lainnya</option>
+              </select>
+            </div>
+
+            <!-- File Upload Dropzone -->
+            <div>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <label style="font-size: 12.5px; font-weight: 600; color: #e2e8f0;">
+                  Pilih Berkas Foto (Bisa pilih lebih dari 1 foto sekaligus) <span style="color: #ef4444;">*</span>
+                </label>
+                <span id="upload-dropzone-counter" style="font-size: 11.5px; color: #34d399; font-weight: 600;">0 berkas dipilih</span>
+              </div>
+              <div id="upload-dropzone" style="position: relative; border: 2px dashed rgba(16, 185, 129, 0.4); border-radius: 12px; background: rgba(16, 185, 129, 0.05); padding: 22px 16px; text-align: center; transition: all 0.2s ease; cursor: pointer;">
                 <input
                   type="file"
                   id="upload-file-input"
                   multiple
                   accept="image/jpeg,image/png,image/webp"
-                  required
                   style="position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 2;"
                 />
                 <div style="display: flex; flex-direction: column; align-items: center; gap: 6px; pointer-events: none;">
-                  <span style="font-size: 28px;">📁</span>
-                  <span style="font-size: 13px; font-weight: 600; color: #6ee7b7;">Klik atau seret foto ke area ini</span>
-                  <span style="font-size: 11px; color: var(--clr-text-muted);">Format didukung: JPG, PNG, atau WebP (Maksimal 5 MB per berkas)</span>
+                  <span style="font-size: 32px;">📁</span>
+                  <span style="font-size: 13.5px; font-weight: 600; color: #6ee7b7;">Klik atau seret foto-foto ke area ini</span>
+                  <span style="font-size: 11px; color: var(--clr-text-muted);">Format: JPG, PNG, WebP (Maksimal 5 MB per berkas foto)</span>
                 </div>
               </div>
-              <div id="upload-preview-list" class="hidden" style="margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; max-height: 110px; overflow-y: auto; padding: 8px 10px; background: rgba(0, 0, 0, 0.35); border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.08);"></div>
             </div>
 
-            <!-- Two-Column: Judul & Kategori -->
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
-              <div>
-                <label style="display: block; font-size: 12.5px; font-weight: 600; color: #e2e8f0; margin-bottom: 6px;">
-                  Judul / Label Foto
-                </label>
-                <input
-                  type="text"
-                  id="upload-title-input"
-                  placeholder="Kosongkan untuk nama berkas asli"
-                  style="width: 100%; padding: 10px 14px; background: rgba(15, 23, 42, 0.65); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 10px; color: #ffffff; font-size: 13px; outline: none; box-sizing: border-box;"
-                />
+            <!-- Staged Photos List (Cards) -->
+            <div id="upload-staged-container" class="hidden" style="display: flex; flex-direction: column; gap: 10px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 4px; border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
+                <span style="font-size: 12.5px; font-weight: 700; color: #e2e8f0; display: flex; align-items: center; gap: 6px;">
+                  <span>📸</span> Foto Siap Diunggah (<span id="upload-staged-count-num">0</span>)
+                </span>
+                <div style="display: flex; gap: 8px;">
+                  <button type="button" id="btn-add-more-photos" class="btn-secondary-action" style="padding: 4px 10px; font-size: 11px; display: inline-flex; align-items: center; gap: 4px; cursor: pointer;">
+                    <span>➕</span> Tambah Foto
+                  </button>
+                  <button type="button" id="btn-clear-staged-photos" class="btn-secondary-action" style="padding: 4px 10px; font-size: 11px; color: #f87171; border-color: rgba(239, 68, 68, 0.3); cursor: pointer;">
+                    Bersihkan
+                  </button>
+                </div>
               </div>
 
-              <div>
-                <label style="display: block; font-size: 12.5px; font-weight: 600; color: #e2e8f0; margin-bottom: 6px;">
-                  Kategori Foto <span style="color: #ef4444;">*</span>
-                </label>
-                <select
-                  id="upload-category-input"
-                  style="width: 100%; padding: 10px 14px; background: rgba(15, 23, 42, 0.65); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 10px; color: #ffffff; font-size: 13px; outline: none; box-sizing: border-box;"
-                >
-                  <option value="Lanskap & Topografi">Lanskap & Topografi</option>
-                  <option value="Kegiatan Penanaman">Kegiatan Penanaman</option>
-                  <option value="Bibit & Spesies">Bibit & Spesies</option>
-                  <option value="Pertumbuhan Vegetasi">Pertumbuhan Vegetasi</option>
-                  <option value="Pemantauan">Pemantauan</option>
-                  <option value="Perawatan">Perawatan</option>
-                  <option value="Kondisi Kawasan">Kondisi Kawasan</option>
-                  <option value="Fasilitas">Fasilitas</option>
-                  <option value="Dokumentasi Lainnya">Dokumentasi Lainnya</option>
-                </select>
+              <!-- Staged Cards List Container -->
+              <div id="upload-staged-list" style="display: flex; flex-direction: column; gap: 10px; max-height: 240px; overflow-y: auto; padding-right: 4px;">
+                <!-- Rendered dynamically -->
               </div>
             </div>
 
-            <!-- Deskripsi / Keterangan -->
+            <!-- Deskripsi / Keterangan (Caption) -->
             <div>
               <label style="display: block; font-size: 12.5px; font-weight: 600; color: #e2e8f0; margin-bottom: 6px;">
                 Deskripsi / Keterangan Foto (Caption)
@@ -186,8 +234,8 @@ export function renderAdminZoneGallery(container, zoneData) {
                   <span>Publikasikan ke Galeri Publik</span>
                 </label>
                 <label style="display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: #e2e8f0; cursor: pointer; user-select: none;">
-                  <input type="checkbox" id="upload-is-cover" style="width: 16px; height: 16px; accent-color: #10b981; cursor: pointer;" />
-                  <span>Jadikan Foto Sampul Kawasan</span>
+                  <input type="checkbox" id="upload-is-cover" checked style="width: 16px; height: 16px; accent-color: #10b981; cursor: pointer;" />
+                  <span>Terapkan Pilihan Foto Sampul</span>
                 </label>
               </div>
             </div>
@@ -196,7 +244,7 @@ export function renderAdminZoneGallery(container, zoneData) {
           <div class="admin-modal-footer">
             <button type="button" id="btn-cancel-upload" class="btn-secondary-action btn-sm">Batal</button>
             <button type="submit" id="btn-submit-upload" class="btn-primary-action btn-sm" style="display: inline-flex; align-items: center; gap: 6px;">
-              <span>🚀</span> Mulai Unggah
+              <span>🚀</span> <span id="upload-submit-btn-text">Mulai Unggah</span>
             </button>
           </div>
         </form>
@@ -535,6 +583,198 @@ function renderAdminPhotoCards() {
   });
 }
 
+function updateLivePathPreview() {
+  const previewEl = document.getElementById('upload-live-path-preview');
+  if (!previewEl) return;
+
+  const categoryInput = document.getElementById('upload-category-input');
+  const categoryName = categoryInput ? categoryInput.value : 'Kondisi Kawasan';
+  const categorySlug = slugifyText(categoryName) || 'kondisi-kawasan';
+  const zoneId = currentZoneData?.id || 'KW-01';
+
+  let sampleTitleSlug = 'foto-dokumentasi';
+  if (stagedZoneFiles.length > 0) {
+    const activeItem = (stagedCoverIndex >= 0 && stagedCoverIndex < stagedZoneFiles.length)
+      ? stagedZoneFiles[stagedCoverIndex]
+      : stagedZoneFiles[0];
+    sampleTitleSlug = slugifyText(activeItem.title) || 'foto-kawasan';
+  }
+
+  const now = new Date();
+  const dateStr = now.getFullYear().toString() +
+    String(now.getMonth() + 1).padStart(2, '0') +
+    String(now.getDate()).padStart(2, '0') + '_' +
+    String(now.getHours()).padStart(2, '0') +
+    String(now.getMinutes()).padStart(2, '0');
+
+  previewEl.textContent = `/storage/zones/${zoneId}/photos/${categorySlug}/${sampleTitleSlug}_${dateStr}_xxxxxx.jpg`;
+}
+
+function renderStagedUploadList() {
+  const container = document.getElementById('upload-staged-container');
+  const listEl = document.getElementById('upload-staged-list');
+  const countNum = document.getElementById('upload-staged-count-num');
+  const dropzoneCounter = document.getElementById('upload-dropzone-counter');
+  const submitText = document.getElementById('upload-submit-btn-text');
+
+  if (!container || !listEl) return;
+
+  const count = stagedZoneFiles.length;
+  if (countNum) countNum.textContent = count;
+  if (dropzoneCounter) dropzoneCounter.textContent = count > 0 ? `${count} berkas dipilih` : '0 berkas dipilih';
+  if (submitText) submitText.textContent = count > 0 ? `Unggah ${count} Foto` : 'Mulai Unggah';
+
+  if (count === 0) {
+    container.classList.add('hidden');
+    listEl.innerHTML = '';
+    return;
+  }
+
+  container.classList.remove('hidden');
+
+  listEl.innerHTML = stagedZoneFiles.map((item, idx) => {
+    const isCover = (idx === stagedCoverIndex);
+    return `
+      <div class="staged-card" data-index="${idx}" style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; background: rgba(15, 23, 42, 0.7); border: 1px solid ${isCover ? 'rgba(16, 185, 129, 0.6)' : 'rgba(255, 255, 255, 0.1)'}; border-radius: 10px; transition: all 0.2s ease;">
+        <img src="${item.previewUrl}" alt="Preview" style="width: 58px; height: 58px; border-radius: 8px; object-fit: cover; flex-shrink: 0; border: 1px solid rgba(255, 255, 255, 0.15);" />
+        
+        <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 5px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+            <span style="font-size: 11px; color: #94a3b8; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escapeHtml(item.file.name)}">
+              📄 ${escapeHtml(item.file.name)} (${formatFileSize(item.file.size)})
+            </span>
+            <span style="font-size: 10px; font-family: monospace; color: #34d399; background: rgba(16, 185, 129, 0.12); padding: 1px 6px; border-radius: 4px; border: 1px solid rgba(16, 185, 129, 0.25);">
+              #${idx + 1}
+            </span>
+          </div>
+
+          <div style="position: relative;">
+            <input
+              type="text"
+              class="staged-title-input"
+              data-index="${idx}"
+              value="${escapeHtml(item.title)}"
+              placeholder="Judul / Label Foto (otomatis jadi nama berkas)"
+              style="width: 100%; padding: 6px 10px; background: rgba(0, 0, 0, 0.45); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 6px; color: #ffffff; font-size: 12px; outline: none; box-sizing: border-box;"
+            />
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0;">
+          <button
+            type="button"
+            class="staged-cover-btn"
+            data-index="${idx}"
+            style="padding: 4px 8px; font-size: 11px; font-weight: 600; border-radius: 6px; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 4px; ${isCover ? 'background: #10b981; color: #022c22; border: 1px solid #34d399;' : 'background: rgba(255, 255, 255, 0.06); color: #cbd5e1; border: 1px solid rgba(255, 255, 255, 0.12);'}"
+            title="${isCover ? 'Foto ini terpilih sebagai sampul utama kawasan' : 'Pilih foto ini sebagai sampul kawasan'}"
+          >
+            ${isCover ? '★ Sampul' : '☆ Sampul'}
+          </button>
+          <button
+            type="button"
+            class="staged-remove-btn"
+            data-index="${idx}"
+            title="Hapus foto dari antrean unggah"
+            style="color: #f87171; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: 6px; padding: 2px 7px; font-size: 11.5px; cursor: pointer;"
+          >
+            ✕
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // Attach event listeners for staged item cards
+  listEl.querySelectorAll('.staged-title-input').forEach((input) => {
+    input.addEventListener('input', (e) => {
+      const idx = parseInt(e.target.getAttribute('data-index'), 10);
+      if (!isNaN(idx) && stagedZoneFiles[idx]) {
+        stagedZoneFiles[idx].title = e.target.value;
+        updateLivePathPreview();
+      }
+    });
+  });
+
+  listEl.querySelectorAll('.staged-cover-btn').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      const idx = parseInt(btn.getAttribute('data-index'), 10);
+      if (!isNaN(idx)) {
+        stagedCoverIndex = idx;
+        const isCoverCheckbox = document.getElementById('upload-is-cover');
+        if (isCoverCheckbox) isCoverCheckbox.checked = true;
+        renderStagedUploadList();
+        updateLivePathPreview();
+      }
+    });
+  });
+
+  listEl.querySelectorAll('.staged-remove-btn').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      const idx = parseInt(btn.getAttribute('data-index'), 10);
+      if (!isNaN(idx) && stagedZoneFiles[idx]) {
+        if (stagedZoneFiles[idx].previewUrl) {
+          URL.revokeObjectURL(stagedZoneFiles[idx].previewUrl);
+        }
+        stagedZoneFiles.splice(idx, 1);
+        if (stagedCoverIndex >= stagedZoneFiles.length) {
+          stagedCoverIndex = Math.max(0, stagedZoneFiles.length - 1);
+        }
+        renderStagedUploadList();
+        updateLivePathPreview();
+      }
+    });
+  });
+}
+
+function addFilesToStaging(fileList) {
+  if (!fileList || fileList.length === 0) return;
+  const allowedMimes = ['image/jpeg', 'image/png', 'image/webp'];
+  const maxBytes = 5 * 1024 * 1024;
+
+  Array.from(fileList).forEach((file) => {
+    const ext = file.name.split('.').pop().toLowerCase();
+    const isImage = allowedMimes.includes(file.type) || ['jpg', 'jpeg', 'png', 'webp'].includes(ext);
+    if (!isImage) {
+      EcoToast.error('Berkas Ditolak', `${file.name} bukan format gambar JPG, PNG, atau WebP.`);
+      return;
+    }
+    if (file.size > maxBytes) {
+      EcoToast.error('Ukuran Terlalu Besar', `${file.name} melebihi batas 5 MB.`);
+      return;
+    }
+
+    const rawName = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
+    const cleanTitle = rawName.replace(/[-_]+/g, ' ').trim();
+
+    stagedZoneFiles.push({
+      file,
+      title: cleanTitle,
+      previewUrl: URL.createObjectURL(file),
+    });
+  });
+
+  if (stagedZoneFiles.length > 0 && (stagedCoverIndex < 0 || stagedCoverIndex >= stagedZoneFiles.length)) {
+    stagedCoverIndex = 0;
+  }
+
+  renderStagedUploadList();
+  updateLivePathPreview();
+}
+
+function cleanupStagedFiles() {
+  if (stagedZoneFiles && stagedZoneFiles.length > 0) {
+    stagedZoneFiles.forEach((item) => {
+      if (item.previewUrl) {
+        URL.revokeObjectURL(item.previewUrl);
+      }
+    });
+  }
+  stagedZoneFiles = [];
+  stagedCoverIndex = 0;
+  const fileInput = document.getElementById('upload-file-input');
+  if (fileInput) fileInput.value = '';
+}
+
 function setupUploadModal() {
   const btnOpen = document.getElementById('btn-admin-upload-photos');
   const modal = document.getElementById('admin-upload-modal');
@@ -542,7 +782,10 @@ function setupUploadModal() {
   const btnCancel = document.getElementById('btn-cancel-upload');
   const form = document.getElementById('admin-upload-form');
   const fileInput = document.getElementById('upload-file-input');
-  const previewList = document.getElementById('upload-preview-list');
+  const dropzone = document.getElementById('upload-dropzone');
+  const categoryInput = document.getElementById('upload-category-input');
+  const btnAddMore = document.getElementById('btn-add-more-photos');
+  const btnClearStaged = document.getElementById('btn-clear-staged-photos');
 
   if (btnOpen) btnOpen.addEventListener('click', openUploadModal);
   if (btnClose) btnClose.addEventListener('click', closeUploadModal);
@@ -555,17 +798,55 @@ function setupUploadModal() {
 
   if (fileInput) {
     fileInput.addEventListener('change', (e) => {
-      const files = Array.from(e.target.files);
-      if (files.length > 0 && previewList) {
-        previewList.classList.remove('hidden');
-        previewList.innerHTML = files.map((f) => `
-          <span style="display: inline-flex; align-items: center; gap: 5px; background: rgba(16, 185, 129, 0.15); color: #6ee7b7; font-size: 11.5px; padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(16, 185, 129, 0.35); font-weight: 500;">
-            📄 ${escapeHtml(f.name)} (${Math.round(f.size / 1024)} KB)
-          </span>
-        `).join('');
-      } else if (previewList) {
-        previewList.classList.add('hidden');
+      if (e.target.files && e.target.files.length > 0) {
+        addFilesToStaging(e.target.files);
+        fileInput.value = '';
       }
+    });
+  }
+
+  if (dropzone) {
+    ['dragenter', 'dragover'].forEach((evt) => {
+      dropzone.addEventListener(evt, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropzone.style.borderColor = '#10b981';
+        dropzone.style.background = 'rgba(16, 185, 129, 0.14)';
+      });
+    });
+    ['dragleave', 'drop'].forEach((evt) => {
+      dropzone.addEventListener(evt, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropzone.style.borderColor = 'rgba(16, 185, 129, 0.4)';
+        dropzone.style.background = 'rgba(16, 185, 129, 0.05)';
+      });
+    });
+    dropzone.addEventListener('drop', (e) => {
+      const dt = e.dataTransfer;
+      if (dt && dt.files && dt.files.length > 0) {
+        addFilesToStaging(dt.files);
+      }
+    });
+  }
+
+  if (btnAddMore && fileInput) {
+    btnAddMore.addEventListener('click', () => {
+      fileInput.click();
+    });
+  }
+
+  if (btnClearStaged) {
+    btnClearStaged.addEventListener('click', () => {
+      cleanupStagedFiles();
+      renderStagedUploadList();
+      updateLivePathPreview();
+    });
+  }
+
+  if (categoryInput) {
+    categoryInput.addEventListener('change', () => {
+      updateLivePathPreview();
     });
   }
 
@@ -574,39 +855,49 @@ function setupUploadModal() {
       e.preventDefault();
       const errBox = document.getElementById('admin-upload-error');
       const submitBtn = document.getElementById('btn-submit-upload');
+      const submitText = document.getElementById('upload-submit-btn-text');
       if (errBox) errBox.classList.add('hidden');
 
-      const files = fileInput.files;
-      if (!files || files.length === 0) {
+      if (stagedZoneFiles.length === 0) {
         if (errBox) {
-          errBox.textContent = 'Pilih setidaknya satu file foto.';
+          errBox.textContent = 'Pilih setidaknya satu file foto untuk diunggah.';
           errBox.classList.remove('hidden');
         }
         return;
       }
 
       const formData = new FormData();
-      Array.from(files).forEach((f) => {
-        formData.append('photos[]', f);
+      stagedZoneFiles.forEach((item) => {
+        formData.append('photos[]', item.file);
+        formData.append('titles[]', (item.title || '').trim());
       });
 
-      formData.append('title', document.getElementById('upload-title-input').value.trim());
-      formData.append('category', document.getElementById('upload-category-input').value);
-      formData.append('caption', document.getElementById('upload-caption-input').value.trim());
-      const uploadDocAt = parseDateForPayload(document.getElementById('upload-date-input').value);
+      formData.append('category', categoryInput ? categoryInput.value : 'Kondisi Kawasan');
+
+      const isCoverChecked = document.getElementById('upload-is-cover')?.checked;
+      if (isCoverChecked && stagedCoverIndex >= 0 && stagedCoverIndex < stagedZoneFiles.length) {
+        formData.append('cover_index', String(stagedCoverIndex));
+        formData.append('is_cover', '1');
+      } else {
+        formData.append('is_cover', isCoverChecked ? '1' : '0');
+      }
+
+      const captionVal = document.getElementById('upload-caption-input')?.value.trim() || '';
+      if (captionVal) formData.append('caption', captionVal);
+
+      const uploadDocAt = parseDateForPayload(document.getElementById('upload-date-input')?.value);
       if (uploadDocAt) formData.append('documented_at', uploadDocAt);
-      formData.append('is_published', document.getElementById('upload-is-published').checked ? '1' : '0');
-      formData.append('is_cover', document.getElementById('upload-is-cover').checked ? '1' : '0');
+
+      formData.append('is_published', document.getElementById('upload-is-published')?.checked ? '1' : '0');
 
       submitBtn.disabled = true;
-      submitBtn.innerHTML = '<span class="animate-spin">⏳</span> Mengunggah...';
+      if (submitText) submitText.textContent = `Mengunggah ${stagedZoneFiles.length} Foto...`;
 
       try {
         const uploadRes = await ApiService.uploadZonePhotos(currentZoneData.id, formData);
         closeUploadModal();
         form.reset();
-        if (previewList) previewList.classList.add('hidden');
-        EcoToast.uploaded(uploadRes?.message || 'Foto kawasan dan metadata berhasil diunggah.');
+        EcoToast.uploaded(uploadRes?.message || `${stagedZoneFiles.length} foto kawasan berhasil diunggah.`);
         await loadZonePhotos();
       } catch (err) {
         if (errBox) {
@@ -616,22 +907,26 @@ function setupUploadModal() {
         EcoToast.error('✕ Gagal mengunggah foto', err.message || 'Periksa file foto dan coba lagi.');
       } finally {
         submitBtn.disabled = false;
-        submitBtn.innerHTML = '<span>🚀</span> Mulai Unggah';
+        if (submitText) submitText.textContent = 'Mulai Unggah';
       }
     });
   }
 }
 
 function openUploadModal() {
+  cleanupStagedFiles();
   const modal = document.getElementById('admin-upload-modal');
   const dateInput = document.getElementById('upload-date-input');
   if (dateInput && !dateInput.value) {
     dateInput.value = new Date().toISOString().substring(0, 10);
   }
+  renderStagedUploadList();
+  updateLivePathPreview();
   if (modal) modal.classList.remove('hidden');
 }
 
 function closeUploadModal() {
+  cleanupStagedFiles();
   const modal = document.getElementById('admin-upload-modal');
   if (modal) modal.classList.add('hidden');
 }

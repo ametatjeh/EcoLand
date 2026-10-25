@@ -199,4 +199,71 @@ class PlantingZoneGalleryTest extends TestCase
             'id' => $photo->id,
         ]);
     }
+
+    public function test_admin_can_upload_multiple_photos_with_paths_structured_by_category_and_title()
+    {
+        $file1 = UploadedFile::fake()->image('pemandangan_timur.jpg', 640, 480);
+        $file2 = UploadedFile::fake()->image('plot_bibit_cemara.jpg', 640, 480);
+
+        $res = $this->withHeader('Authorization', "Bearer {$this->adminToken}")
+            ->postJson("/api/admin/zones/{$this->zone->id}/photos", [
+                'photos' => [$file1, $file2],
+                'titles' => ['Panorama Bukit Hijau', 'Bibit Cemara Laut Siap Tanam'],
+                'category' => 'Lanskap & Topografi',
+                'caption' => 'Dokumentasi survei lapangan blok 2',
+                'cover_index' => 1, // Foto ke-2 jadi sampul
+                'is_published' => true,
+            ]);
+
+        $res->assertStatus(201)
+            ->assertJson(['success' => true])
+            ->assertJsonCount(2, 'photos');
+
+        $photos = PlantingZonePhoto::where('planting_zone_id', $this->zone->id)->orderBy('id')->get();
+        $this->assertCount(2, $photos);
+
+        // Foto 1: title "Panorama Bukit Hijau", category "Lanskap & Topografi"
+        // Path harus mengandung slug kategori "lanskap-topografi" dan slug judul "panorama-bukit-hijau"
+        $this->assertEquals('Panorama Bukit Hijau', $photos[0]->title);
+        $this->assertEquals('Lanskap & Topografi', $photos[0]->category);
+        $this->assertFalse($photos[0]->is_cover);
+        $this->assertStringContainsString('/storage/zones/' . $this->zone->id . '/photos/lanskap-topografi/panorama-bukit-hijau_', $photos[0]->file_path);
+
+        // Foto 2: title "Bibit Cemara Laut Siap Tanam", cover_index = 1 -> is_cover = true
+        $this->assertEquals('Bibit Cemara Laut Siap Tanam', $photos[1]->title);
+        $this->assertTrue($photos[1]->is_cover);
+        $this->assertStringContainsString('/storage/zones/' . $this->zone->id . '/photos/lanskap-topografi/bibit-cemara-laut-siap-tanam_', $photos[1]->file_path);
+
+        // Main photo path zone juga diperbarui ke foto 2
+        $this->zone->refresh();
+        $this->assertEquals($photos[1]->file_url, $this->zone->main_photo_path);
+    }
+
+    public function test_admin_can_update_photo_file_with_structured_path()
+    {
+        $photo = PlantingZonePhoto::create([
+            'planting_zone_id' => $this->zone->id,
+            'file_path' => '/storage/zones/KW-TEST-01/photos/old_file.jpg',
+            'title' => 'Foto Lama',
+            'category' => 'Kondisi Kawasan',
+        ]);
+
+        $newImage = UploadedFile::fake()->image('foto_baru_lahan.jpg', 800, 600);
+
+        $res = $this->withHeader('Authorization', "Bearer {$this->adminToken}")
+            ->postJson("/api/admin/zones/{$this->zone->id}/photos/{$photo->id}", [
+                '_method' => 'PUT',
+                'photo' => $newImage,
+                'title' => 'Vegetasi Terkini Blok B',
+                'category' => 'Pertumbuhan Vegetasi',
+            ]);
+
+        $res->assertStatus(200)
+            ->assertJson(['success' => true]);
+
+        $photo->refresh();
+        $this->assertEquals('Vegetasi Terkini Blok B', $photo->title);
+        $this->assertEquals('Pertumbuhan Vegetasi', $photo->category);
+        $this->assertStringContainsString('/storage/zones/' . $this->zone->id . '/photos/pertumbuhan-vegetasi/vegetasi-terkini-blok-b_', $photo->file_path);
+    }
 }
