@@ -40,7 +40,11 @@ class TreeSpecies extends Model
         parent::boot();
         static::creating(function ($species) {
             if (empty($species->id)) {
-                $species->id = Str::slug($species->common_name ?: $species->scientific_name);
+                $base = Str::slug($species->common_name ?: $species->scientific_name);
+                if (empty($base)) {
+                    $base = 'sp-' . Str::random(8);
+                }
+                $species->id = Str::limit($base, 80, '');
                 // Cegah tabrakan slug ID
                 if (static::where('id', $species->id)->exists()) {
                     $species->id .= '-' . Str::random(4);
@@ -93,16 +97,68 @@ class TreeSpecies extends Model
     }
 
     /**
+     * Konversi path foto internal / relatif / absolut menjadi URL publik yang konsisten
+     */
+    public static function toPublicUrl(?string $path): ?string
+    {
+        if (!$path) return null;
+        $path = trim($path);
+        if ($path === '') return null;
+
+        if (preg_match('#^https?://#i', $path)) {
+            return $path;
+        }
+
+        // Hapus path absolut server Linux/Windows jika ada
+        $path = preg_replace('#^.*?/storage/app/public/#i', '', $path);
+        $path = preg_replace('#^[a-zA-Z]:\\\\.*?\\\\storage\\\\app\\\\public\\\\#i', '', $path);
+
+        // Hapus double prefix /storage/ atau /public/storage/
+        while (preg_match('#^/?(?:public/)?storage/(?:public/)?storage/#i', $path)) {
+            $path = preg_replace('#^/?(?:public/)?storage/#i', '', $path);
+        }
+
+        $clean = ltrim(str_replace('\\', '/', $path), '/');
+        if (str_starts_with($clean, 'public/')) {
+            $clean = substr($clean, 7);
+        }
+        if (str_starts_with($clean, 'storage/')) {
+            $clean = substr($clean, 8);
+        }
+
+        return '/storage/' . $clean;
+    }
+
+    /**
+     * Dapatkan URL foto browser yang ternormalisasi untuk foto sampul
+     */
+    public function getPhotoUrlAttribute(): ?string
+    {
+        return self::toPublicUrl($this->photo_path);
+    }
+
+    /**
      * Dapatkan daftar seluruh URL foto pohon (gallery_photos atau fallback photo_path)
      * @return array<string>
      */
-     public function getPhotosListAttribute(): array
-     {
-         if (!empty($this->gallery_photos) && is_array($this->gallery_photos)) {
-             return array_values(array_filter($this->gallery_photos));
-         }
-         return !empty($this->photo_path) ? [$this->photo_path] : [];
-     }
+    public function getPhotosListAttribute(): array
+    {
+        $raw = [];
+        if (!empty($this->gallery_photos) && is_array($this->gallery_photos)) {
+            $raw = $this->gallery_photos;
+        } elseif (!empty($this->photo_path)) {
+            $raw = [$this->photo_path];
+        }
+
+        $result = [];
+        foreach ($raw as $p) {
+            $url = self::toPublicUrl($p);
+            if ($url && !in_array($url, $result)) {
+                $result[] = $url;
+            }
+        }
+        return $result;
+    }
 
     /**
      * Format data publik yang aman (tanpa data sensitif internal), faktual, dan transparan
@@ -194,7 +250,7 @@ class TreeSpecies extends Model
             'ecological_function' => $this->ecological_function,
             'benefits' => $this->benefits,
             'description' => $this->description,
-            'photo_path' => $this->photo_path ?: ($photos[0] ?? null),
+            'photo_path' => $this->photo_url ?: ($photos[0] ?? null),
             'gallery_photos' => $photos,
             'reference_source' => $this->reference_source,
             'has_planted_data' => $hasPlanted,

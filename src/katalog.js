@@ -365,6 +365,32 @@ function applyCatalogFilters() {
 }
 
 /**
+ * Normalisasi URL foto agar selalu menghasilkan path yang valid tanpa double prefix
+ */
+function formatPhotoUrl(src) {
+  if (!src || typeof src !== 'string') return '';
+  src = src.trim();
+  if (!src) return '';
+  if (src.startsWith('http://') || src.startsWith('https://')) return src;
+
+  src = src.replace(/^.*?\/storage\/app\/public\//, '');
+  while (src.startsWith('/storage/storage/')) {
+    src = src.replace('/storage/storage/', '/storage/');
+  }
+  while (src.startsWith('/public/storage/')) {
+    src = src.replace('/public/storage/', '/storage/');
+  }
+
+  if (src.startsWith('/storage/')) return src;
+  if (src.startsWith('storage/')) return '/' + src;
+  if (src.startsWith('/')) {
+    if (src.startsWith('/demo/')) return '/storage' + src;
+    return src;
+  }
+  return '/storage/' + src;
+}
+
+/**
  * Render satu kartu jenis pohon
  */
 function renderSpeciesCard(sp) {
@@ -373,10 +399,7 @@ function renderSpeciesCard(sp) {
 
   // Periksa ketersediaan foto aktual
   const hasPhoto = Boolean(sp.photo_path && sp.photo_path.trim());
-  let photoSrc = hasPhoto ? sp.photo_path.trim() : '';
-  if (photoSrc && !photoSrc.startsWith('http://') && !photoSrc.startsWith('https://') && !photoSrc.startsWith('/')) {
-    photoSrc = '/' + photoSrc;
-  }
+  let photoSrc = hasPhoto ? formatPhotoUrl(sp.photo_path) : '';
 
   // Jumlah bibit ditanam secara faktual
   let plantedText = 'Data belum tersedia';
@@ -510,23 +533,14 @@ function renderSpeciesDetailView(container, sp) {
   const originBadgeClass = sp.origin_status === 'lokal_asli' ? 'pill-success' : 'pill-info';
 
   const hasPhoto = Boolean(sp.photo_path && sp.photo_path.trim());
-  let photoSrc = hasPhoto ? sp.photo_path.trim() : '';
-  if (photoSrc && !photoSrc.startsWith('http://') && !photoSrc.startsWith('https://') && !photoSrc.startsWith('/')) {
-    photoSrc = '/' + photoSrc;
-  }
+  let photoSrc = hasPhoto ? formatPhotoUrl(sp.photo_path) : '';
 
   // Kumpulan foto galeri untuk auto slider
   const rawPhotos = Array.isArray(sp.gallery_photos) && sp.gallery_photos.length > 0
     ? sp.gallery_photos
     : (photoSrc ? [photoSrc] : []);
 
-  const photos = rawPhotos.map((p) => {
-    let src = String(p).trim();
-    if (src && !src.startsWith('http://') && !src.startsWith('https://') && !src.startsWith('/')) {
-      src = '/' + src;
-    }
-    return src;
-  }).filter(Boolean);
+  const photos = rawPhotos.map((p) => formatPhotoUrl(p)).filter(Boolean);
   const hasPhotos = photos.length > 0;
 
   // Ringkasan penanaman

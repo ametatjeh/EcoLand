@@ -508,4 +508,57 @@ class TreePlantingModuleTest extends TestCase
         $species->refresh();
         $this->assertCount(3, $species->gallery_photos);
     }
+
+    /**
+     * Skenario 14: Admin dapat menyimpan jenis pohon tanpa foto (foto optional).
+     */
+    public function test_admin_can_save_tree_species_without_photo()
+    {
+        $res = $this->withHeader('Authorization', "Bearer {$this->adminToken}")
+            ->post('/api/admin/trees/species', [
+                'common_name' => 'Kruing Aceh Tanpa Foto',
+                'scientific_name' => 'Dipterocarpus alatus test',
+                'origin_status' => 'lokal_asli',
+            ]);
+
+        $res->assertStatus(201)
+            ->assertJson([
+                'success' => true,
+            ]);
+
+        $species = TreeSpecies::where('scientific_name', 'Dipterocarpus alatus test')->first();
+        $this->assertNotNull($species);
+        $this->assertNull($species->photo_path);
+        $this->assertEmpty($species->photos_list);
+    }
+
+    /**
+     * Skenario 15: Model TreeSpecies menormalisasi URL foto dan mencegah double prefix /storage/.
+     */
+    public function test_tree_species_normalizes_photo_paths_and_prevents_double_prefix()
+    {
+        $this->assertEquals('/storage/tree-species/sample.jpg', TreeSpecies::toPublicUrl('tree-species/sample.jpg'));
+        $this->assertEquals('/storage/tree-species/sample.jpg', TreeSpecies::toPublicUrl('/storage/tree-species/sample.jpg'));
+        $this->assertEquals('/storage/tree-species/sample.jpg', TreeSpecies::toPublicUrl('/storage/storage/tree-species/sample.jpg'));
+        $this->assertEquals('/storage/tree-species/sample.jpg', TreeSpecies::toPublicUrl('/public/storage/tree-species/sample.jpg'));
+        $this->assertEquals('/storage/tree-species/sample.jpg', TreeSpecies::toPublicUrl('/www/wwwroot/ecoland.nagakecil.site/storage/app/public/tree-species/sample.jpg'));
+        $this->assertEquals('https://example.com/tree.jpg', TreeSpecies::toPublicUrl('https://example.com/tree.jpg'));
+        $this->assertNull(TreeSpecies::toPublicUrl(null));
+        $this->assertNull(TreeSpecies::toPublicUrl(''));
+    }
+
+    /**
+     * Skenario 16: Validasi error mengembalikan status 422 dengan pesan spesifik per field.
+     */
+    public function test_admin_save_tree_species_validation_error_returns_422()
+    {
+        $res = $this->withHeader('Authorization', "Bearer {$this->adminToken}")
+            ->postJson('/api/admin/trees/species', [
+                // common_name and scientific_name missing
+                'origin_status' => 'invalid_status',
+            ]);
+
+        $res->assertStatus(422)
+            ->assertJsonValidationErrors(['common_name', 'scientific_name', 'origin_status']);
+    }
 }

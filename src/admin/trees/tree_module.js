@@ -364,6 +364,7 @@ function renderSpeciesRows(list) {
         ${s.total_planted?.toLocaleString() || 0} bibit
       </td>
       <td style="padding: 10px 14px; text-align: center; white-space: nowrap;">
+        <a href="#katalog?species=${encodeURIComponent(s.id)}" class="icon-btn-sm" title="Lihat Profil Jenis Pohon di Katalog" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none; font-size: 13px; margin-right: 4px;">👁️</a>
         <button class="btn-edit-species icon-btn-sm" data-id="${s.id}" title="Edit Data">✏️</button>
         <button class="btn-del-species icon-btn-sm" data-id="${s.id}" title="Hapus Spesies" style="color: #ef4444;">🗑️</button>
       </td>
@@ -731,12 +732,36 @@ function renderSpeciesFormView(item = null, container) {
 
     let html = '';
 
+function formatTreePhotoUrl(src) {
+  if (!src || typeof src !== 'string') return '';
+  src = src.trim();
+  if (!src) return '';
+  if (src.startsWith('http://') || src.startsWith('https://') || src.startsWith('blob:') || src.startsWith('data:')) return src;
+
+  src = src.replace(/^.*?\/storage\/app\/public\//, '');
+  while (src.startsWith('/storage/storage/')) {
+    src = src.replace('/storage/storage/', '/storage/');
+  }
+  while (src.startsWith('/public/storage/')) {
+    src = src.replace('/public/storage/', '/storage/');
+  }
+
+  if (src.startsWith('/storage/')) return src;
+  if (src.startsWith('storage/')) return '/' + src;
+  if (src.startsWith('/')) {
+    if (src.startsWith('/demo/')) return '/storage' + src;
+    return src;
+  }
+  return '/storage/' + src;
+}
+
     // Render Existing Photos
     existingPhotos.forEach((url, idx) => {
       const isCover = selectedCoverKey === `existing:${url}`;
+      const displayUrl = formatTreePhotoUrl(url);
       html += `
         <div style="position: relative; border-radius: 8px; overflow: hidden; border: 2px solid ${isCover ? '#10b981' : 'rgba(255,255,255,0.12)'}; background: #070d0a; aspect-ratio: 1/1; box-shadow: 0 4px 10px rgba(0,0,0,0.4);">
-          <img src="${url}" alt="Foto ${idx + 1}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='/favicon.svg'" />
+          <img src="${displayUrl}" alt="Foto ${idx + 1}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='/favicon.svg'" />
           
           <button type="button" class="btn-toggle-cover" data-cover-key="existing:${url}" title="${isCover ? 'Foto Sampul Utama' : 'Klik untuk jadikan Foto Sampul'}" style="position: absolute; top: 4px; left: 4px; background: ${isCover ? '#10b981' : 'rgba(15,23,42,0.85)'}; color: ${isCover ? '#fff' : '#f59e0b'}; border: 1px solid rgba(255,255,255,0.2); border-radius: 5px; padding: 2px 6px; font-size: 10px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 3px; z-index: 2;">
             ${isCover ? '★ Sampul' : '☆ Sampul'}
@@ -1034,9 +1059,23 @@ function renderSpeciesFormView(item = null, container) {
       await renderSpeciesTab(container);
     } catch (err) {
       alertBox.className = 'alert-box error';
-      alertBox.textContent = `Gagal menyimpan jenis pohon: ${err.message}. Seluruh data input tetap dipertahankan.`;
+      if (err.status === 422 && err.errors) {
+        const errorList = Object.entries(err.errors)
+          .map(([field, msgs]) => `• ${Array.isArray(msgs) ? msgs.join(', ') : msgs}`)
+          .join('<br>');
+        alertBox.innerHTML = `<strong>Validasi Gagal:</strong><br>${errorList}<br><small style="margin-top: 6px; display: block; color: var(--clr-text-muted);">Seluruh data input dan berkas foto tetap dipertahankan.</small>`;
+        EcoToast.error('✕ Validasi Gagal', err.message || 'Periksa kembali isian formulir.');
+      } else if (err.status === 403) {
+        alertBox.textContent = `Akses Ditolak: Anda tidak memiliki izin administrator untuk menyimpan data.`;
+        EcoToast.error('✕ Akses Ditolak', err.message);
+      } else if (err.status === 404) {
+        alertBox.textContent = `Data tidak ditemukan: Spesies yang akan diperbarui tidak ditemukan di server.`;
+        EcoToast.error('✕ Tidak Ditemukan', err.message);
+      } else {
+        alertBox.textContent = `Gagal menyimpan jenis pohon: ${err.message}. Seluruh data input tetap dipertahankan.`;
+        EcoToast.error('✕ Gagal menyimpan jenis pohon', err.message);
+      }
       alertBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      EcoToast.error('✕ Gagal menyimpan jenis pohon', err.message);
       saveBtns.forEach((b) => {
         if (b) {
           b.disabled = false;

@@ -385,8 +385,14 @@ export const ApiService = {
       method,
       body: isFormData ? data : JSON.stringify(data),
     });
-    const result = await res.json();
-    if (!res.ok) throw new Error(result.message || 'Gagal menyimpan jenis pohon');
+    const result = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      const err = new Error(result.message || `Gagal menyimpan jenis pohon (HTTP ${res.status})`);
+      err.status = res.status;
+      err.errors = result.errors || null;
+      err.raw = result;
+      throw err;
+    }
     return result;
   },
 
