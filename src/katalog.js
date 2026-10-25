@@ -25,6 +25,12 @@ let currentSearchTerm = '';
 let currentOriginFilter = 'all';
 let currentFamilyFilter = 'all';
 
+// Lightbox modal state untuk foto spesies di katalog
+let currentLightboxIndex = -1;
+let currentLightboxPhotos = [];
+let currentLightboxSpecies = null;
+let isCatalogLightboxBound = false;
+
 /**
  * Inisialisasi modul katalog publik.
  */
@@ -587,11 +593,16 @@ function renderSpeciesDetailView(container, sp) {
               </div>
             </div>
           ` : photos.length === 1 ? `
-            <div style="width: 100%; aspect-ratio: 4 / 3; border-radius: 14px; overflow: hidden; background: #070d0a; border: 1px solid rgba(255, 255, 255, 0.1); position: relative;">
+            <div
+              class="catalog-photo-zoomable"
+              data-photo-index="0"
+              style="width: 100%; aspect-ratio: 4 / 3; border-radius: 14px; overflow: hidden; background: #070d0a; border: 1px solid rgba(255, 255, 255, 0.1); position: relative; cursor: pointer;"
+              title="Klik untuk melihat foto dalam layar penuh (fullscreen lightbox)"
+            >
               <img
                 src="${escapeHtml(photos[0])}"
                 alt="Foto Dokumentasi ${escapeHtml(sp.common_name)} (${escapeHtml(sp.scientific_name)})"
-                style="width: 100%; height: 100%; object-fit: cover;"
+                style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease;"
                 onerror="this.parentElement.innerHTML = getNeutralPhotoPlaceholderHtml();"
               />
               <div style="position: absolute; top: 12px; left: 12px; z-index: 5;">
@@ -599,14 +610,20 @@ function renderSpeciesDetailView(container, sp) {
                   ${escapeHtml(originLabel)}
                 </span>
               </div>
+              <!-- Hint Icon Zoom Fullscreen (Kanan Bawah) -->
+              <div style="position: absolute; bottom: 12px; right: 12px; z-index: 5; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; padding: 4px 8px; display: flex; align-items: center; gap: 5px; color: #e2e8f0; font-size: 11px; font-weight: 600; pointer-events: none;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+                <span>Perbesar</span>
+              </div>
             </div>
           ` : `
             <div id="catalog-species-slider-box" style="width: 100%; aspect-ratio: 4 / 3; border-radius: 14px; overflow: hidden; background: #070d0a; border: 1px solid rgba(255, 255, 255, 0.1); position: relative; user-select: none;">
               ${photos.map((pUrl, pIdx) => `
                 <div
-                  class="catalog-slide-item"
-                  data-slide-index="${pIdx}"
-                  style="position: absolute; inset: 0; opacity: ${pIdx === 0 ? '1' : '0'}; transition: opacity 0.7s cubic-bezier(0.4, 0, 0.2, 1); pointer-events: ${pIdx === 0 ? 'auto' : 'none'}; z-index: ${pIdx === 0 ? '2' : '1'};"
+                  class="catalog-slide-item catalog-photo-zoomable"
+                  data-photo-index="${pIdx}"
+                  style="position: absolute; inset: 0; opacity: ${pIdx === 0 ? '1' : '0'}; transition: opacity 0.7s cubic-bezier(0.4, 0, 0.2, 1); pointer-events: ${pIdx === 0 ? 'auto' : 'none'}; z-index: ${pIdx === 0 ? '2' : '1'}; cursor: pointer;"
+                  title="Klik untuk melihat foto dalam layar penuh (fullscreen lightbox)"
                 >
                   <img
                     src="${escapeHtml(pUrl)}"
@@ -624,8 +641,12 @@ function renderSpeciesDetailView(container, sp) {
                 </span>
               </div>
 
-              <!-- Counter Foto (Kanan Atas) -->
-              <div style="position: absolute; top: 12px; right: 12px; z-index: 10;">
+              <!-- Counter Foto & Hint Zoom (Kanan Atas) -->
+              <div style="position: absolute; top: 12px; right: 12px; z-index: 10; display: flex; align-items: center; gap: 6px;">
+                <span style="font-size: 11px; padding: 3px 8px; border-radius: 9999px; font-weight: 600; background: rgba(0,0,0,0.75); color: #34d399; border: 1px solid rgba(52,211,153,0.3); backdrop-filter: blur(4px); box-shadow: 0 2px 8px rgba(0,0,0,0.5); display: inline-flex; align-items: center; gap: 4px;">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+                  <span>Klik Layar Penuh</span>
+                </span>
                 <span id="catalog-species-photo-counter" style="font-size: 11px; padding: 3px 10px; border-radius: 9999px; font-weight: 600; background: rgba(0,0,0,0.75); color: #fff; border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(4px); box-shadow: 0 2px 8px rgba(0,0,0,0.5);">
                   1 / ${photos.length} Foto
                 </span>
@@ -963,6 +984,79 @@ function renderSpeciesDetailView(container, sp) {
         </button>
       </div>
     </div>
+
+    <!-- Fullscreen Lightbox Modal untuk Foto Spesies Pohon -->
+    <div id="catalog-species-lightbox-modal" class="fixed inset-0 z-[99999] bg-slate-950/95 backdrop-blur-xl hidden flex flex-col justify-between select-none" role="dialog" aria-modal="true" aria-label="Penampil Foto Spesies Pohon">
+      <!-- Lightbox Header -->
+      <div class="lightbox-header-bar flex items-center justify-between px-5 sm:px-8 py-4 bg-slate-900/95 border-b border-white/10 text-white z-30 shrink-0">
+        <div class="flex items-center gap-3 sm:gap-4 flex-wrap">
+          <span class="text-xs sm:text-sm font-semibold text-white/90 hidden sm:inline-flex items-center gap-2">
+            <span>🌳</span> Dokumentasi Spesies
+          </span>
+          <span class="text-slate-600 hidden sm:inline">•</span>
+          <span id="catalog-lightbox-counter" class="text-xs sm:text-sm font-mono font-bold text-emerald-400 bg-emerald-500/15 px-3 py-1 rounded-lg border border-emerald-500/30">1 / 1</span>
+          <span id="catalog-lightbox-badge" class="text-xs sm:text-sm font-medium text-slate-200 bg-slate-800/90 px-3 py-1 rounded-lg border border-slate-700">${escapeHtml(originLabel)}</span>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <kbd class="hidden md:inline-flex items-center gap-1.5 text-xs font-mono text-slate-400 bg-white/5 border border-white/10 px-3 py-1 rounded-lg">
+            <span>Navigasi</span> <span>←</span> <span>→</span> <span class="ml-1 font-bold text-slate-200">ESC</span>
+          </kbd>
+          <button id="btn-close-catalog-lightbox" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 hover:bg-rose-500/25 text-slate-200 hover:text-rose-300 border border-white/15 hover:border-rose-500/40 transition-all cursor-pointer font-bold text-xs sm:text-sm" aria-label="Tutup penampil foto (Escape)">
+            <span>Tutup</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Lightbox Main Stage -->
+      <div class="relative flex-1 flex items-center justify-center p-4 sm:p-6 overflow-hidden cursor-pointer" id="catalog-lightbox-stage">
+        <!-- Prev Button -->
+        <button id="btn-catalog-lightbox-prev" class="absolute left-3 sm:left-8 z-30 w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-slate-900/85 hover:bg-emerald-600/90 text-white border border-white/15 hover:border-emerald-400 shadow-2xl backdrop-blur-md flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95 cursor-pointer" aria-label="Foto sebelumnya (Panah Kiri)" title="Sebelumnya (←)">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+
+        <!-- Main Displayed Image Wrapper -->
+        <div class="relative max-w-5xl w-full flex items-center justify-center cursor-default transition-transform duration-200" id="catalog-lightbox-img-wrapper">
+          <div id="catalog-lightbox-spinner" class="absolute inset-0 flex items-center justify-center z-10 hidden">
+            <span class="loading-spinner"></span>
+          </div>
+          <div class="relative inline-block max-w-full">
+            <img id="catalog-lightbox-img" src="" alt="" class="max-h-[64vh] sm:max-h-[70vh] md:max-h-[72vh] max-w-full rounded-2xl object-contain shadow-2xl border border-white/15 transition-all duration-300 block" />
+            
+            <a
+              id="catalog-lightbox-raw-btn"
+              href="#"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="lightbox-raw-btn absolute bottom-3.5 right-3.5 z-20 font-semibold text-slate-200 hover:text-white flex items-center gap-2 text-xs sm:text-sm active:scale-95 transition-all duration-200 cursor-pointer"
+              title="Buka foto dalam resolusi penuh di tab baru"
+            >
+              <span>Resolusi Asli</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            </a>
+          </div>
+        </div>
+
+        <!-- Next Button -->
+        <button id="btn-catalog-lightbox-next" class="absolute right-3 sm:right-8 z-30 w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-slate-900/85 hover:bg-emerald-600/90 text-white border border-white/15 hover:border-emerald-400 shadow-2xl backdrop-blur-md flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95 cursor-pointer" aria-label="Foto berikutnya (Panah Kanan)" title="Berikutnya (→)">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
+      </div>
+
+      <!-- Bottom Info Bar -->
+      <div class="lightbox-footer-bar px-5 sm:px-8 py-4 bg-slate-900/95 border-t border-white/10 text-white z-30 shrink-0">
+        <div class="max-w-4xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <h3 id="catalog-lightbox-title" class="text-base sm:text-lg font-bold text-white tracking-tight">${escapeHtml(sp.common_name)} (${escapeHtml(sp.scientific_name)})</h3>
+            <p id="catalog-lightbox-caption" class="text-xs sm:text-sm text-slate-300 mt-0.5 line-clamp-2">${escapeHtml(sp.local_name ? `Nama Daerah: ${sp.local_name}` : 'Foto dokumentasi resmi penanaman spesies pohon.')}</p>
+          </div>
+          <div class="text-xs text-slate-400 shrink-0">
+            ${sp.family ? `Famili: <strong class="text-slate-200">${escapeHtml(sp.family)}</strong>` : ''}
+          </div>
+        </div>
+      </div>
+    </div>
   `;
 
   // Pasang listener navigasi kembali
@@ -1064,6 +1158,15 @@ function renderSpeciesDetailView(container, sp) {
     startAutoSlide();
   }
 
+  // Pasang listener klik foto untuk membuka layar penuh (Lightbox Modal)
+  container.querySelectorAll('.catalog-photo-zoomable').forEach((imgEl) => {
+    imgEl.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const pIdx = parseInt(imgEl.getAttribute('data-photo-index') || '0', 10);
+      openSpeciesLightbox(sp, photos, isNaN(pIdx) ? 0 : pIdx);
+    });
+  });
+
   // Pasang listener jump scene
   container.querySelectorAll('.btn-jump-scene-detail').forEach((btn) => {
     btn.addEventListener('click', () => {
@@ -1120,6 +1223,138 @@ function formatNumber(num) {
 function capitalize(str) {
   if (!str) return '';
   return String(str).charAt(0).toUpperCase() + String(str).slice(1);
+}
+
+/**
+ * Escape string HTML untuk keamanan
+ */
+/**
+ * ─────────────────────────────────────────────────────────────
+ * SISTEM FULLSCREEN LIGHTBOX UNTUK FOTO SPESIES POHON
+ * ─────────────────────────────────────────────────────────────
+ */
+function openSpeciesLightbox(species, photos, initialIndex = 0) {
+  if (!Array.isArray(photos) || photos.length === 0) return;
+  currentLightboxSpecies = species;
+  currentLightboxPhotos = photos;
+  currentLightboxIndex = (initialIndex >= 0 && initialIndex < photos.length) ? initialIndex : 0;
+
+  const modal = document.getElementById('catalog-species-lightbox-modal');
+  if (modal) {
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+
+  updateSpeciesLightboxContent();
+  bindCatalogLightboxEventsOnce();
+}
+
+function closeSpeciesLightbox() {
+  const modal = document.getElementById('catalog-species-lightbox-modal');
+  if (modal) {
+    modal.classList.add('hidden');
+    document.body.style.overflow = '';
+  }
+  currentLightboxIndex = -1;
+  currentLightboxPhotos = [];
+  currentLightboxSpecies = null;
+}
+
+function nextSpeciesLightbox() {
+  if (currentLightboxPhotos.length <= 1) return;
+  currentLightboxIndex = (currentLightboxIndex + 1) % currentLightboxPhotos.length;
+  updateSpeciesLightboxContent();
+}
+
+function prevSpeciesLightbox() {
+  if (currentLightboxPhotos.length <= 1) return;
+  currentLightboxIndex = (currentLightboxIndex - 1 + currentLightboxPhotos.length) % currentLightboxPhotos.length;
+  updateSpeciesLightboxContent();
+}
+
+function updateSpeciesLightboxContent() {
+  if (currentLightboxIndex < 0 || currentLightboxIndex >= currentLightboxPhotos.length) return;
+  const photoUrl = currentLightboxPhotos[currentLightboxIndex];
+
+  const img = document.getElementById('catalog-lightbox-img');
+  const spinner = document.getElementById('catalog-lightbox-spinner');
+  const counter = document.getElementById('catalog-lightbox-counter');
+  const rawBtn = document.getElementById('catalog-lightbox-raw-btn');
+  const btnPrev = document.getElementById('btn-catalog-lightbox-prev');
+  const btnNext = document.getElementById('btn-catalog-lightbox-next');
+
+  // Atur navigasi panah
+  const showArrows = currentLightboxPhotos.length > 1;
+  if (btnPrev) btnPrev.style.display = showArrows ? 'flex' : 'none';
+  if (btnNext) btnNext.style.display = showArrows ? 'flex' : 'none';
+
+  // Perbarui counter
+  if (counter) {
+    counter.textContent = `${currentLightboxIndex + 1} / ${currentLightboxPhotos.length}`;
+  }
+
+  // Tautan gambar resolusi penuh
+  if (rawBtn) {
+    rawBtn.href = photoUrl || '#';
+  }
+
+  // Muat gambar dengan spinner
+  if (img) {
+    if (spinner) spinner.classList.remove('hidden');
+    img.onload = () => {
+      if (spinner) spinner.classList.add('hidden');
+    };
+    img.onerror = () => {
+      if (spinner) spinner.classList.add('hidden');
+    };
+    img.src = photoUrl;
+    img.alt = currentLightboxSpecies ? `Foto Dokumentasi ${currentLightboxSpecies.common_name}` : 'Foto Spesies';
+  }
+}
+
+function bindCatalogLightboxEventsOnce() {
+  if (isCatalogLightboxBound) return;
+  isCatalogLightboxBound = true;
+
+  // Tombol Tutup
+  document.getElementById('btn-close-catalog-lightbox')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    closeSpeciesLightbox();
+  });
+
+  // Tombol Prev & Next
+  document.getElementById('btn-catalog-lightbox-prev')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    prevSpeciesLightbox();
+  });
+  document.getElementById('btn-catalog-lightbox-next')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    nextSpeciesLightbox();
+  });
+
+  // Klik di latar belakang (stage) untuk menutup
+  document.getElementById('catalog-lightbox-stage')?.addEventListener('click', (e) => {
+    if (e.target.id === 'catalog-lightbox-stage') {
+      closeSpeciesLightbox();
+    }
+  });
+
+  // Keyboard navigation: Escape, Panah Kiri, Panah Kanan
+  document.addEventListener('keydown', (e) => {
+    const modal = document.getElementById('catalog-species-lightbox-modal');
+    if (!modal || modal.classList.contains('hidden')) return;
+
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      closeSpeciesLightbox();
+    } else if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      nextSpeciesLightbox();
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      prevSpeciesLightbox();
+    }
+  });
 }
 
 /**
