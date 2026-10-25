@@ -23,7 +23,7 @@ let currentAlbumId = null;
 let currentAlbumData = null;
 
 // Fallback high-contrast dark placeholder SVG if image is broken or missing
-const FALLBACK_PHOTO_SVG = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="600" height="375" viewBox="0 0 600 375" fill="%230b1511"><rect width="600" height="375" fill="%2307120e"/><rect x="4" y="4" width="592" height="367" rx="16" fill="none" stroke="%2310b981" stroke-width="1.5" stroke-opacity="0.25" stroke-dasharray="8 8"/><circle cx="230" cy="150" r="34" fill="%2310b981" fill-opacity="0.25"/><path d="M120 300l110-120 80 80 55-60 115 100H120z" fill="%2310b981" fill-opacity="0.18"/><text x="300" y="325" fill="%2394a3b8" font-family="system-ui,sans-serif" font-size="13" font-weight="600" text-anchor="middle">Dokumentasi Silvikultur Kawasan</text></svg>`;
+const FALLBACK_PHOTO_SVG = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="600" height="375" viewBox="0 0 600 375" fill="%230b1511"><rect width="600" height="375" fill="%2307120e"/><rect x="4" y="4" width="592" height="367" rx="16" fill="none" stroke="%2310b981" stroke-width="1.5" stroke-opacity="0.25" stroke-dasharray="8 8"/><circle cx="230" cy="150" r="34" fill="%2310b981" fill-opacity="0.25"/><path d="M120 300l110-120 80 80 55-60 115 100H120z" fill="%2310b981" fill-opacity="0.18"/></svg>`;
 
 export function getAlbumParamFromHash() {
   const hash = window.location.hash || '';
