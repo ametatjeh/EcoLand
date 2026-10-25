@@ -1016,7 +1016,6 @@ function renderPhotoGrid() {
               loading="lazy"
               style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease;"
               class="gallery-img w-full h-full object-cover group-hover:scale-105"
-              onerror="this.onerror=null; this.src='${FALLBACK_PHOTO_SVG}';"
             />
 
             ${photo.is_cover ? `
