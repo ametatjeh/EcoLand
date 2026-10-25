@@ -163,12 +163,9 @@ function renderCatalogListView(container) {
         <h1 class="hero-title" style="font-size: 30px; font-weight: 800; color: #ffffff; margin-bottom: 12px; line-height: 1.25;">
           Katalog Jenis Pohon Kawasan Restorasi
         </h1>
-        <p class="hero-subtitle" style="font-size: 14px; line-height: 1.65; color: #cbd5e1; max-width: 860px; margin: 0 auto 10px; text-align: center;">
+        <p class="hero-subtitle" style="font-size: 14px; line-height: 1.65; color: #cbd5e1; max-width: 860px; margin: 0 auto; text-align: center;">
           Dokumentasi jenis pohon yang terdaftar dan ditanam dalam kegiatan restorasi kawasan. Katalog ini menyajikan informasi setiap spesies, dilengkapi foto dokumentasi, nama ilmiah, jumlah bibit yang ditanam, serta kondisi kelangsungan hidup berdasarkan catatan penanaman dan hasil survei lapangan yang terverifikasi.
         </p>
-        <div style="font-size: 12px; color: var(--clr-primary-light); font-weight: 500; display: inline-flex; align-items: center; gap: 6px; background: rgba(0, 0, 0, 0.25); padding: 4px 12px; border-radius: 8px;">
-          <span>📋</span> Data bersumber langsung dari catatan penanaman dan survei lapangan yang tersedia.
-        </div>
       </div>
 
       <!-- Filters & Search Toolbar -->
@@ -408,18 +405,10 @@ function renderSpeciesCard(sp) {
 
           <!-- Badge Status Asal (Overlay) -->
           <div style="position: absolute; top: 12px; left: 12px; z-index: 2;">
-            <span class="admin-header-pill ${originBadgeClass}" style="font-size: 11px; padding: 3px 10px; border-radius: 9999px; font-weight: 600; box-shadow: 0 2px 8px rgba(0,0,0,0.5);">
+            <span style="font-size: 11px; padding: 4px 11px; border-radius: 9999px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; background: #000000; color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.25); box-shadow: 0 2px 8px rgba(0,0,0,0.6); display: inline-block;">
               ${escapeHtml(originLabel)}
             </span>
           </div>
-
-          ${sp.gallery_photos && sp.gallery_photos.length > 1 ? `
-            <div style="position: absolute; top: 12px; right: 12px; z-index: 2;">
-              <span style="font-size: 11px; padding: 3px 8px; border-radius: 9999px; font-weight: 600; background: rgba(0, 0, 0, 0.72); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.35); backdrop-filter: blur(4px);">
-                📷 ${sp.gallery_photos.length} Foto
-              </span>
-            </div>
-          ` : ''}
         </div>
 
         <!-- Konten Informasi Pohon -->
@@ -578,7 +567,7 @@ function renderSpeciesDetailView(container, sp) {
             <div style="width: 100%; aspect-ratio: 4 / 3; border-radius: 14px; overflow: hidden; background: #070d0a; border: 1px solid rgba(255, 255, 255, 0.1); position: relative;">
               ${getNeutralPhotoPlaceholderHtml()}
               <div style="position: absolute; top: 12px; left: 12px; z-index: 5;">
-                <span class="admin-header-pill ${originBadgeClass}" style="font-size: 11px; padding: 4px 12px; border-radius: 9999px; font-weight: 600; box-shadow: 0 2px 8px rgba(0,0,0,0.5);">
+                <span style="font-size: 11px; padding: 4px 12px; border-radius: 9999px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; background: #000000; color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.25); box-shadow: 0 2px 8px rgba(0,0,0,0.6); display: inline-block;">
                   ${escapeHtml(originLabel)}
                 </span>
               </div>
@@ -592,7 +581,7 @@ function renderSpeciesDetailView(container, sp) {
                 onerror="this.parentElement.innerHTML = getNeutralPhotoPlaceholderHtml();"
               />
               <div style="position: absolute; top: 12px; left: 12px; z-index: 5;">
-                <span class="admin-header-pill ${originBadgeClass}" style="font-size: 11px; padding: 4px 12px; border-radius: 9999px; font-weight: 600; box-shadow: 0 2px 8px rgba(0,0,0,0.5);">
+                <span style="font-size: 11px; padding: 4px 12px; border-radius: 9999px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; background: #000000; color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.25); box-shadow: 0 2px 8px rgba(0,0,0,0.6); display: inline-block;">
                   ${escapeHtml(originLabel)}
                 </span>
               </div>
@@ -616,7 +605,7 @@ function renderSpeciesDetailView(container, sp) {
 
               <!-- Badge Asal Spesies (Kiri Atas) -->
               <div style="position: absolute; top: 12px; left: 12px; z-index: 10;">
-                <span class="admin-header-pill ${originBadgeClass}" style="font-size: 11px; padding: 4px 12px; border-radius: 9999px; font-weight: 600; box-shadow: 0 2px 8px rgba(0,0,0,0.5);">
+                <span style="font-size: 11px; padding: 4px 12px; border-radius: 9999px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; background: #000000; color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.25); box-shadow: 0 2px 8px rgba(0,0,0,0.6); display: inline-block;">
                   ${escapeHtml(originLabel)}
                 </span>
               </div>

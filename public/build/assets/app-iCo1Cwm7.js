@@ -4027,12 +4027,9 @@ Kelangsungan Hidup: 95%`,O(p.value),this.showToast(`Template kegiatan penanaman 
         <h1 class="hero-title" style="font-size: 30px; font-weight: 800; color: #ffffff; margin-bottom: 12px; line-height: 1.25;">
           Katalog Jenis Pohon Kawasan Restorasi
         </h1>
-        <p class="hero-subtitle" style="font-size: 14px; line-height: 1.65; color: #cbd5e1; max-width: 860px; margin: 0 auto 10px; text-align: center;">
+        <p class="hero-subtitle" style="font-size: 14px; line-height: 1.65; color: #cbd5e1; max-width: 860px; margin: 0 auto; text-align: center;">
           Dokumentasi jenis pohon yang terdaftar dan ditanam dalam kegiatan restorasi kawasan. Katalog ini menyajikan informasi setiap spesies, dilengkapi foto dokumentasi, nama ilmiah, jumlah bibit yang ditanam, serta kondisi kelangsungan hidup berdasarkan catatan penanaman dan hasil survei lapangan yang terverifikasi.
         </p>
-        <div style="font-size: 12px; color: var(--clr-primary-light); font-weight: 500; display: inline-flex; align-items: center; gap: 6px; background: rgba(0, 0, 0, 0.25); padding: 4px 12px; border-radius: 8px;">
-          <span>📋</span> Data bersumber langsung dari catatan penanaman dan survei lapangan yang tersedia.
-        </div>
       </div>
 
       <!-- Filters & Search Toolbar -->
@@ -4106,14 +4103,14 @@ Kelangsungan Hidup: 95%`,O(p.value),this.showToast(`Template kegiatan penanaman 
     <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px;">
       ${r.map(e=>uf(e)).join(``)}
     </div>
-  `,e.querySelectorAll(`.btn-view-species-profile`).forEach(e=>{e.addEventListener(`click`,()=>{ff(e.getAttribute(`data-id`))})}))}function uf(e){let t=e.origin_status_label||(e.origin_status===`lokal_asli`?`Jenis Asli / Lokal`:`Jenis Introduksi`),n=e.origin_status===`lokal_asli`?`pill-success`:`pill-info`,r=!!(e.photo_path&&e.photo_path.trim()),i=r?e.photo_path.trim():``;i&&!i.startsWith(`http://`)&&!i.startsWith(`https://`)&&!i.startsWith(`/`)&&(i=`/`+i);let a=`Data belum tersedia`,o=`var(--clr-text-muted)`;return e.has_planted_data&&e.total_planted!==null&&e.total_planted>0?(a=`${gf(e.total_planted)} bibit ditanam`,o=`var(--clr-primary-light)`):e.has_planted_data&&e.total_planted===0&&(a=`0 bibit tercatat`),`
+  `,e.querySelectorAll(`.btn-view-species-profile`).forEach(e=>{e.addEventListener(`click`,()=>{ff(e.getAttribute(`data-id`))})}))}function uf(e){let t=e.origin_status_label||(e.origin_status===`lokal_asli`?`Jenis Asli / Lokal`:`Jenis Introduksi`);e.origin_status;let n=!!(e.photo_path&&e.photo_path.trim()),r=n?e.photo_path.trim():``;r&&!r.startsWith(`http://`)&&!r.startsWith(`https://`)&&!r.startsWith(`/`)&&(r=`/`+r);let i=`Data belum tersedia`,a=`var(--clr-text-muted)`;return e.has_planted_data&&e.total_planted!==null&&e.total_planted>0?(i=`${gf(e.total_planted)} bibit ditanam`,a=`var(--clr-primary-light)`):e.has_planted_data&&e.total_planted===0&&(i=`0 bibit tercatat`),`
     <div class="point-card catalog-card group" style="display: flex; flex-direction: column; justify-content: space-between; background: rgba(15, 28, 22, 0.88); border: 1px solid rgba(16, 185, 129, 0.18); border-radius: 16px; overflow: hidden; box-shadow: 0 10px 24px -10px rgba(0, 0, 0, 0.5); transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;">
       <div>
         <!-- Bagian Foto Dokumentasi -->
         <div style="position: relative; width: 100%; aspect-ratio: 16 / 10; overflow: hidden; background: #070d0a;">
-          ${r?`
+          ${n?`
             <img
-              src="${i}"
+              src="${r}"
               alt="Dokumentasi ${$(e.common_name)} (${$(e.scientific_name)})"
               loading="lazy"
               style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease;"
@@ -4123,18 +4120,10 @@ Kelangsungan Hidup: 95%`,O(p.value),this.showToast(`Template kegiatan penanaman 
 
           <!-- Badge Status Asal (Overlay) -->
           <div style="position: absolute; top: 12px; left: 12px; z-index: 2;">
-            <span class="admin-header-pill ${n}" style="font-size: 11px; padding: 3px 10px; border-radius: 9999px; font-weight: 600; box-shadow: 0 2px 8px rgba(0,0,0,0.5);">
+            <span style="font-size: 11px; padding: 4px 11px; border-radius: 9999px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; background: #000000; color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.25); box-shadow: 0 2px 8px rgba(0,0,0,0.6); display: inline-block;">
               ${$(t)}
             </span>
           </div>
-
-          ${e.gallery_photos&&e.gallery_photos.length>1?`
-            <div style="position: absolute; top: 12px; right: 12px; z-index: 2;">
-              <span style="font-size: 11px; padding: 3px 8px; border-radius: 9999px; font-weight: 600; background: rgba(0, 0, 0, 0.72); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.35); backdrop-filter: blur(4px);">
-                📷 ${e.gallery_photos.length} Foto
-              </span>
-            </div>
-          `:``}
         </div>
 
         <!-- Konten Informasi Pohon -->
@@ -4165,8 +4154,8 @@ Kelangsungan Hidup: 95%`,O(p.value),this.showToast(`Template kegiatan penanaman 
           <!-- Kuantitas Penanaman (Faktual) -->
           <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: rgba(0, 0, 0, 0.3); border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.06); margin-bottom: 14px;">
             <div style="font-size: 11px; color: var(--clr-text-dim); text-transform: uppercase; font-weight: 600;">Bibit Ditanam</div>
-            <div style="font-size: 13px; font-weight: 700; color: ${o};">
-              ${a}
+            <div style="font-size: 13px; font-weight: 700; color: ${a};">
+              ${i}
             </div>
           </div>
         </div>
@@ -4194,7 +4183,7 @@ Kelangsungan Hidup: 95%`,O(p.value),this.showToast(`Template kegiatan penanaman 
       <span style="font-size: 12px; font-weight: 500; color: #94a3b8;">Foto belum tersedia</span>
       <span style="font-size: 10.5px; color: #64748b; margin-top: 2px;">Menunggu verifikasi dokumentasi lapangan</span>
     </div>
-  `}function ff(e){Zd(),Yd=e,window.location.hash=`#katalog?species=${encodeURIComponent(e)}`,window.scrollTo({top:0,behavior:`smooth`}),af()}function pf(){Zd(),Yd=null,window.location.hash=`#katalog`,window.scrollTo({top:0,behavior:`smooth`}),af()}function mf(e,t){let n=t.origin_status_label||(t.origin_status===`lokal_asli`?`Jenis Asli / Lokal`:`Jenis Introduksi`),r=t.origin_status===`lokal_asli`?`pill-success`:`pill-info`,i=t.photo_path&&t.photo_path.trim()?t.photo_path.trim():``;i&&!i.startsWith(`http://`)&&!i.startsWith(`https://`)&&!i.startsWith(`/`)&&(i=`/`+i);let a=(Array.isArray(t.gallery_photos)&&t.gallery_photos.length>0?t.gallery_photos:i?[i]:[]).map(e=>{let t=String(e).trim();return t&&!t.startsWith(`http://`)&&!t.startsWith(`https://`)&&!t.startsWith(`/`)&&(t=`/`+t),t}).filter(Boolean),o=a.length>0,s=t.plantings||[],c=t.has_planted_data&&t.total_planted!==null&&t.total_planted>0,l=c?`${gf(t.total_planted)} bibit (batang)`:`Data belum tersedia`,u=t.latest_survey;if(e.innerHTML=`
+  `}function ff(e){Zd(),Yd=e,window.location.hash=`#katalog?species=${encodeURIComponent(e)}`,window.scrollTo({top:0,behavior:`smooth`}),af()}function pf(){Zd(),Yd=null,window.location.hash=`#katalog`,window.scrollTo({top:0,behavior:`smooth`}),af()}function mf(e,t){let n=t.origin_status_label||(t.origin_status===`lokal_asli`?`Jenis Asli / Lokal`:`Jenis Introduksi`);t.origin_status;let r=t.photo_path&&t.photo_path.trim()?t.photo_path.trim():``;r&&!r.startsWith(`http://`)&&!r.startsWith(`https://`)&&!r.startsWith(`/`)&&(r=`/`+r);let i=(Array.isArray(t.gallery_photos)&&t.gallery_photos.length>0?t.gallery_photos:r?[r]:[]).map(e=>{let t=String(e).trim();return t&&!t.startsWith(`http://`)&&!t.startsWith(`https://`)&&!t.startsWith(`/`)&&(t=`/`+t),t}).filter(Boolean),a=i.length>0,o=t.plantings||[],s=t.has_planted_data&&t.total_planted!==null&&t.total_planted>0,c=s?`${gf(t.total_planted)} bibit (batang)`:`Data belum tersedia`,l=t.latest_survey;if(e.innerHTML=`
     <div class="catalog-wrapper catalog-detail-page" style="max-width: 1140px; margin: 0 auto; padding: 24px 20px 60px; width: 100%;">
       <!-- Breadcrumb & Tombol Kembali -->
       <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 24px; padding-bottom: 14px; border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
@@ -4220,23 +4209,23 @@ Kelangsungan Hidup: 95%`,O(p.value),this.showToast(`Template kegiatan penanaman 
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 28px; background: rgba(15, 28, 22, 0.85); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 20px; padding: 24px; margin-bottom: 28px; box-shadow: 0 16px 36px -12px rgba(0, 0, 0, 0.6);">
         <!-- Kolom Kiri: Foto Dokumentasi (Auto Slider) -->
         <div>
-          ${o?a.length===1?`
+          ${a?i.length===1?`
             <div style="width: 100%; aspect-ratio: 4 / 3; border-radius: 14px; overflow: hidden; background: #070d0a; border: 1px solid rgba(255, 255, 255, 0.1); position: relative;">
               <img
-                src="${$(a[0])}"
+                src="${$(i[0])}"
                 alt="Foto Dokumentasi ${$(t.common_name)} (${$(t.scientific_name)})"
                 style="width: 100%; height: 100%; object-fit: cover;"
                 onerror="this.parentElement.innerHTML = getNeutralPhotoPlaceholderHtml();"
               />
               <div style="position: absolute; top: 12px; left: 12px; z-index: 5;">
-                <span class="admin-header-pill ${r}" style="font-size: 11px; padding: 4px 12px; border-radius: 9999px; font-weight: 600; box-shadow: 0 2px 8px rgba(0,0,0,0.5);">
+                <span style="font-size: 11px; padding: 4px 12px; border-radius: 9999px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; background: #000000; color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.25); box-shadow: 0 2px 8px rgba(0,0,0,0.6); display: inline-block;">
                   ${$(n)}
                 </span>
               </div>
             </div>
           `:`
             <div id="catalog-species-slider-box" style="width: 100%; aspect-ratio: 4 / 3; border-radius: 14px; overflow: hidden; background: #070d0a; border: 1px solid rgba(255, 255, 255, 0.1); position: relative; user-select: none;">
-              ${a.map((e,n)=>`
+              ${i.map((e,n)=>`
                 <div
                   class="catalog-slide-item"
                   data-slide-index="${n}"
@@ -4244,7 +4233,7 @@ Kelangsungan Hidup: 95%`,O(p.value),this.showToast(`Template kegiatan penanaman 
                 >
                   <img
                     src="${$(e)}"
-                    alt="Foto Dokumentasi ${$(t.common_name)} (${n+1}/${a.length})"
+                    alt="Foto Dokumentasi ${$(t.common_name)} (${n+1}/${i.length})"
                     style="width: 100%; height: 100%; object-fit: cover;"
                     onerror="this.src='/favicon.svg'"
                   />
@@ -4253,7 +4242,7 @@ Kelangsungan Hidup: 95%`,O(p.value),this.showToast(`Template kegiatan penanaman 
 
               <!-- Badge Asal Spesies (Kiri Atas) -->
               <div style="position: absolute; top: 12px; left: 12px; z-index: 10;">
-                <span class="admin-header-pill ${r}" style="font-size: 11px; padding: 4px 12px; border-radius: 9999px; font-weight: 600; box-shadow: 0 2px 8px rgba(0,0,0,0.5);">
+                <span style="font-size: 11px; padding: 4px 12px; border-radius: 9999px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; background: #000000; color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.25); box-shadow: 0 2px 8px rgba(0,0,0,0.6); display: inline-block;">
                   ${$(n)}
                 </span>
               </div>
@@ -4261,7 +4250,7 @@ Kelangsungan Hidup: 95%`,O(p.value),this.showToast(`Template kegiatan penanaman 
               <!-- Counter Foto (Kanan Atas) -->
               <div style="position: absolute; top: 12px; right: 12px; z-index: 10;">
                 <span id="catalog-species-photo-counter" style="font-size: 11px; padding: 3px 10px; border-radius: 9999px; font-weight: 600; background: rgba(0,0,0,0.75); color: #fff; border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(4px); box-shadow: 0 2px 8px rgba(0,0,0,0.5);">
-                  1 / ${a.length} Foto
+                  1 / ${i.length} Foto
                 </span>
               </div>
 
@@ -4281,7 +4270,7 @@ Kelangsungan Hidup: 95%`,O(p.value),this.showToast(`Template kegiatan penanaman 
 
               <!-- Titik Indikator Slide (Bawah Tengah) -->
               <div style="position: absolute; bottom: 12px; left: 0; right: 0; display: flex; justify-content: center; align-items: center; gap: 6px; z-index: 10;">
-                ${a.map((e,t)=>`
+                ${i.map((e,t)=>`
                   <button
                     type="button"
                     class="slider-dot-btn"
@@ -4296,7 +4285,7 @@ Kelangsungan Hidup: 95%`,O(p.value),this.showToast(`Template kegiatan penanaman 
             <div style="width: 100%; aspect-ratio: 4 / 3; border-radius: 14px; overflow: hidden; background: #070d0a; border: 1px solid rgba(255, 255, 255, 0.1); position: relative;">
               ${df()}
               <div style="position: absolute; top: 12px; left: 12px; z-index: 5;">
-                <span class="admin-header-pill ${r}" style="font-size: 11px; padding: 4px 12px; border-radius: 9999px; font-weight: 600; box-shadow: 0 2px 8px rgba(0,0,0,0.5);">
+                <span style="font-size: 11px; padding: 4px 12px; border-radius: 9999px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; background: #000000; color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.25); box-shadow: 0 2px 8px rgba(0,0,0,0.6); display: inline-block;">
                   ${$(n)}
                 </span>
               </div>
@@ -4327,23 +4316,23 @@ Kelangsungan Hidup: 95%`,O(p.value),this.showToast(`Template kegiatan penanaman 
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px;">
             <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 10px; padding: 12px 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
               <span style="font-size: 11px; color: var(--clr-text-muted); display: block; margin-bottom: 3px; font-weight: 500;">Total Bibit Ditanam</span>
-              <strong style="font-size: 15px; color: ${c?`var(--clr-primary-light)`:`var(--clr-text-muted)`}; font-weight: 700;">
-                ${l}
+              <strong style="font-size: 15px; color: ${s?`var(--clr-primary-light)`:`var(--clr-text-muted)`}; font-weight: 700;">
+                ${c}
               </strong>
             </div>
 
             <div style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 10px; padding: 12px 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
               <span style="font-size: 11px; color: var(--clr-text-muted); display: block; margin-bottom: 3px; font-weight: 500;">Kegiatan Penanaman</span>
               <strong style="font-size: 15px; color: #38bdf8; font-weight: 700;">
-                ${s.length>0?`${s.length} Kegiatan Tercatat`:`Belum Ada`}
+                ${o.length>0?`${o.length} Kegiatan Tercatat`:`Belum Ada`}
               </strong>
             </div>
 
-            ${u&&u.scope===`spesies`?`
+            ${l&&l.scope===`spesies`?`
               <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 10px; padding: 12px 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
                 <span style="font-size: 11px; color: var(--clr-text-muted); display: block; margin-bottom: 3px; font-weight: 500;">Status Pemantauan</span>
                 <strong style="font-size: 14px; color: #fcd34d; font-weight: 700;">
-                  ${u.survival_rate===null?_f(u.health_condition||`Terpantau`):`Hidup ${u.survival_rate}%`}
+                  ${l.survival_rate===null?_f(l.health_condition||`Terpantau`):`Hidup ${l.survival_rate}%`}
                 </strong>
               </div>
             `:``}
@@ -4380,7 +4369,7 @@ Kelangsungan Hidup: 95%`,O(p.value),this.showToast(`Template kegiatan penanaman 
           Rekam jejak resmi penanaman bibit di areal kawasan restorasi yang tercatat dalam sistem administrasi.
         </p>
 
-        ${s.length>0?`
+        ${o.length>0?`
           <div style="overflow-x: auto;">
             <table class="data-table" style="width: 100%; font-size: 13px; border-collapse: collapse;">
               <thead>
@@ -4394,7 +4383,7 @@ Kelangsungan Hidup: 95%`,O(p.value),this.showToast(`Template kegiatan penanaman 
                 </tr>
               </thead>
               <tbody>
-                ${s.map(e=>`
+                ${o.map(e=>`
                   <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
                     <td style="padding: 10px 12px; font-family: monospace; font-size: 12px; color: var(--clr-primary-light); white-space: nowrap;">
                       ${hl(e.activity_date)}
@@ -4426,7 +4415,7 @@ Kelangsungan Hidup: 95%`,O(p.value),this.showToast(`Template kegiatan penanaman 
         `}
       </div>
 
-      ${u&&u.scope===`spesies`?`
+      ${l&&l.scope===`spesies`?`
         <!-- SEKSI 2: INFORMASI PEMANTAUAN & SENSUS LAPANGAN -->
         <div style="background: rgba(15, 28, 22, 0.7); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; padding: 22px; margin-bottom: 24px;">
           <h2 style="font-size: 18px; font-weight: 700; color: #ffffff; margin-bottom: 6px; display: flex; align-items: center; gap: 8px;">
@@ -4441,14 +4430,14 @@ Kelangsungan Hidup: 95%`,O(p.value),this.showToast(`Template kegiatan penanaman 
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
               <div>
                 <span style="font-size: 11px; text-transform: uppercase; font-weight: 700; color: var(--clr-primary-light); display: inline-flex; align-items: center; gap: 6px;">
-                  <span>📋</span> ${$(u.scope_label||`Catatan Sensus Spesies`)}
+                  <span>📋</span> ${$(l.scope_label||`Catatan Sensus Spesies`)}
                 </span>
                 <div style="font-size: 13px; color: #f8fafc; font-weight: 600; margin-top: 2px;">
-                  Tanggal Survei: ${hl(u.survey_date)}
+                  Tanggal Survei: ${hl(l.survey_date)}
                 </div>
               </div>
 
-              ${u.is_verified?`
+              ${l.is_verified?`
                 <span class="admin-header-pill pill-success" style="font-size: 11px; padding: 3px 10px; border-radius: 9999px;">
                   ✓ Sensus Terverifikasi
                 </span>
@@ -4463,34 +4452,34 @@ Kelangsungan Hidup: 95%`,O(p.value),this.showToast(`Template kegiatan penanaman 
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 14px;">
               <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 8px; padding: 10px;">
                 <span style="font-size: 11px; color: var(--clr-text-muted); display: block;">Tanaman Hidup</span>
-                <strong style="font-size: 18px; color: #6ee7b7;">${gf(u.alive_count)}</strong>
+                <strong style="font-size: 18px; color: #6ee7b7;">${gf(l.alive_count)}</strong>
                 <span style="font-size: 10.5px; color: var(--clr-text-dim); display: block;">batang terdata</span>
               </div>
 
               <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: 8px; padding: 10px;">
                 <span style="font-size: 11px; color: var(--clr-text-muted); display: block;">Tanaman Mati</span>
-                <strong style="font-size: 18px; color: #f87171;">${gf(u.dead_count)}</strong>
+                <strong style="font-size: 18px; color: #f87171;">${gf(l.dead_count)}</strong>
                 <span style="font-size: 10.5px; color: var(--clr-text-dim); display: block;">batang</span>
               </div>
 
               <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 8px; padding: 10px;">
                 <span style="font-size: 11px; color: var(--clr-text-muted); display: block;">Tidak Ditemukan</span>
-                <strong style="font-size: 18px; color: #fbbf24;">${gf(u.missing_count)}</strong>
+                <strong style="font-size: 18px; color: #fbbf24;">${gf(l.missing_count)}</strong>
                 <span style="font-size: 10.5px; color: var(--clr-text-dim); display: block;">hilang / belum terlacak</span>
               </div>
 
               <div style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 8px; padding: 10px;">
                 <span style="font-size: 11px; color: var(--clr-text-muted); display: block;">Kondisi Kesehatan</span>
-                <strong style="font-size: 16px; color: #38bdf8;">${_f(u.health_condition||`Baik`)}</strong>
+                <strong style="font-size: 16px; color: #38bdf8;">${_f(l.health_condition||`Baik`)}</strong>
                 <span style="font-size: 10.5px; color: var(--clr-text-dim); display: block;">keseluruhan</span>
               </div>
             </div>
 
             <!-- Penjelasan Metodologi & Transparansi Perhitungan -->
-            ${u.survival_rate===null?``:`
+            ${l.survival_rate===null?``:`
               <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 10px; padding: 12px 14px; margin-bottom: 12px; font-size: 12.5px; line-height: 1.5; color: #cbd5e1;">
                 <div style="font-weight: 700; color: #6ee7b7; margin-bottom: 4px;">
-                  📊 Tingkat Kelulusan Hidup (Survival Rate): ${u.survival_rate}%
+                  📊 Tingkat Kelulusan Hidup (Survival Rate): ${l.survival_rate}%
                 </div>
                 <div>
                   <strong>Metode Perhitungan:</strong> Dihitung berdasarkan rumus baku silvikultur:
@@ -4504,19 +4493,19 @@ Kelangsungan Hidup: 95%`,O(p.value),this.showToast(`Template kegiatan penanaman 
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; font-size: 12.5px; color: var(--clr-text-muted); margin-top: 10px;">
               <div>
                 <span style="color: var(--clr-text-dim); display: block; font-size: 11px;">Petugas Pemeriksa:</span>
-                <span style="color: #f1f5f9; font-weight: 500;">${$(u.inspector_name||`Tim Lapangan IKHW`)}</span>
+                <span style="color: #f1f5f9; font-weight: 500;">${$(l.inspector_name||`Tim Lapangan IKHW`)}</span>
               </div>
-              ${u.average_height_cm?`
+              ${l.average_height_cm?`
                 <div>
                   <span style="color: var(--clr-text-dim); display: block; font-size: 11px;">Tinggi & Diameter Rata-rata:</span>
-                  <span style="color: #f1f5f9; font-weight: 500;">${u.average_height_cm} cm ${u.average_diameter_cm?`• Ø ${u.average_diameter_cm} cm`:``}</span>
+                  <span style="color: #f1f5f9; font-weight: 500;">${l.average_height_cm} cm ${l.average_diameter_cm?`• Ø ${l.average_diameter_cm} cm`:``}</span>
                 </div>
               `:``}
             </div>
 
-            ${u.field_notes?`
+            ${l.field_notes?`
               <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255, 255, 255, 0.06); font-size: 12.5px; color: #cbd5e1; line-height: 1.5;">
-                <strong style="color: var(--clr-primary-light);">Catatan Lapangan:</strong> ${$(u.field_notes)}
+                <strong style="color: var(--clr-primary-light);">Catatan Lapangan:</strong> ${$(l.field_notes)}
               </div>
             `:``}
           </div>
@@ -4610,7 +4599,7 @@ Kelangsungan Hidup: 95%`,O(p.value),this.showToast(`Template kegiatan penanaman 
         </button>
       </div>
     </div>
-  `,document.getElementById(`btn-breadcrumb-back`)?.addEventListener(`click`,pf),document.getElementById(`btn-back-to-catalog`)?.addEventListener(`click`,pf),document.getElementById(`btn-bottom-back-to-catalog`)?.addEventListener(`click`,pf),a.length>1){let t=document.getElementById(`catalog-species-slider-box`),n=e.querySelectorAll(`.catalog-slide-item`),r=e.querySelectorAll(`.slider-dot-btn`),i=document.getElementById(`catalog-species-photo-counter`),o=document.getElementById(`btn-slider-prev`),s=document.getElementById(`btn-slider-next`),c=0;function l(e){c=e<0?a.length-1:e>=a.length?0:e,n.forEach((e,t)=>{t===c?(e.style.opacity=`1`,e.style.pointerEvents=`auto`,e.style.zIndex=`2`):(e.style.opacity=`0`,e.style.pointerEvents=`none`,e.style.zIndex=`1`)}),r.forEach((e,t)=>{t===c?(e.style.width=`22px`,e.style.background=`#10b981`):(e.style.width=`8px`,e.style.background=`rgba(255,255,255,0.5)`)}),i&&(i.textContent=`${c+1} / ${a.length} Foto`)}function u(){Zd(),Xd=setInterval(()=>{l(c+1)},3500)}function d(){u()}o?.addEventListener(`click`,e=>{e.stopPropagation(),l(c-1),d()}),s?.addEventListener(`click`,e=>{e.stopPropagation(),l(c+1),d()}),r.forEach(e=>{e.addEventListener(`click`,t=>{t.stopPropagation();let n=parseInt(e.getAttribute(`data-slide-target`),10);isNaN(n)||(l(n),d())})}),t&&(t.addEventListener(`mouseenter`,()=>{Zd()}),t.addEventListener(`mouseleave`,()=>{u()})),u()}e.querySelectorAll(`.btn-jump-scene-detail`).forEach(e=>{e.addEventListener(`click`,()=>{let t=e.getAttribute(`data-scene-id`);qd&&t&&qd(t)})})}function hf(e,t){e.innerHTML=`
+  `,document.getElementById(`btn-breadcrumb-back`)?.addEventListener(`click`,pf),document.getElementById(`btn-back-to-catalog`)?.addEventListener(`click`,pf),document.getElementById(`btn-bottom-back-to-catalog`)?.addEventListener(`click`,pf),i.length>1){let t=document.getElementById(`catalog-species-slider-box`),n=e.querySelectorAll(`.catalog-slide-item`),r=e.querySelectorAll(`.slider-dot-btn`),a=document.getElementById(`catalog-species-photo-counter`),o=document.getElementById(`btn-slider-prev`),s=document.getElementById(`btn-slider-next`),c=0;function l(e){c=e<0?i.length-1:e>=i.length?0:e,n.forEach((e,t)=>{t===c?(e.style.opacity=`1`,e.style.pointerEvents=`auto`,e.style.zIndex=`2`):(e.style.opacity=`0`,e.style.pointerEvents=`none`,e.style.zIndex=`1`)}),r.forEach((e,t)=>{t===c?(e.style.width=`22px`,e.style.background=`#10b981`):(e.style.width=`8px`,e.style.background=`rgba(255,255,255,0.5)`)}),a&&(a.textContent=`${c+1} / ${i.length} Foto`)}function u(){Zd(),Xd=setInterval(()=>{l(c+1)},3500)}function d(){u()}o?.addEventListener(`click`,e=>{e.stopPropagation(),l(c-1),d()}),s?.addEventListener(`click`,e=>{e.stopPropagation(),l(c+1),d()}),r.forEach(e=>{e.addEventListener(`click`,t=>{t.stopPropagation();let n=parseInt(e.getAttribute(`data-slide-target`),10);isNaN(n)||(l(n),d())})}),t&&(t.addEventListener(`mouseenter`,()=>{Zd()}),t.addEventListener(`mouseleave`,()=>{u()})),u()}e.querySelectorAll(`.btn-jump-scene-detail`).forEach(e=>{e.addEventListener(`click`,()=>{let t=e.getAttribute(`data-scene-id`);qd&&t&&qd(t)})})}function hf(e,t){e.innerHTML=`
     <div class="catalog-wrapper" style="max-width: 800px; margin: 40px auto; padding: 40px 24px; text-align: center; background: rgba(15, 28, 22, 0.85); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 20px; box-shadow: 0 16px 36px -12px rgba(0,0,0,0.6);">
       <span style="font-size: 48px; display: block; margin-bottom: 12px;">🔍</span>
       <h2 style="font-size: 22px; font-weight: 800; color: #ffffff; margin-bottom: 8px;">
