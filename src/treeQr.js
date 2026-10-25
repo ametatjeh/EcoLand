@@ -19,7 +19,7 @@ export async function initPublicTreeQr(containerId = 'public-tree-qr-container')
   if (!container) return;
 
   container.innerHTML = `
-    <div class="tree-qr-wrapper py-2 sm:py-4">
+    <div class="tree-qr-wrapper">
       <!-- Section Header Hero Banner -->
       <div class="hero-section text-center relative overflow-hidden" style="padding: 36px 24px; margin-bottom: 28px; border-radius: var(--radius-lg);">
         <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 mb-3.5 shadow-sm">

@@ -1899,7 +1899,8 @@ body:has(#view-admin.active) #public-global-footer,
 /* ---------- VIEW D: INFORMASI KAWASAN ---------- */
 .info-grid {
   display: block;
-  max-width: 1040px;
+  width: 100%;
+  max-width: 100%;
   margin: 0 auto;
 }
 
@@ -5351,8 +5352,13 @@ body:has(#view-admin.active) #public-global-footer,
    Mobile Responsive - Rapatkan Padding Kiri & Kanan Setiap Box di Info Kawasan
    ====================================================================== */
 @media (max-width: 768px) {
-  .info-wrapper {
-    padding: 20px 14px 44px !important;
+  .home-wrapper,
+  .info-wrapper,
+  .tree-qr-wrapper,
+  .catalog-wrapper,
+  .carbon-wrapper,
+  .gallery-wrapper {
+    padding: 16px 12px 36px !important;
   }
   .info-grid {
     grid-template-columns: 1fr !important;
@@ -6971,6 +6977,10 @@ body:has(#view-admin.active) #public-global-footer,
 }
 
 @media (max-width: 480px) {
+  .home-wrapper,
+  .info-wrapper,
+  .tree-qr-wrapper,
+  .catalog-wrapper,
   .carbon-wrapper,
   .gallery-wrapper {
     padding: 12px 8px 32px !important;

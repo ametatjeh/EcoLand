@@ -552,7 +552,7 @@ function renderSpeciesDetailView(container, sp) {
   const survey = sp.latest_survey;
 
   container.innerHTML = `
-    <div class="catalog-wrapper catalog-detail-page" style="max-width: 1140px; margin: 0 auto; padding: 24px 20px 60px; width: 100%;">
+    <div class="catalog-wrapper catalog-detail-page">
       <!-- Breadcrumb & Tombol Kembali -->
       <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 24px; padding-bottom: 14px; border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
         <nav aria-label="Breadcrumb" style="font-size: 13px; color: var(--clr-text-muted); display: flex; align-items: center; gap: 8px;">
