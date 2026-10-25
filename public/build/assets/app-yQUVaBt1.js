@@ -4015,7 +4015,7 @@ Kelangsungan Hidup: 95%`,O(p.value),this.showToast(`Template kegiatan penanaman 
     <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px;">
       ${r.map(e=>cf(e)).join(``)}
     </div>
-  `,e.querySelectorAll(`.btn-view-species-profile`).forEach(e=>{e.addEventListener(`click`,()=>{uf(e.getAttribute(`data-id`))})}))}function cf(e){let t=e.origin_status_label||(e.origin_status===`lokal_asli`?`Jenis Asli / Lokal`:`Jenis Introduksi`),n=e.origin_status===`lokal_asli`?`pill-success`:`pill-info`,r=!!(e.photo_path&&e.photo_path.trim()),i=r?e.photo_path.trim():``;i&&!i.startsWith(`http://`)&&!i.startsWith(`https://`)&&!i.startsWith(`/`)&&(i=`/`+i);let a=`Data belum tersedia`,o=`var(--clr-text-muted)`;e.has_planted_data&&e.total_planted!==null&&e.total_planted>0?(a=`${mf(e.total_planted)} bibit ditanam`,o=`var(--clr-primary-light)`):e.has_planted_data&&e.total_planted===0&&(a=`0 bibit tercatat`);let s=`Data belum tersedia`,c=`color: var(--clr-text-muted); background: rgba(255, 255, 255, 0.05);`;if(e.latest_survey){let t=e.latest_survey,n=t.health_condition?hf(t.health_condition):`Terpantau`;t.survival_rate===null?(s=`Kondisi: ${n}`,c=`color: #38bdf8; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.25);`):(s=`Hidup: ${t.survival_rate}% (${n})`,c=`color: #6ee7b7; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3);`)}return`
+  `,e.querySelectorAll(`.btn-view-species-profile`).forEach(e=>{e.addEventListener(`click`,()=>{uf(e.getAttribute(`data-id`))})}))}function cf(e){let t=e.origin_status_label||(e.origin_status===`lokal_asli`?`Jenis Asli / Lokal`:`Jenis Introduksi`),n=e.origin_status===`lokal_asli`?`pill-success`:`pill-info`,r=!!(e.photo_path&&e.photo_path.trim()),i=r?e.photo_path.trim():``;i&&!i.startsWith(`http://`)&&!i.startsWith(`https://`)&&!i.startsWith(`/`)&&(i=`/`+i);let a=`Data belum tersedia`,o=`var(--clr-text-muted)`;return e.has_planted_data&&e.total_planted!==null&&e.total_planted>0?(a=`${mf(e.total_planted)} bibit ditanam`,o=`var(--clr-primary-light)`):e.has_planted_data&&e.total_planted===0&&(a=`0 bibit tercatat`),`
     <div class="point-card catalog-card group" style="display: flex; flex-direction: column; justify-content: space-between; background: rgba(15, 28, 22, 0.88); border: 1px solid rgba(16, 185, 129, 0.18); border-radius: 16px; overflow: hidden; box-shadow: 0 10px 24px -10px rgba(0, 0, 0, 0.5); transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;">
       <div>
         <!-- Bagian Foto Dokumentasi -->
@@ -4063,19 +4063,11 @@ Kelangsungan Hidup: 95%`,O(p.value),this.showToast(`Template kegiatan penanaman 
             `:``}
           </div>
 
-          <!-- Kuantitas Penanaman & Pemantauan (Faktual) -->
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 10px 12px; background: rgba(0, 0, 0, 0.3); border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.06); margin-bottom: 12px;">
-            <div>
-              <div style="font-size: 10.5px; color: var(--clr-text-dim); text-transform: uppercase; font-weight: 600; margin-bottom: 2px;">Bibit Ditanam</div>
-              <div style="font-size: 12.5px; font-weight: 700; color: ${o};">
-                ${a}
-              </div>
-            </div>
-            <div>
-              <div style="font-size: 10.5px; color: var(--clr-text-dim); text-transform: uppercase; font-weight: 600; margin-bottom: 2px;">Kondisi Tanaman</div>
-              <div style="font-size: 11.5px; font-weight: 600; padding: 2px 6px; border-radius: 6px; display: inline-block; ${c}">
-                ${s}
-              </div>
+          <!-- Kuantitas Penanaman (Faktual) -->
+          <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: rgba(0, 0, 0, 0.3); border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.06); margin-bottom: 14px;">
+            <div style="font-size: 11px; color: var(--clr-text-dim); text-transform: uppercase; font-weight: 600;">Bibit Ditanam</div>
+            <div style="font-size: 13px; font-weight: 700; color: ${o};">
+              ${a}
             </div>
           </div>
         </div>
@@ -4210,8 +4202,8 @@ Kelangsungan Hidup: 95%`,O(p.value),this.showToast(`Template kegiatan penanaman 
 
             <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 10px; padding: 10px 14px;">
               <span style="font-size: 11px; color: var(--clr-text-muted); display: block; margin-bottom: 2px;">Status Pemantauan</span>
-              <strong style="font-size: 14px; color: ${l?`#fcd34d`:`var(--clr-text-muted)`};">
-                ${l?l.survival_rate===null?hf(l.health_condition||`Terpantau`):`Hidup ${l.survival_rate}%`:`Belum Ada Survei`}
+              <strong style="font-size: 14px; color: ${l&&l.scope===`spesies`?`#fcd34d`:`var(--clr-text-muted)`};">
+                ${l&&l.scope===`spesies`?l.survival_rate===null?hf(l.health_condition||`Terpantau`):`Hidup ${l.survival_rate}%`:`Belum Ada Survei`}
               </strong>
             </div>
           </div>
@@ -4274,22 +4266,22 @@ Kelangsungan Hidup: 95%`,O(p.value),this.showToast(`Template kegiatan penanaman 
         `}
       </div>
 
-      <!-- SEKSI 2: INFORMASI PEMANTAUAN & SENSUS LAPANGAN -->
-      <div style="background: rgba(15, 28, 22, 0.7); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; padding: 22px; margin-bottom: 24px;">
-        <h2 style="font-size: 18px; font-weight: 700; color: #ffffff; margin-bottom: 6px; display: flex; align-items: center; gap: 8px;">
-          <span>🔍</span> Catatan Pemantauan & Sensus Lapangan
-        </h2>
-        <p style="font-size: 13px; color: var(--clr-text-muted); margin-bottom: 16px;">
-          Hasil pemeriksaan kondisi fisik tanaman, sensus kelangsungan hidup, dan catatan lapangan dari pengendali ekosistem.
-        </p>
+      ${l&&l.scope===`spesies`?`
+        <!-- SEKSI 2: INFORMASI PEMANTAUAN & SENSUS LAPANGAN -->
+        <div style="background: rgba(15, 28, 22, 0.7); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; padding: 22px; margin-bottom: 24px;">
+          <h2 style="font-size: 18px; font-weight: 700; color: #ffffff; margin-bottom: 6px; display: flex; align-items: center; gap: 8px;">
+            <span>🔍</span> Catatan Pemantauan & Sensus Lapangan
+          </h2>
+          <p style="font-size: 13px; color: var(--clr-text-muted); margin-bottom: 16px;">
+            Hasil pemeriksaan kondisi fisik tanaman, sensus kelangsungan hidup, dan catatan lapangan dari pengendali ekosistem.
+          </p>
 
-        ${l?`
           <!-- Kartu Sensus Lapangan -->
           <div style="background: rgba(0, 0, 0, 0.35); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 12px; padding: 18px; margin-bottom: 16px;">
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
               <div>
                 <span style="font-size: 11px; text-transform: uppercase; font-weight: 700; color: var(--clr-primary-light); display: inline-flex; align-items: center; gap: 6px;">
-                  <span>📋</span> ${$(l.scope_label||`Catatan Sensus`)}
+                  <span>📋</span> ${$(l.scope_label||`Catatan Sensus Spesies`)}
                 </span>
                 <div style="font-size: 13px; color: #f8fafc; font-weight: 600; margin-top: 2px;">
                   Tanggal Survei: ${hl(l.survey_date)}
@@ -4348,12 +4340,6 @@ Kelangsungan Hidup: 95%`,O(p.value),this.showToast(`Template kegiatan penanaman 
               </div>
             `}
 
-            ${l.scope_note?`
-              <div style="font-size: 12px; color: #94a3b8; background: rgba(0,0,0,0.25); padding: 8px 12px; border-radius: 8px; margin-bottom: 10px; line-height: 1.45;">
-                ℹ️ ${$(l.scope_note)}
-              </div>
-            `:``}
-
             <!-- Petugas & Catatan Lapangan -->
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; font-size: 12.5px; color: var(--clr-text-muted); margin-top: 10px;">
               <div>
@@ -4374,12 +4360,8 @@ Kelangsungan Hidup: 95%`,O(p.value),this.showToast(`Template kegiatan penanaman 
               </div>
             `:``}
           </div>
-        `:`
-          <div style="padding: 24px; text-align: center; background: rgba(0,0,0,0.2); border-radius: 10px; border: 1px dashed rgba(255,255,255,0.1); color: var(--clr-text-muted); font-size: 13px;">
-            Data survei lapangan belum tersedia untuk spesies ini. Sistem tidak membuat estimasi angka hidup tanpa sensus resmi terverifikasi.
-          </div>
-        `}
-      </div>
+        </div>
+      `:``}
 
       <!-- SEKSI 3: DESKRIPSI MORFOLOGI, PERAN EKOLOGIS & MANFAAT -->
       <div style="background: rgba(15, 28, 22, 0.7); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; padding: 22px; margin-bottom: 24px;">

@@ -151,38 +151,6 @@ class TreeSpecies extends Model
                 'field_notes' => $latestSpeciesSurvey->field_notes,
                 'is_verified' => (bool) $latestSpeciesSurvey->is_verified,
             ];
-        } else {
-            // Cek survei kelompok penanaman (batch-level) dari kegiatan yang diikuti
-            $relatedSurveys = $activityItems->map(fn($it) => $it->activity?->latest_survey)
-                ->filter()
-                ->sortByDesc('survey_date')
-                ->values();
-
-            $batchSurvey = $relatedSurveys->first();
-            if ($batchSurvey) {
-                $batchInitial = $batchSurvey->activity?->total_initial_seedlings ?: 0;
-                $batchRate = ($batchInitial > 0) ? round(($batchSurvey->alive_count / $batchInitial) * 100, 1) : null;
-                $latestSurveyData = [
-                    'scope' => 'batch',
-                    'scope_label' => 'Pemantauan Kelompok Batch',
-                    'batch_code' => $batchSurvey->activity?->batch_code,
-                    'activity_name' => $batchSurvey->activity?->name,
-                    'survey_id' => $batchSurvey->id,
-                    'survey_date' => $batchSurvey->survey_date?->format('Y-m-d'),
-                    'alive_count' => $batchSurvey->alive_count,
-                    'dead_count' => $batchSurvey->dead_count,
-                    'missing_count' => $batchSurvey->missing_count,
-                    'uninspected_count' => $batchSurvey->uninspected_count,
-                    'health_condition' => $batchSurvey->health_condition,
-                    'survival_rate' => $batchRate,
-                    'average_height_cm' => $batchSurvey->average_height_cm,
-                    'average_diameter_cm' => $batchSurvey->average_diameter_cm,
-                    'inspector_name' => $batchSurvey->inspector_name,
-                    'field_notes' => $batchSurvey->field_notes,
-                    'is_verified' => (bool) $batchSurvey->is_verified,
-                    'scope_note' => 'Catatan: Data survei tercatat pada tingkat kelompok penanaman (batch). Sensus spesifik per individu jenis pohon belum tersedia.',
-                ];
-            }
         }
 
         // 3. Titik panorama
