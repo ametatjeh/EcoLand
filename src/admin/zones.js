@@ -1,6 +1,6 @@
 /**
- * Modul Manajemen Kawasan / Lahan Penanaman
- * Mengelola beberapa kawasan: Daftar, Tambah/Edit, Detail 8 Tab, Galeri, Hubungan Panorama.
+ * Modul Manajemen Kawasan / Lahan Penanaman Pohon
+ * Mengelola multiple kawasan: Daftar (Tabel & Grid), Metrik KPI, Tambah/Edit, Detail 8 Tab, Galeri Dokumentasi, Hubungan Panorama.
  */
 import { ApiService } from '../services/api.js';
 import { renderAdminZoneGallery } from './zoneGallery.js';
@@ -9,13 +9,16 @@ import { toDateInputValue, formatDateDisplay, parseDateForPayload } from '../uti
 
 let currentZoneTab = 'list';
 let cachedZones = [];
+let cachedScenes = [];
 let selectedZoneId = null;
 let selectedZoneDetail = null;
+let zoneViewMode = localStorage.getItem('ecoland_zone_view_mode') || 'table';
 
 export async function initZonesModule({ scenes = [], onNavigateToTour, onOpenHotspotEditor } = {}) {
   const container = document.getElementById('admin-zones-content');
   if (!container) return;
 
+  cachedScenes = scenes || [];
   renderZonesLayout(container);
   await loadZonesList();
 }
@@ -55,35 +58,43 @@ export async function switchZoneSubTab(tabName, zoneId = null, initialDetailTab 
 
 function renderZonesLayout(container) {
   container.innerHTML = `
-    <div class="admin-section-header" style="margin-bottom: 16px;">
-      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; width: 100%;">
-        <div>
-          <h2 style="display: flex; align-items: center; gap: 8px; margin: 0; font-size: 20px; font-weight: 700; color: #fff;">
-            <span style="font-size: 22px;">🏞️</span> Manajemen Kawasan / Lahan Penanaman
-          </h2>
-          <p style="color: var(--clr-text-muted); font-size: 13px; margin-top: 4px;">
-            Kelola multiple kawasan konservasi dan penanaman pohon, batas deskriptif, luasan lahan (ha/m²), dan tautan Virtual Tour 360°.
-          </p>
-        </div>
-        <div style="display: flex; gap: 8px;">
-          <button id="btn-zone-add-new" class="btn-primary-action btn-sm">
-            ➕ Tambah Kawasan Baru
-          </button>
-        </div>
+    <!-- Top Hero Banner -->
+    <div class="zones-hero-card">
+      <div>
+        <h2 class="zones-hero-title">
+          <span class="zones-hero-icon">🏞️</span>
+          <span>Manajemen Kawasan / Lahan Penanaman</span>
+        </h2>
+        <p class="zones-hero-desc">
+          Kelola kawasan konservasi & restorasi pohon, batas deskriptif, luasan lahan (Ha/m²), dokumentasi galeri, dan tautan Virtual Tour 360°.
+        </p>
+      </div>
+      <div style="display: flex; gap: 10px; align-items: center; z-index: 2;">
+        <button id="btn-zone-add-new" class="btn-primary-action btn-sm" style="display: inline-flex; align-items: center; gap: 6px; padding: 10px 18px; font-weight: 600; cursor: pointer;">
+          <span>➕</span> Tambah Kawasan Baru
+        </button>
       </div>
     </div>
 
     <!-- Zones Sub-navigation Bar -->
-    <div class="zone-subtabs" style="display: flex; gap: 6px; border-bottom: 1px solid var(--clr-border); padding-bottom: 10px; margin-bottom: 20px; overflow-x: auto;">
-      <button class="zone-nav-tab active" data-zone-tab="list">📋 Daftar Kawasan / Lahan</button>
-      <button class="zone-nav-tab" data-zone-tab="create">➕ Formulir Tambah Kawasan</button>
-      <button class="zone-nav-tab" data-zone-tab="gallery">🖼️ Galeri Foto Kawasan</button>
-      <button class="zone-nav-tab hidden" id="tab-nav-zone-detail" data-zone-tab="detail">🔍 Detail Kawasan</button>
+    <div class="zone-subtabs-nav">
+      <button class="zone-nav-tab active" data-zone-tab="list">
+        <span>📋</span> Daftar Kawasan & Lahan
+      </button>
+      <button class="zone-nav-tab" data-zone-tab="create">
+        <span>➕</span> Formulir Tambah Kawasan
+      </button>
+      <button class="zone-nav-tab" data-zone-tab="gallery">
+        <span>🖼️</span> Galeri Foto Dokumentasi
+      </button>
+      <button class="zone-nav-tab hidden" id="tab-nav-zone-detail" data-zone-tab="detail">
+        <span>🔍</span> Detail Kawasan (8 Tab)
+      </button>
     </div>
 
-    <!-- Zone Pane Dynamic Container -->
-    <div id="zone-pane-container" style="min-height: 400px;">
-      <div style="display: flex; justify-content: center; align-items: center; padding: 40px; color: var(--clr-text-muted);">
+    <!-- Dynamic Container -->
+    <div id="zone-pane-container" style="min-height: 420px;">
+      <div style="display: flex; justify-content: center; align-items: center; padding: 60px 20px; color: var(--clr-text-muted); gap: 12px;">
         <span class="loading-spinner"></span> Memuat data kawasan...
       </div>
     </div>
@@ -115,9 +126,11 @@ async function loadZonesList() {
     renderZonesListView();
   } catch (err) {
     pane.innerHTML = `
-      <div class="alert-error" style="padding: 16px; background: rgba(239, 68, 68, 0.1); border: 1px solid #ef4444; border-radius: 8px; color: #fca5a5;">
-        ❌ Gagal memuat data kawasan: ${err.message}
-        <button id="btn-retry-zones" class="btn-secondary-action btn-sm" style="margin-left: 12px;">Coba Lagi</button>
+      <div class="alert-error" style="padding: 18px 22px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: var(--radius-md); color: #fca5a5; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+        <div>
+          <strong>❌ Gagal memuat data kawasan:</strong> ${escapeHtml(err.message)}
+        </div>
+        <button id="btn-retry-zones" class="btn-secondary-action btn-sm" style="cursor: pointer;">🔄 Coba Lagi</button>
       </div>
     `;
     const btnRetry = document.getElementById('btn-retry-zones');
@@ -130,38 +143,125 @@ function renderZonesListView() {
   if (!pane) return;
 
   const totalZones = cachedZones.length;
+  const activeZones = cachedZones.filter(z => !z.is_archived && z.status === 'active').length;
   const totalAreaHa = cachedZones.reduce((sum, z) => sum + (parseFloat(z.area_in_ha) || 0), 0);
   const totalSeedlings = cachedZones.reduce((sum, z) => sum + (parseInt(z.total_initial_seedlings) || 0), 0);
+  
+  // Calculate average survival rate from zones that have it
+  const zonesWithSurvival = cachedZones.filter(z => z.survival_rate !== null && z.survival_rate !== undefined);
+  const avgSurvival = zonesWithSurvival.length > 0
+    ? (zonesWithSurvival.reduce((sum, z) => sum + parseFloat(z.survival_rate), 0) / zonesWithSurvival.length).toFixed(1)
+    : null;
 
   pane.innerHTML = `
-    <!-- Top Filter & Search Bar -->
-    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; background: var(--clr-surface); padding: 14px 18px; border-radius: var(--radius-md); border: 1px solid var(--clr-border);">
-      <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; flex: 1;">
-        <input type="text" id="zone-search-input" class="form-input" placeholder="🔍 Cari nama, kode, lokasi, penanggung jawab..." style="max-width: 300px; padding: 7px 12px; font-size: 13px;" />
-        <select id="zone-filter-status" class="form-select" style="padding: 7px 12px; font-size: 13px;">
-          <option value="all">Semua Status</option>
-          <option value="active">Aktif</option>
-          <option value="preparation">Persiapan</option>
-          <option value="monitoring">Pemantauan</option>
-          <option value="completed">Selesai</option>
-        </select>
-        <select id="zone-filter-archived" class="form-select" style="padding: 7px 12px; font-size: 13px;">
-          <option value="false">Kawasan Aktif</option>
-          <option value="true">Diarsipkan</option>
-        </select>
+    <!-- 1. Top KPI Metrics Grid -->
+    <div class="zones-metrics-grid">
+      <!-- Metric 1: Total Kawasan -->
+      <div class="zone-metric-card">
+        <div class="zone-metric-icon-wrap emerald">
+          <span>🏞️</span>
+        </div>
+        <div class="zone-metric-content">
+          <div class="zone-metric-label">Total Kawasan</div>
+          <div class="zone-metric-value">${totalZones} <span style="font-size: 13px; font-weight: 500; color: var(--clr-text-muted);">Lahan</span></div>
+          <div class="zone-metric-sub">✅ ${activeZones} Kawasan Aktif Restorasi</div>
+        </div>
       </div>
 
-      <!-- Quick Metrics Pill -->
-      <div style="display: flex; gap: 16px; font-size: 12px; color: var(--clr-text-muted);">
-        <div>Total Kawasan: <strong style="color: #fff;">${totalZones}</strong></div>
-        <div>Total Luas: <strong style="color: var(--clr-primary);">${totalAreaHa.toFixed(2)} Ha</strong></div>
-        <div>Total Bibit: <strong style="color: #fff;">${totalSeedlings.toLocaleString('id-ID')} Batang</strong></div>
+      <!-- Metric 2: Total Luas Lahan -->
+      <div class="zone-metric-card">
+        <div class="zone-metric-icon-wrap sky">
+          <span>📐</span>
+        </div>
+        <div class="zone-metric-content">
+          <div class="zone-metric-label">Total Luas Lahan</div>
+          <div class="zone-metric-value" style="color: #38bdf8;">${totalAreaHa.toFixed(2)} <span style="font-size: 13px; font-weight: 500;">Ha</span></div>
+          <div class="zone-metric-sub">± ${(totalAreaHa * 10000).toLocaleString('id-ID')} m² Luas Kumulatif</div>
+        </div>
+      </div>
+
+      <!-- Metric 3: Total Bibit Tertanam -->
+      <div class="zone-metric-card">
+        <div class="zone-metric-icon-wrap amber">
+          <span>🌱</span>
+        </div>
+        <div class="zone-metric-content">
+          <div class="zone-metric-label">Total Bibit Awal</div>
+          <div class="zone-metric-value" style="color: #fbbf24;">${totalSeedlings.toLocaleString('id-ID')} <span style="font-size: 13px; font-weight: 500;">Btg</span></div>
+          <div class="zone-metric-sub">Dari seluruh batch penanaman</div>
+        </div>
+      </div>
+
+      <!-- Metric 4: Kelulusan Hidup / Survival -->
+      <div class="zone-metric-card">
+        <div class="zone-metric-icon-wrap purple">
+          <span>📊</span>
+        </div>
+        <div class="zone-metric-content">
+          <div class="zone-metric-label">Rerata Survival</div>
+          <div class="zone-metric-value" style="color: ${avgSurvival !== null && avgSurvival >= 75 ? '#34d399' : '#c084fc'};">
+            ${avgSurvival !== null ? `${avgSurvival}%` : '<span style="font-size: 14px; font-weight: 600; color: var(--clr-text-dim);">Belum Cukup</span>'}
+          </div>
+          <div class="zone-metric-sub">${avgSurvival !== null ? 'Kondisi Tegakan Sangat Baik' : 'Menunggu hasil sensus survei'}</div>
+        </div>
       </div>
     </div>
 
-    <!-- Zones List / Cards -->
-    <div id="zones-table-wrapper" class="table-responsive">
-      ${renderZonesTableHtml(cachedZones)}
+    <!-- 2. Search, Filters & View Toggle Toolbar -->
+    <div class="zones-toolbar-card">
+      <div class="zones-toolbar-left">
+        <!-- Search Input -->
+        <div class="zone-search-wrapper">
+          <span class="zone-search-icon">🔍</span>
+          <input 
+            type="text" 
+            id="zone-search-input" 
+            class="zone-search-input" 
+            placeholder="Cari nama kawasan, kode, lokasi, PIC..." 
+          />
+        </div>
+
+        <!-- Filter Status -->
+        <select id="zone-filter-status" class="zone-filter-select" title="Filter berdasarkan status kawasan">
+          <option value="all">Semua Status</option>
+          <option value="active">🟢 Aktif</option>
+          <option value="preparation">🟡 Persiapan</option>
+          <option value="monitoring">🔵 Pemantauan</option>
+          <option value="completed">⚪ Selesai</option>
+        </select>
+
+        <!-- Filter Archived -->
+        <select id="zone-filter-archived" class="zone-filter-select" title="Filter kawasan aktif atau diarsipkan">
+          <option value="false">Kawasan Aktif</option>
+          <option value="true">Diarsipkan</option>
+        </select>
+
+        <!-- Reset Button -->
+        <button id="btn-reset-filters" class="btn-text-btn btn-sm hidden" style="color: var(--clr-text-muted); cursor: pointer;" title="Reset Filter">
+          ✕ Reset
+        </button>
+      </div>
+
+      <div class="zones-toolbar-right">
+        <span id="zone-count-label" style="font-size: 12px; color: var(--clr-text-muted); margin-right: 4px;">
+          Menampilkan: <strong style="color: #fff;">${totalZones}</strong> kawasan
+        </span>
+
+        <!-- View Mode Switcher -->
+        <div class="zones-view-toggle">
+          <button id="btn-view-table" class="zone-view-btn ${zoneViewMode === 'table' ? 'active' : ''}" title="Tampilan Tabel">
+            <span>📋</span> Tabel
+          </button>
+          <button id="btn-view-grid" class="zone-view-btn ${zoneViewMode === 'grid' ? 'active' : ''}" title="Tampilan Kartu Grid">
+            <span>🗂️</span> Kartu
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Zones Content Container (Table or Grid) -->
+    <div id="zones-data-container">
+      ${zoneViewMode === 'table' ? renderZonesTableHtml(cachedZones) : renderZonesGridHtml(cachedZones)}
     </div>
   `;
 
@@ -169,8 +269,18 @@ function renderZonesListView() {
   const searchInput = document.getElementById('zone-search-input');
   const filterStatus = document.getElementById('zone-filter-status');
   const filterArchived = document.getElementById('zone-filter-archived');
+  const btnReset = document.getElementById('btn-reset-filters');
+  const countLabel = document.getElementById('zone-count-label');
+
+  const checkFiltersActive = () => {
+    const isFiltered = searchInput.value.trim() !== '' || filterStatus.value !== 'all' || filterArchived.value !== 'false';
+    if (btnReset) {
+      btnReset.classList.toggle('hidden', !isFiltered);
+    }
+  };
 
   const handleFilter = async () => {
+    checkFiltersActive();
     const q = searchInput.value.trim();
     const st = filterStatus.value;
     const arch = filterArchived.value;
@@ -181,11 +291,16 @@ function renderZonesListView() {
         archived: arch,
       });
       cachedZones = res.zones || [];
-      const wrapper = document.getElementById('zones-table-wrapper');
-      if (wrapper) wrapper.innerHTML = renderZonesTableHtml(cachedZones);
+      if (countLabel) {
+        countLabel.innerHTML = `Menampilkan: <strong style="color: #fff;">${cachedZones.length}</strong> kawasan`;
+      }
+      const dataContainer = document.getElementById('zones-data-container');
+      if (dataContainer) {
+        dataContainer.innerHTML = zoneViewMode === 'table' ? renderZonesTableHtml(cachedZones) : renderZonesGridHtml(cachedZones);
+      }
       bindZoneTableActions();
     } catch (e) {
-      console.error(e);
+      console.error('Gagal filter data kawasan:', e);
     }
   };
 
@@ -193,84 +308,163 @@ function renderZonesListView() {
   if (filterStatus) filterStatus.addEventListener('change', handleFilter);
   if (filterArchived) filterArchived.addEventListener('change', handleFilter);
 
+  if (btnReset) {
+    btnReset.addEventListener('click', () => {
+      searchInput.value = '';
+      filterStatus.value = 'all';
+      filterArchived.value = 'false';
+      handleFilter();
+    });
+  }
+
+  // View Mode Switcher
+  const btnTable = document.getElementById('btn-view-table');
+  const btnGrid = document.getElementById('btn-view-grid');
+
+  if (btnTable && btnGrid) {
+    btnTable.addEventListener('click', () => {
+      if (zoneViewMode === 'table') return;
+      zoneViewMode = 'table';
+      try { localStorage.setItem('ecoland_zone_view_mode', 'table'); } catch (e) {}
+      btnTable.classList.add('active');
+      btnGrid.classList.remove('active');
+      const dataContainer = document.getElementById('zones-data-container');
+      if (dataContainer) dataContainer.innerHTML = renderZonesTableHtml(cachedZones);
+      bindZoneTableActions();
+    });
+
+    btnGrid.addEventListener('click', () => {
+      if (zoneViewMode === 'grid') return;
+      zoneViewMode = 'grid';
+      try { localStorage.setItem('ecoland_zone_view_mode', 'grid'); } catch (e) {}
+      btnGrid.classList.add('active');
+      btnTable.classList.remove('active');
+      const dataContainer = document.getElementById('zones-data-container');
+      if (dataContainer) dataContainer.innerHTML = renderZonesGridHtml(cachedZones);
+      bindZoneTableActions();
+    });
+  }
+
   bindZoneTableActions();
+}
+
+function getStatusBadge(status) {
+  const statusMap = {
+    active: '<span class="badge-status-published"><span style="width:6px;height:6px;border-radius:50%;background:#10b981;"></span> Aktif</span>',
+    preparation: '<span class="badge-status-draft"><span style="width:6px;height:6px;border-radius:50%;background:#f59e0b;"></span> Persiapan</span>',
+    monitoring: '<span class="badge-status-monitoring"><span style="width:6px;height:6px;border-radius:50%;background:#38bdf8;"></span> Pemantauan</span>',
+    completed: '<span class="badge-status-completed"><span style="width:6px;height:6px;border-radius:50%;background:#9ca3af;"></span> Selesai</span>',
+  };
+  return statusMap[status] || `<span class="badge-status-completed">${escapeHtml(status)}</span>`;
 }
 
 function renderZonesTableHtml(zones) {
   if (!zones || zones.length === 0) {
     return `
-      <div style="text-align: center; padding: 48px 20px; background: var(--clr-surface); border-radius: var(--radius-md); border: 1px dashed var(--clr-border);">
-        <div style="font-size: 40px; margin-bottom: 12px;">🏞️</div>
-        <h4 style="color: #fff; margin-bottom: 6px;">Belum Ada Kawasan / Lahan Penanaman Terdaftar</h4>
-        <p style="color: var(--clr-text-muted); font-size: 13px; max-width: 480px; margin: 0 auto 18px;">
-          Sistem mendukung pengelolaan beberapa kawasan penanaman secara terintegrasi. Tambahkan kawasan penanaman pertama Anda.
+      <div style="text-align: center; padding: 56px 20px; background: var(--clr-surface); border-radius: var(--radius-md); border: 1px dashed var(--clr-border);">
+        <div style="font-size: 48px; margin-bottom: 14px;">🏞️</div>
+        <h4 style="color: #fff; font-size: 16px; font-weight: 700; margin-bottom: 8px;">Tidak Ada Kawasan Ditemukan</h4>
+        <p style="color: var(--clr-text-muted); font-size: 13.5px; max-width: 480px; margin: 0 auto 20px; line-height: 1.5;">
+          Tidak ada data kawasan penanaman yang sesuai dengan filter pencarian Anda, atau belum ada kawasan terdaftar.
         </p>
-        <button id="btn-empty-add-zone" class="btn-primary-action btn-sm">➕ Tambah Kawasan Sekarang</button>
+        <button id="btn-empty-add-zone" class="btn-primary-action btn-sm" style="display: inline-flex; align-items: center; gap: 6px; cursor: pointer;">
+          <span>➕</span> Tambah Kawasan Baru
+        </button>
       </div>
     `;
   }
 
   const rows = zones.map((z) => {
-    const statusBadges = {
-      active: '<span class="badge-status-published">Aktif</span>',
-      preparation: '<span class="badge-status-draft">Persiapan</span>',
-      monitoring: '<span class="badge-status-draft" style="color:#38bdf8;border-color:rgba(56,189,248,0.3)">Pemantauan</span>',
-      completed: '<span class="badge-status-inactive">Selesai</span>',
-    };
-    const badge = statusBadges[z.status] || z.status;
-    const survivalText = z.survival_rate !== null ? `${z.survival_rate}%` : '<span style="color:var(--clr-text-dim)">Belum cukup</span>';
+    const badge = getStatusBadge(z.status);
+    const survivalVal = z.survival_rate !== null && z.survival_rate !== undefined ? parseFloat(z.survival_rate) : null;
+    const survivalText = survivalVal !== null 
+      ? `
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
+          <span style="font-weight: 700; color: ${survivalVal >= 75 ? '#34d399' : '#fbbf24'};">${survivalVal}%</span>
+          <div style="width: 48px; height: 4px; background: rgba(255,255,255,0.1); border-radius: 99px; overflow: hidden;">
+            <div style="width: ${Math.min(100, survivalVal)}%; height: 100%; background: ${survivalVal >= 75 ? '#10b981' : '#f59e0b'};"></div>
+          </div>
+        </div>
+      `
+      : '<span style="color: var(--clr-text-dim); font-size: 11px;">Belum cukup</span>';
 
     return `
-      <tr data-zone-id="${z.id}" style="border-bottom: 1px solid var(--clr-border-subtle);">
-        <td style="padding: 12px 14px;">
-          <span style="font-family: monospace; font-size: 12px; background: rgba(16,185,129,0.1); color: var(--clr-primary); padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(16,185,129,0.2);">
-            ${z.zone_code}
+      <tr data-zone-id="${z.id}">
+        <!-- KODE -->
+        <td>
+          <span style="font-family: monospace; font-size: 12px; font-weight: 700; background: rgba(16,185,129,0.12); color: #34d399; padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(16,185,129,0.25); white-space: nowrap;">
+            ${escapeHtml(z.zone_code)}
           </span>
         </td>
-        <td style="padding: 12px 14px;">
-          <div style="font-weight: 600; color: #fff; font-size: 14px;">${escapeHtml(z.name)}</div>
-          <div style="font-size: 11px; color: var(--clr-text-muted); margin-top: 2px;">
-            ${escapeHtml(z.category || 'Silvikultur')} • ${escapeHtml(z.city || z.province || 'Aceh')}
+
+        <!-- NAMA KAWASAN & LOKASI -->
+        <td>
+          <div style="font-weight: 700; color: #ffffff; font-size: 14px; margin-bottom: 3px;">
+            ${escapeHtml(z.name)}
+          </div>
+          <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--clr-text-muted); flex-wrap: wrap;">
+            <span style="background: rgba(255,255,255,0.06); padding: 1px 6px; border-radius: 4px; font-size: 10.5px;">${escapeHtml(z.category || 'Silvikultur')}</span>
+            <span>📍 ${escapeHtml(z.city || z.province || 'Aceh')}</span>
           </div>
         </td>
-        <td style="padding: 12px 14px;">
-          <div style="font-weight: 600; color: var(--clr-primary); font-size: 13px;">${z.area_size} ${z.area_unit}</div>
-          <div style="font-size: 11px; color: var(--clr-text-dim);">(±${(parseFloat(z.area_in_ha) || 0).toFixed(2)} Ha)</div>
+
+        <!-- LUAS LAHAN -->
+        <td>
+          <div style="font-weight: 700; color: #38bdf8; font-size: 13.5px;">
+            ${(parseFloat(z.area_in_ha) || 0).toFixed(2)} Ha
+          </div>
+          <div style="font-size: 11px; color: var(--clr-text-dim); margin-top: 1px;">
+            ${z.area_size} ${z.area_unit}
+          </div>
         </td>
-        <td style="padding: 12px 14px; text-align: center;">
-          <div style="font-weight: 600; color: #fff; font-size: 13px;">${z.activities_count || 0}</div>
-          <div style="font-size: 11px; color: var(--clr-text-dim);">kegiatan</div>
+
+        <!-- PENANAMAN -->
+        <td style="text-align: center;">
+          <div style="font-weight: 700; color: #ffffff; font-size: 13.5px;">${z.activities_count || 0}</div>
+          <div style="font-size: 11px; color: var(--clr-text-dim);">Kegiatan</div>
         </td>
-        <td style="padding: 12px 14px; text-align: center;">
-          <div style="font-weight: 600; color: #fff; font-size: 13px;">${(z.total_initial_seedlings || 0).toLocaleString('id-ID')}</div>
+
+        <!-- BIBIT AWAL -->
+        <td style="text-align: center;">
+          <div style="font-weight: 700; color: #fbbf24; font-size: 13.5px;">
+            ${(z.total_initial_seedlings || 0).toLocaleString('id-ID')}
+          </div>
           <div style="font-size: 11px; color: var(--clr-text-dim);">${z.species_count || 0} jenis</div>
         </td>
-        <td style="padding: 12px 14px; text-align: center;">
-          <div style="font-weight: 600; font-size: 13px;">${survivalText}</div>
+
+        <!-- SURVIVAL -->
+        <td style="text-align: center;">
+          ${survivalText}
         </td>
-        <td style="padding: 12px 14px; text-align: center;">
-          <div style="font-weight: 600; color: #fff; font-size: 13px;">${z.scenes_count || 0}</div>
-          <div style="font-size: 11px; color: var(--clr-text-dim);">scene 360°</div>
+
+        <!-- PANORAMA 360 -->
+        <td style="text-align: center;">
+          <div style="font-weight: 700; color: #ffffff; font-size: 13.5px;">${z.scenes_count || 0}</div>
+          <div style="font-size: 11px; color: var(--clr-text-dim);">Scene 360°</div>
         </td>
-        <td style="padding: 12px 14px; text-align: center;">
+
+        <!-- STATUS -->
+        <td style="text-align: center;">
           ${badge}
         </td>
-        <td style="padding: 12px 14px; text-align: right; white-space: nowrap;">
-          <div style="display: inline-flex; gap: 4px;">
-            <button class="btn-action-detail btn-text-btn btn-sm" data-id="${z.id}" title="Buka Detail Kawasan (8 Tab)">
-              🔍 Detail
+
+        <!-- AKSI -->
+        <td style="text-align: right; white-space: nowrap;">
+          <div style="display: inline-flex; gap: 6px; align-items: center;">
+            <button class="btn-action-detail zone-btn-action detail" data-id="${z.id}" title="Buka Detail Kawasan (8 Tab)">
+              <span>🔍</span> Detail
             </button>
-            <button class="btn-action-edit btn-text-btn btn-sm" data-id="${z.id}" title="Edit Data Kawasan">
-              ✏️ Edit
+            <button class="btn-action-edit zone-btn-action edit" data-id="${z.id}" title="Edit Data Kawasan">
+              <span>✏️</span> Edit
             </button>
-            <button class="btn-action-tour btn-text-btn btn-sm" data-id="${z.id}" title="Buka Virtual Tour Kawasan Ini">
-              🌐 Tour
+            <button class="btn-action-tour zone-btn-action tour" data-id="${z.id}" title="Buka Virtual Tour Kawasan Ini">
+              <span>🌐</span> Tour
             </button>
-            <button class="btn-action-archive btn-text-btn btn-sm" data-id="${z.id}" title="${z.is_archived ? 'Aktifkan Kembali' : 'Arsipkan Kawasan'}" style="color: ${z.is_archived ? '#10b981' : '#f59e0b'};">
-              ${z.is_archived ? '♻️ Pulihkan' : '📦 Arsip'}
+            <button class="btn-action-archive zone-btn-action archive" data-id="${z.id}" title="${z.is_archived ? 'Aktifkan Kembali' : 'Arsipkan Kawasan'}">
+              <span>${z.is_archived ? '♻️' : '📦'}</span> ${z.is_archived ? 'Pulihkan' : 'Arsip'}
             </button>
-            <button class="btn-action-delete btn-text-btn btn-sm" data-id="${z.id}" title="Hapus Kawasan" style="color: #ef4444;">
-              🗑️ Hapus
+            <button class="btn-action-delete zone-btn-action delete" data-id="${z.id}" title="Hapus Kawasan">
+              <span>🗑️</span> Hapus
             </button>
           </div>
         </td>
@@ -279,30 +473,139 @@ function renderZonesTableHtml(zones) {
   }).join('');
 
   return `
-    <table class="data-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
-      <thead>
-        <tr style="background: var(--clr-surface-card); border-bottom: 2px solid var(--clr-border); color: var(--clr-text-muted); font-size: 12px; text-transform: uppercase;">
-          <th style="padding: 12px 14px;">Kode</th>
-          <th style="padding: 12px 14px;">Nama Kawasan & Lokasi</th>
-          <th style="padding: 12px 14px;">Luas Lahan</th>
-          <th style="padding: 12px 14px; text-align: center;">Penanaman</th>
-          <th style="padding: 12px 14px; text-align: center;">Bibit Awal</th>
-          <th style="padding: 12px 14px; text-align: center;">Survival</th>
-          <th style="padding: 12px 14px; text-align: center;">Panorama</th>
-          <th style="padding: 12px 14px; text-align: center;">Status</th>
-          <th style="padding: 12px 14px; text-align: right;">Aksi</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${rows}
-      </tbody>
-    </table>
+    <div class="zones-table-box">
+      <table class="zones-table">
+        <thead>
+          <tr>
+            <th style="width: 100px;">Kode</th>
+            <th>Nama Kawasan & Lokasi</th>
+            <th style="width: 110px;">Luas Lahan</th>
+            <th style="width: 90px; text-align: center;">Penanaman</th>
+            <th style="width: 100px; text-align: center;">Bibit Awal</th>
+            <th style="width: 90px; text-align: center;">Survival</th>
+            <th style="width: 90px; text-align: center;">Panorama</th>
+            <th style="width: 100px; text-align: center;">Status</th>
+            <th style="width: 270px; text-align: right;">Aksi</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+function renderZonesGridHtml(zones) {
+  if (!zones || zones.length === 0) {
+    return renderZonesTableHtml(zones);
+  }
+
+  const cards = zones.map((z) => {
+    const badge = getStatusBadge(z.status);
+    const survivalVal = z.survival_rate !== null && z.survival_rate !== undefined ? parseFloat(z.survival_rate) : null;
+    const coverUrl = z.main_photo_path || null;
+
+    return `
+      <div class="zone-grid-card" data-zone-id="${z.id}">
+        <!-- Cover Banner -->
+        <div class="zone-card-cover">
+          ${coverUrl ? `
+            <img src="${coverUrl}" alt="${escapeHtml(z.name)}" onerror="this.onerror=null; this.src='/favicon.svg';" />
+          ` : `
+            <div style="width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: radial-gradient(circle, rgba(16,185,129,0.15) 0%, rgba(12,20,16,0.95) 100%);">
+              <span style="font-size: 42px; margin-bottom: 4px;">🏞️</span>
+              <span style="font-size: 11px; color: var(--clr-text-muted);">Foto Dokumentasi Belum Diunggah</span>
+            </div>
+          `}
+          <div style="position: absolute; top: 12px; left: 12px; z-index: 2;">
+            <span style="font-family: monospace; font-size: 11.5px; font-weight: 700; background: rgba(0,0,0,0.75); backdrop-filter: blur(4px); color: #34d399; padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(16,185,129,0.35);">
+              ${escapeHtml(z.zone_code)}
+            </span>
+          </div>
+          <div style="position: absolute; top: 12px; right: 12px; z-index: 2;">
+            ${badge}
+          </div>
+        </div>
+
+        <!-- Card Body -->
+        <div class="zone-card-body">
+          <div>
+            <div style="font-size: 11px; color: var(--clr-primary-light); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em;">
+              ${escapeHtml(z.category || 'Silvikultur & Restorasi')}
+            </div>
+            <h4 style="color: #ffffff; font-size: 16px; font-weight: 800; margin: 4px 0 6px; line-height: 1.3;">
+              ${escapeHtml(z.name)}
+            </h4>
+            <p style="color: var(--clr-text-muted); font-size: 12px; margin: 0; display: flex; align-items: center; gap: 4px;">
+              <span>📍</span> ${escapeHtml(z.address || z.city || z.province || 'Aceh')}
+            </p>
+          </div>
+
+          <!-- Mini Stats Grid -->
+          <div class="zone-card-stats">
+            <div class="zone-card-stat-item">
+              <span class="zone-card-stat-label">Luas Lahan</span>
+              <span class="zone-card-stat-val" style="color: #38bdf8;">${(parseFloat(z.area_in_ha) || 0).toFixed(2)} Ha</span>
+            </div>
+            <div class="zone-card-stat-item">
+              <span class="zone-card-stat-label">Bibit Awal</span>
+              <span class="zone-card-stat-val" style="color: #fbbf24;">${(z.total_initial_seedlings || 0).toLocaleString('id-ID')}</span>
+            </div>
+            <div class="zone-card-stat-item">
+              <span class="zone-card-stat-label">Kegiatan</span>
+              <span class="zone-card-stat-val">${z.activities_count || 0} Batch</span>
+            </div>
+            <div class="zone-card-stat-item">
+              <span class="zone-card-stat-label">Survival</span>
+              <span class="zone-card-stat-val" style="color: ${survivalVal !== null && survivalVal >= 75 ? '#34d399' : '#c084fc'};">
+                ${survivalVal !== null ? `${survivalVal}%` : 'Belum Sensus'}
+              </span>
+            </div>
+          </div>
+
+          <!-- Card Actions Footer -->
+          <div style="display: flex; gap: 6px; align-items: center; justify-content: space-between; border-top: 1px solid var(--clr-border-subtle); padding-top: 14px; margin-top: 6px; flex-wrap: wrap;">
+            <div style="display: flex; gap: 6px;">
+              <button class="btn-action-detail zone-btn-action detail" data-id="${z.id}" title="Detail Kawasan">
+                <span>🔍</span> Detail
+              </button>
+              <button class="btn-action-edit zone-btn-action edit" data-id="${z.id}" title="Edit Kawasan">
+                <span>✏️</span> Edit
+              </button>
+              <button class="btn-action-tour zone-btn-action tour" data-id="${z.id}" title="Virtual Tour">
+                <span>🌐</span> Tour
+              </button>
+            </div>
+            <div style="display: flex; gap: 6px;">
+              <button class="btn-action-archive zone-btn-action archive" data-id="${z.id}" title="${z.is_archived ? 'Pulihkan' : 'Arsipkan'}">
+                <span>${z.is_archived ? '♻️' : '📦'}</span>
+              </button>
+              <button class="btn-action-delete zone-btn-action delete" data-id="${z.id}" title="Hapus Kawasan">
+                <span>🗑️</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  return `
+    <div class="zones-cards-grid">
+      ${cards}
+    </div>
   `;
 }
 
 function bindZoneTableActions() {
   const container = document.getElementById('zone-pane-container');
   if (!container) return;
+
+  const tableBox = container.querySelector('.zones-table-box');
+  if (tableBox) {
+    tableBox.scrollLeft = 0;
+  }
 
   const btnEmptyAdd = container.querySelector('#btn-empty-add-zone');
   if (btnEmptyAdd) {
@@ -387,38 +690,49 @@ function renderZoneFormView(existingZone = null) {
   const formTitle = isEdit ? `Edit Kawasan: ${existingZone.name}` : 'Tambah Kawasan / Lahan Baru';
 
   pane.innerHTML = `
-    <div style="background: var(--clr-surface); padding: 24px; border-radius: var(--radius-md); border: 1px solid var(--clr-border); max-width: 960px; margin: 0 auto;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--clr-border); padding-bottom: 12px;">
-        <h3 style="color: #fff; margin: 0; font-size: 18px; display: flex; align-items: center; gap: 8px;">
-          <span>${isEdit ? '✏️' : '➕'}</span> ${formTitle}
+    <div class="zone-form-card">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; border-bottom: 1px solid var(--clr-border); padding-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+        <h3 style="color: #fff; margin: 0; font-size: 20px; font-weight: 800; display: flex; align-items: center; gap: 10px;">
+          <span>${isEdit ? '✏️' : '➕'}</span> <span>${formTitle}</span>
         </h3>
-        <button id="btn-cancel-zone-form" class="btn-text-btn btn-sm">← Kembali ke Daftar</button>
+        <button id="btn-cancel-zone-form" class="btn-secondary-action btn-sm" style="display: inline-flex; align-items: center; gap: 6px; cursor: pointer;">
+          <span>←</span> Kembali ke Daftar
+        </button>
       </div>
 
       <form id="zone-edit-form">
         <input type="hidden" id="form-zone-id" value="${existingZone ? existingZone.id : ''}" />
 
         <!-- BAGIAN 1: INFORMASI DASAR -->
-        <div style="margin-bottom: 24px;">
-          <h4 style="color: var(--clr-primary); font-size: 14px; text-transform: uppercase; margin-bottom: 12px; border-bottom: 1px solid var(--clr-border-subtle); padding-bottom: 6px;">
-            1. Informasi Dasar Kawasan
-          </h4>
+        <div class="zone-form-section">
+          <div class="zone-form-sec-title">
+            <span class="zone-form-sec-num">1</span>
+            <span>Informasi Dasar Kawasan</span>
+          </div>
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
             <div class="form-group">
-              <label for="form-zone-code">Kode Kawasan (Unik): *</label>
+              <label for="form-zone-code" style="display: block; font-size: 12px; font-weight: 600; color: var(--clr-text-muted); margin-bottom: 6px;">
+                Kode Kawasan (Unik): <span style="color: var(--clr-danger);">*</span>
+              </label>
               <input type="text" id="form-zone-code" class="form-input" required placeholder="Contoh: KW-ACEH-02" value="${existingZone ? existingZone.zone_code : ''}" />
-              <small style="color: var(--clr-text-dim); font-size: 11px;">Kode unik sebagai pengenal permanen dalam sistem.</small>
+              <small style="color: var(--clr-text-dim); font-size: 11px; display: block; margin-top: 4px;">Kode unik sebagai pengenal permanen dalam sistem.</small>
             </div>
             <div class="form-group">
-              <label for="form-zone-name">Nama Kawasan: *</label>
+              <label for="form-zone-name" style="display: block; font-size: 12px; font-weight: 600; color: var(--clr-text-muted); margin-bottom: 6px;">
+                Nama Kawasan: <span style="color: var(--clr-danger);">*</span>
+              </label>
               <input type="text" id="form-zone-name" class="form-input" required placeholder="Nama lengkap kawasan penanaman" value="${existingZone ? escapeHtml(existingZone.name) : ''}" />
             </div>
             <div class="form-group">
-              <label for="form-zone-category">Kategori Kawasan:</label>
+              <label for="form-zone-category" style="display: block; font-size: 12px; font-weight: 600; color: var(--clr-text-muted); margin-bottom: 6px;">
+                Kategori Kawasan:
+              </label>
               <input type="text" id="form-zone-category" class="form-input" placeholder="e.g. Silvikultur, Konservasi Pesisir, Arboretum" value="${existingZone ? escapeHtml(existingZone.category || '') : 'Silvikultur & Konservasi'}" />
             </div>
             <div class="form-group">
-              <label for="form-zone-status">Status Kawasan: *</label>
+              <label for="form-zone-status" style="display: block; font-size: 12px; font-weight: 600; color: var(--clr-text-muted); margin-bottom: 6px;">
+                Status Kawasan: <span style="color: var(--clr-danger);">*</span>
+              </label>
               <select id="form-zone-status" class="form-select" required>
                 <option value="preparation" ${existingZone && existingZone.status === 'preparation' ? 'selected' : ''}>Persiapan Lahan</option>
                 <option value="active" ${!existingZone || existingZone.status === 'active' ? 'selected' : ''}>Aktif Penanaman</option>
@@ -429,136 +743,149 @@ function renderZoneFormView(existingZone = null) {
           </div>
 
           <div class="form-group" style="margin-top: 14px;">
-            <label for="form-zone-purpose">Tujuan Penanaman:</label>
+            <label for="form-zone-purpose" style="display: block; font-size: 12px; font-weight: 600; color: var(--clr-text-muted); margin-bottom: 6px;">
+              Tujuan Penanaman:
+            </label>
             <input type="text" id="form-zone-purpose" class="form-input" placeholder="Tujuan utama program penanaman pada kawasan ini" value="${existingZone ? escapeHtml(existingZone.planting_purpose || '') : ''}" />
           </div>
 
           <div class="form-group" style="margin-top: 14px;">
-            <label for="form-zone-desc">Deskripsi Kawasan:</label>
+            <label for="form-zone-desc" style="display: block; font-size: 12px; font-weight: 600; color: var(--clr-text-muted); margin-bottom: 6px;">
+              Deskripsi Kawasan:
+            </label>
             <textarea id="form-zone-desc" class="form-input" rows="3" placeholder="Uraian gambaran umum kawasan, vegetasi, dan karakteristik ekosistem">${existingZone ? escapeHtml(existingZone.description || '') : ''}</textarea>
           </div>
         </div>
 
         <!-- BAGIAN 2: INFORMASI LOKASI -->
-        <div style="margin-bottom: 24px;">
-          <h4 style="color: var(--clr-primary); font-size: 14px; text-transform: uppercase; margin-bottom: 12px; border-bottom: 1px solid var(--clr-border-subtle); padding-bottom: 6px;">
-            2. Informasi Lokasi Deskriptif & Titik Referensi Opsional
-          </h4>
+        <div class="zone-form-section">
+          <div class="zone-form-sec-title">
+            <span class="zone-form-sec-num">2</span>
+            <span>Informasi Lokasi Deskriptif & Titik Referensi</span>
+          </div>
           <div class="form-group" style="margin-bottom: 14px;">
-            <label for="form-zone-address">Alamat / Keterangan Lokasi:</label>
+            <label for="form-zone-address" style="display: block; font-size: 12px; font-weight: 600; color: var(--clr-text-muted); margin-bottom: 6px;">
+              Alamat / Keterangan Lokasi:
+            </label>
             <input type="text" id="form-zone-address" class="form-input" placeholder="Jalan, blok, atau patokan lokasi deskriptif" value="${existingZone ? escapeHtml(existingZone.address || '') : ''}" />
           </div>
 
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px;">
             <div class="form-group">
-              <label for="form-zone-village">Desa / Gampong:</label>
+              <label for="form-zone-village" style="display: block; font-size: 12px; font-weight: 600; color: var(--clr-text-muted); margin-bottom: 6px;">Desa / Gampong:</label>
               <input type="text" id="form-zone-village" class="form-input" placeholder="Gampong" value="${existingZone ? escapeHtml(existingZone.village || '') : ''}" />
             </div>
             <div class="form-group">
-              <label for="form-zone-district">Kecamatan:</label>
+              <label for="form-zone-district" style="display: block; font-size: 12px; font-weight: 600; color: var(--clr-text-muted); margin-bottom: 6px;">Kecamatan:</label>
               <input type="text" id="form-zone-district" class="form-input" placeholder="Kecamatan" value="${existingZone ? escapeHtml(existingZone.district || '') : ''}" />
             </div>
             <div class="form-group">
-              <label for="form-zone-city">Kabupaten / Kota:</label>
+              <label for="form-zone-city" style="display: block; font-size: 12px; font-weight: 600; color: var(--clr-text-muted); margin-bottom: 6px;">Kabupaten / Kota:</label>
               <input type="text" id="form-zone-city" class="form-input" placeholder="Kabupaten" value="${existingZone ? escapeHtml(existingZone.city || '') : ''}" />
             </div>
             <div class="form-group">
-              <label for="form-zone-province">Provinsi:</label>
+              <label for="form-zone-province" style="display: block; font-size: 12px; font-weight: 600; color: var(--clr-text-muted); margin-bottom: 6px;">Provinsi:</label>
               <input type="text" id="form-zone-province" class="form-input" placeholder="Provinsi" value="${existingZone ? escapeHtml(existingZone.province || '') : 'Aceh'}" />
             </div>
           </div>
 
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-top: 14px;">
             <div class="form-group">
-              <label for="form-zone-lat">Latitude Titik Acuan (Opsional):</label>
+              <label for="form-zone-lat" style="display: block; font-size: 12px; font-weight: 600; color: var(--clr-text-muted); margin-bottom: 6px;">Latitude Titik Acuan (Opsional):</label>
               <input type="number" step="0.0000001" id="form-zone-lat" class="form-input" placeholder="Contoh: 5.4818556" value="${existingZone && existingZone.latitude ? existingZone.latitude : ''}" />
-              <small style="color: var(--clr-text-dim); font-size: 11px;">Hanya titik koordinat referensi patok, bukan poligon GPS.</small>
+              <small style="color: var(--clr-text-dim); font-size: 11px; display: block; margin-top: 4px;">Titik koordinat referensi patok, bukan poligon GPS.</small>
             </div>
             <div class="form-group">
-              <label for="form-zone-lng">Longitude Titik Acuan (Opsional):</label>
+              <label for="form-zone-lng" style="display: block; font-size: 12px; font-weight: 600; color: var(--clr-text-muted); margin-bottom: 6px;">Longitude Titik Acuan (Opsional):</label>
               <input type="number" step="0.0000001" id="form-zone-lng" class="form-input" placeholder="Contoh: 95.5840917" value="${existingZone && existingZone.longitude ? existingZone.longitude : ''}" />
             </div>
             <div class="form-group">
-              <label for="form-zone-access">Catatan Akses Lapangan:</label>
+              <label for="form-zone-access" style="display: block; font-size: 12px; font-weight: 600; color: var(--clr-text-muted); margin-bottom: 6px;">Catatan Akses Lapangan:</label>
               <input type="text" id="form-zone-access" class="form-input" placeholder="Akses kendaraan, jalan setapak, rute masuk" value="${existingZone ? escapeHtml(existingZone.access_notes || '') : ''}" />
             </div>
           </div>
         </div>
 
         <!-- BAGIAN 3: INFORMASI LAHAN & LUASAN -->
-        <div style="margin-bottom: 24px;">
-          <h4 style="color: var(--clr-primary); font-size: 14px; text-transform: uppercase; margin-bottom: 12px; border-bottom: 1px solid var(--clr-border-subtle); padding-bottom: 6px;">
-            3. Informasi Lahan (Input Manual, Bebas Poligon)
-          </h4>
+        <div class="zone-form-section">
+          <div class="zone-form-sec-title">
+            <span class="zone-form-sec-num">3</span>
+            <span>Informasi Lahan & Luasan (Input Manual Bebas Poligon)</span>
+          </div>
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px;">
             <div class="form-group">
-              <label for="form-zone-area-size">Luas Lahan: *</label>
+              <label for="form-zone-area-size" style="display: block; font-size: 12px; font-weight: 600; color: var(--clr-text-muted); margin-bottom: 6px;">
+                Luas Lahan: <span style="color: var(--clr-danger);">*</span>
+              </label>
               <input type="number" step="0.01" min="0" id="form-zone-area-size" class="form-input" required placeholder="Contoh: 2.00" value="${existingZone ? existingZone.area_size : ''}" />
             </div>
             <div class="form-group">
-              <label for="form-zone-area-unit">Satuan Luas: *</label>
+              <label for="form-zone-area-unit" style="display: block; font-size: 12px; font-weight: 600; color: var(--clr-text-muted); margin-bottom: 6px;">
+                Satuan Luas: <span style="color: var(--clr-danger);">*</span>
+              </label>
               <select id="form-zone-area-unit" class="form-select" required>
                 <option value="ha" ${!existingZone || existingZone.area_unit === 'ha' ? 'selected' : ''}>Hektare (ha)</option>
                 <option value="m2" ${existingZone && existingZone.area_unit === 'm2' ? 'selected' : ''}>Meter Persegi (m²)</option>
               </select>
             </div>
             <div class="form-group">
-              <label for="form-zone-meas-method">Metode Pengukuran Luas:</label>
-              <input type="text" id="form-zone-meas-method" class="form-input" placeholder="e.g. Survei Patok Batas, Data Deskriptif Sertifikat" value="${existingZone ? escapeHtml(existingZone.measurement_method || '') : 'Survei Patok Lapangan Deskriptif'}" />
+              <label for="form-zone-meas-method" style="display: block; font-size: 12px; font-weight: 600; color: var(--clr-text-muted); margin-bottom: 6px;">Metode Pengukuran Luas:</label>
+              <input type="text" id="form-zone-meas-method" class="form-input" placeholder="e.g. Survei Patok Batas, Data Deskriptif" value="${existingZone ? escapeHtml(existingZone.measurement_method || '') : 'Survei Patok Lapangan Deskriptif'}" />
             </div>
             <div class="form-group">
-              <label for="form-zone-meas-date">Tanggal Pengukuran:</label>
+              <label for="form-zone-meas-date" style="display: block; font-size: 12px; font-weight: 600; color: var(--clr-text-muted); margin-bottom: 6px;">Tanggal Pengukuran:</label>
               <input type="date" id="form-zone-meas-date" class="form-input" value="${existingZone && existingZone.measurement_date ? toDateInputValue(existingZone.measurement_date) : ''}" />
             </div>
           </div>
 
           <div class="form-group" style="margin-top: 14px;">
-            <label for="form-zone-land-notes">Catatan Kondisi Lahan & Tanah:</label>
+            <label for="form-zone-land-notes" style="display: block; font-size: 12px; font-weight: 600; color: var(--clr-text-muted); margin-bottom: 6px;">Catatan Kondisi Lahan & Tanah:</label>
             <textarea id="form-zone-land-notes" class="form-input" rows="2" placeholder="Kondisi topografi, jenis tanah, kemiringan lereng, vegetasi awal">${existingZone ? escapeHtml(existingZone.land_condition_notes || '') : ''}</textarea>
           </div>
         </div>
 
         <!-- BAGIAN 4: PENGELOLAAN & PUBLIKASI -->
-        <div style="margin-bottom: 24px;">
-          <h4 style="color: var(--clr-primary); font-size: 14px; text-transform: uppercase; margin-bottom: 12px; border-bottom: 1px solid var(--clr-border-subtle); padding-bottom: 6px;">
-            4. Pengelolaan, Target, & Publikasi
-          </h4>
+        <div class="zone-form-section">
+          <div class="zone-form-sec-title">
+            <span class="zone-form-sec-num">4</span>
+            <span>Pengelolaan, Target & Publikasi</span>
+          </div>
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px;">
             <div class="form-group">
-              <label for="form-zone-pic">Penanggung Jawab / Koordinator:</label>
+              <label for="form-zone-pic" style="display: block; font-size: 12px; font-weight: 600; color: var(--clr-text-muted); margin-bottom: 6px;">Penanggung Jawab / Koordinator:</label>
               <input type="text" id="form-zone-pic" class="form-input" placeholder="Nama koordinator lapangan" value="${existingZone ? escapeHtml(existingZone.person_in_charge || '') : ''}" />
             </div>
             <div class="form-group">
-              <label for="form-zone-org">Organisasi / Lembaga Mitra:</label>
+              <label for="form-zone-org" style="display: block; font-size: 12px; font-weight: 600; color: var(--clr-text-muted); margin-bottom: 6px;">Organisasi / Lembaga Mitra:</label>
               <input type="text" id="form-zone-org" class="form-input" placeholder="IKHW / Mitra" value="${existingZone ? escapeHtml(existingZone.organization || '') : 'IKHW Aceh'}" />
             </div>
             <div class="form-group">
-              <label for="form-zone-target">Target Penanaman (Batang):</label>
+              <label for="form-zone-target" style="display: block; font-size: 12px; font-weight: 600; color: var(--clr-text-muted); margin-bottom: 6px;">Target Penanaman (Batang):</label>
               <input type="number" min="0" id="form-zone-target" class="form-input" placeholder="e.g. 1000" value="${existingZone && existingZone.planting_target ? existingZone.planting_target : ''}" />
             </div>
             <div class="form-group">
-              <label for="form-zone-start-date">Tanggal Mulai Program:</label>
+              <label for="form-zone-start-date" style="display: block; font-size: 12px; font-weight: 600; color: var(--clr-text-muted); margin-bottom: 6px;">Tanggal Mulai Program:</label>
               <input type="date" id="form-zone-start-date" class="form-input" value="${existingZone && existingZone.start_date ? toDateInputValue(existingZone.start_date) : ''}" />
             </div>
           </div>
 
           <div class="form-group" style="margin-top: 14px;">
-            <label for="form-zone-internal-notes">Catatan Internal (Tidak Tampil ke Publik):</label>
+            <label for="form-zone-internal-notes" style="display: block; font-size: 12px; font-weight: 600; color: var(--clr-text-muted); margin-bottom: 6px;">Catatan Internal (Tidak Tampil ke Publik):</label>
             <textarea id="form-zone-internal-notes" class="form-input" rows="2" placeholder="Catatan internal pengelola">${existingZone ? escapeHtml(existingZone.internal_notes || '') : ''}</textarea>
           </div>
 
-          <div style="display: flex; gap: 20px; align-items: center; margin-top: 16px;">
-            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #fff;">
-              <input type="checkbox" id="form-zone-published" ${!existingZone || existingZone.is_published ? 'checked' : ''} />
-              <span>Publikasikan Kawasan ke Halaman Virtual Tour Pengunjung</span>
+          <div style="display: flex; gap: 20px; align-items: center; margin-top: 16px; padding: 12px; background: rgba(16, 185, 129, 0.08); border-radius: var(--radius-sm); border: 1px solid rgba(16, 185, 129, 0.2);">
+            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; color: #fff; font-size: 13px; font-weight: 500;">
+              <input type="checkbox" id="form-zone-published" style="width: 16px; height: 16px; accent-color: var(--clr-primary);" ${!existingZone || existingZone.is_published ? 'checked' : ''} />
+              <span>Publikasikan kawasan ini ke halaman publik dan navigasi Virtual Tour</span>
             </label>
           </div>
         </div>
 
-        <div style="display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid var(--clr-border); padding-top: 16px;">
-          <button type="button" id="btn-cancel-form" class="btn-secondary-action">Batal</button>
-          <button type="submit" id="btn-submit-zone" class="btn-primary-action">
-            💾 ${isEdit ? 'Simpan Perubahan' : 'Tambahkan Kawasan'}
+        <div style="display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid var(--clr-border); padding-top: 20px;">
+          <button type="button" id="btn-cancel-form" class="btn-secondary-action" style="cursor: pointer;">Batal</button>
+          <button type="submit" id="btn-submit-zone" class="btn-primary-action" style="display: inline-flex; align-items: center; gap: 6px; cursor: pointer;">
+            <span>💾</span> <span>${isEdit ? 'Simpan Perubahan' : 'Tambahkan Kawasan'}</span>
           </button>
         </div>
       </form>
@@ -610,7 +937,7 @@ function renderZoneFormView(existingZone = null) {
       const isEdit = !!zoneId;
       const submitBtn = document.getElementById('btn-submit-zone');
       submitBtn.disabled = true;
-      submitBtn.innerText = 'Menyimpan...';
+      submitBtn.innerHTML = '<span>⏳</span> Menyimpan...';
 
       try {
         const res = await ApiService.saveZone(payload, zoneId || null);
@@ -624,7 +951,7 @@ function renderZoneFormView(existingZone = null) {
       } catch (err) {
         EcoToast.error('✕ Gagal menyimpan kawasan', err.message || 'Periksa kembali formulir kawasan dan coba lagi.');
         submitBtn.disabled = false;
-        submitBtn.innerText = isEdit ? '💾 Simpan Perubahan' : '💾 Tambahkan Kawasan';
+        submitBtn.innerHTML = `<span>💾</span> <span>${isEdit ? 'Simpan Perubahan' : 'Tambahkan Kawasan'}</span>`;
       }
     });
   }
@@ -638,7 +965,7 @@ async function loadAndRenderZoneDetail(zoneId, initialDetailTab = 'tab-ringkasan
   if (!pane) return;
 
   pane.innerHTML = `
-    <div style="display: flex; justify-content: center; align-items: center; padding: 40px; color: var(--clr-text-muted);">
+    <div style="display: flex; justify-content: center; align-items: center; padding: 60px 20px; color: var(--clr-text-muted); gap: 12px;">
       <span class="loading-spinner"></span> Memuat detail kawasan (8 Tab)...
     </div>
   `;
@@ -649,9 +976,9 @@ async function loadAndRenderZoneDetail(zoneId, initialDetailTab = 'tab-ringkasan
     renderZoneDetailView(data, initialDetailTab);
   } catch (err) {
     pane.innerHTML = `
-      <div class="alert-error" style="padding: 16px; background: rgba(239, 68, 68, 0.1); border: 1px solid #ef4444; border-radius: 8px; color: #fca5a5;">
-        ❌ Gagal memuat detail kawasan: ${err.message}
-        <button id="btn-back-to-list" class="btn-secondary-action btn-sm" style="margin-left: 12px;">Kembali</button>
+      <div class="alert-error" style="padding: 18px 22px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: var(--radius-md); color: #fca5a5; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+        <div>❌ Gagal memuat detail kawasan: ${escapeHtml(err.message)}</div>
+        <button id="btn-back-to-list" class="btn-secondary-action btn-sm" style="cursor: pointer;">← Kembali</button>
       </div>
     `;
     const btnBack = document.getElementById('btn-back-to-list');
@@ -676,32 +1003,36 @@ function renderZoneDetailView(data, initialDetailTab = 'tab-ringkasan') {
 
   pane.innerHTML = `
     <!-- Detail Header Card -->
-    <div style="background: var(--clr-surface); padding: 20px 24px; border-radius: var(--radius-md); border: 1px solid var(--clr-border); margin-bottom: 20px;">
-      <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 14px;">
+    <div style="background: var(--clr-surface); padding: 22px 26px; border-radius: var(--radius-md); border: 1px solid var(--clr-border); margin-bottom: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.2);">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
         <div>
           <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-            <span style="font-family: monospace; font-size: 13px; background: rgba(16,185,129,0.15); color: var(--clr-primary); padding: 3px 8px; border-radius: 4px; border: 1px solid rgba(16,185,129,0.3);">
-              ${z.zone_code}
+            <span style="font-family: monospace; font-size: 13px; font-weight: 700; background: rgba(16,185,129,0.15); color: #34d399; padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(16,185,129,0.3);">
+              ${escapeHtml(z.zone_code)}
             </span>
-            <h2 style="margin: 0; color: #fff; font-size: 22px; font-weight: 700;">${escapeHtml(z.name)}</h2>
-            <span class="badge-status-published">${z.status}</span>
+            <h2 style="margin: 0; color: #fff; font-size: 22px; font-weight: 800;">${escapeHtml(z.name)}</h2>
+            ${getStatusBadge(z.status)}
           </div>
-          <p style="color: var(--clr-text-muted); font-size: 13px; margin: 6px 0 0;">
-            📍 ${escapeHtml(z.address || (z.village ? z.village + ', ' + z.district : 'Lokasi Terdaftar'))} • ${escapeHtml(z.city || 'Aceh')}
+          <p style="color: var(--clr-text-muted); font-size: 13px; margin: 8px 0 0; display: flex; align-items: center; gap: 6px;">
+            <span>📍</span> ${escapeHtml(z.address || (z.village ? z.village + ', ' + z.district : 'Lokasi Terdaftar'))} • ${escapeHtml(z.city || 'Aceh')}
           </p>
         </div>
 
-        <div style="display: flex; gap: 8px;">
-          <button id="btn-detail-edit-zone" class="btn-secondary-action btn-sm">✏️ Edit Kawasan</button>
-          <button id="btn-detail-back-list" class="btn-text-btn btn-sm">← Daftar Kawasan</button>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <button id="btn-detail-edit-zone" class="btn-secondary-action btn-sm" style="display: inline-flex; align-items: center; gap: 6px; cursor: pointer;">
+            <span>✏️</span> Edit Kawasan
+          </button>
+          <button id="btn-detail-back-list" class="btn-text-btn btn-sm" style="display: inline-flex; align-items: center; gap: 6px; cursor: pointer;">
+            <span>←</span> Daftar Kawasan
+          </button>
         </div>
       </div>
 
       <!-- 8 Tabs Bar -->
-      <div class="zone-detail-tabs" style="display: flex; gap: 4px; border-bottom: 1px solid var(--clr-border); padding-top: 16px; margin-top: 14px; overflow-x: auto;">
+      <div class="zone-detail-tabs" style="display: flex; gap: 6px; border-bottom: 1px solid var(--clr-border); padding-top: 18px; margin-top: 16px; overflow-x: auto;">
         <button class="zone-tab-link active" data-tab="tab-ringkasan">1. Ringkasan</button>
         <button class="zone-tab-link" data-tab="tab-lahan">2. Informasi Lahan</button>
-        <button class="zone-tab-link" data-tab="tab-penanaman">3. Jenis & Kegiatan Penanaman</button>
+        <button class="zone-tab-link" data-tab="tab-penanaman">3. Jenis & Penanaman</button>
         <button class="zone-tab-link" data-tab="tab-pemantauan">4. Pemantauan</button>
         <button class="zone-tab-link" data-tab="tab-perawatan">5. Perawatan</button>
         <button class="zone-tab-link" data-tab="tab-galeri">6. Galeri Foto</button>
@@ -768,7 +1099,7 @@ function renderTabRingkasanHtml(data) {
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px;">
       <div class="stat-card" style="background: var(--clr-surface); padding: 18px; border-radius: var(--radius-md); border: 1px solid var(--clr-border);">
         <span class="stat-label">Luas Lahan Tercatat</span>
-        <span class="stat-value" style="color: var(--clr-primary);">${z.area_size} ${z.area_unit}</span>
+        <span class="stat-value" style="color: #38bdf8;">${z.area_size} ${z.area_unit}</span>
         <span class="stat-desc">±${s.area_in_ha} Hektare (Deskriptif)</span>
       </div>
       <div class="stat-card" style="background: var(--clr-surface); padding: 18px; border-radius: var(--radius-md); border: 1px solid var(--clr-border);">
@@ -778,15 +1109,15 @@ function renderTabRingkasanHtml(data) {
       </div>
       <div class="stat-card" style="background: var(--clr-surface); padding: 18px; border-radius: var(--radius-md); border: 1px solid var(--clr-border);">
         <span class="stat-label">Total Bibit Awal Ditanam</span>
-        <span class="stat-value">${(s.total_initial_seedlings || 0).toLocaleString('id-ID')}</span>
+        <span class="stat-value" style="color: #fbbf24;">${(s.total_initial_seedlings || 0).toLocaleString('id-ID')}</span>
         <span class="stat-desc">${s.unique_species_count} Spesies Pohon Berbeda</span>
       </div>
       <div class="stat-card" style="background: var(--clr-surface); padding: 18px; border-radius: var(--radius-md); border: 1px solid var(--clr-border);">
         <span class="stat-label">Kelangsungan Hidup Terkini</span>
-        <span class="stat-value" style="color: ${s.survival_rate && s.survival_rate >= 75 ? 'var(--clr-primary)' : 'var(--clr-gold)'};">
+        <span class="stat-value" style="color: ${s.survival_rate && s.survival_rate >= 75 ? '#34d399' : '#f59e0b'};">
           ${survivalDisplay}
         </span>
-        <span class="stat-desc">Formula: Kelompok awal hidup / awal ditanam</span>
+        <span class="stat-desc">Formula: Bibit hidup awal / awal ditanam</span>
       </div>
       <div class="stat-card" style="background: var(--clr-surface); padding: 18px; border-radius: var(--radius-md); border: 1px solid var(--clr-border);">
         <span class="stat-label">Scene Panorama Terkait</span>
@@ -796,15 +1127,15 @@ function renderTabRingkasanHtml(data) {
     </div>
 
     <!-- Description & Context -->
-    <div style="background: var(--clr-surface); padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--clr-border);">
-      <h4 style="color: #fff; margin-top: 0; font-size: 15px;">Tujuan & Deskripsi Kawasan</h4>
-      <p style="color: var(--clr-text-muted); font-size: 13px; line-height: 1.6;">
+    <div style="background: var(--clr-surface); padding: 22px; border-radius: var(--radius-md); border: 1px solid var(--clr-border);">
+      <h4 style="color: #fff; margin-top: 0; font-size: 15px; font-weight: 700;">Tujuan & Deskripsi Kawasan</h4>
+      <p style="color: var(--clr-text-muted); font-size: 13.5px; line-height: 1.6; margin-top: 8px;">
         ${escapeHtml(z.description || 'Tidak ada deskripsi tambahan.')}
       </p>
       ${z.planting_purpose ? `
-        <div style="margin-top: 12px; padding: 12px; background: rgba(16, 185, 129, 0.08); border-left: 3px solid var(--clr-primary); border-radius: 4px;">
-          <strong style="color: var(--clr-primary); font-size: 12px;">TUJUAN PENANAMAN:</strong>
-          <p style="margin: 4px 0 0; color: #fff; font-size: 13px;">${escapeHtml(z.planting_purpose)}</p>
+        <div style="margin-top: 14px; padding: 14px 16px; background: rgba(16, 185, 129, 0.08); border-left: 3px solid var(--clr-primary); border-radius: 6px;">
+          <strong style="color: var(--clr-primary); font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.04em;">TUJUAN PENANAMAN:</strong>
+          <p style="margin: 4px 0 0; color: #fff; font-size: 13.5px;">${escapeHtml(z.planting_purpose)}</p>
         </div>
       ` : ''}
     </div>
@@ -816,37 +1147,37 @@ function renderTabLahanHtml(data) {
   const l = data.land_info;
   return `
     <div style="background: var(--clr-surface); padding: 24px; border-radius: var(--radius-md); border: 1px solid var(--clr-border);">
-      <h3 style="color: #fff; font-size: 16px; margin-top: 0; margin-bottom: 16px;">Spesifikasi & Karakteristik Lahan</h3>
+      <h3 style="color: #fff; font-size: 16px; font-weight: 700; margin-top: 0; margin-bottom: 18px;">Spesifikasi & Karakteristik Lahan</h3>
       <table class="data-table" style="width: 100%; font-size: 13px;">
         <tbody>
           <tr>
-            <td style="width: 240px; color: var(--clr-text-muted); padding: 10px 0;">Luas Tercatat</td>
-            <td style="color: #fff; font-weight: 600;">${l.area_size} ${l.area_unit} (±${l.area_in_ha} Hektare)</td>
+            <td style="width: 240px; color: var(--clr-text-muted); padding: 12px 0;">Luas Tercatat</td>
+            <td style="color: #38bdf8; font-weight: 700;">${l.area_size} ${l.area_unit} (±${l.area_in_ha} Hektare)</td>
           </tr>
           <tr>
-            <td style="color: var(--clr-text-muted); padding: 10px 0;">Metode Pengukuran</td>
+            <td style="color: var(--clr-text-muted); padding: 12px 0;">Metode Pengukuran</td>
             <td style="color: #fff;">${escapeHtml(l.measurement_method || '-')}</td>
           </tr>
           <tr>
-            <td style="color: var(--clr-text-muted); padding: 10px 0;">Tanggal Pengukuran</td>
+            <td style="color: var(--clr-text-muted); padding: 12px 0;">Tanggal Pengukuran</td>
             <td style="color: #fff;">${formatDateDisplay(l.measurement_date)}</td>
           </tr>
           <tr>
-            <td style="color: var(--clr-text-muted); padding: 10px 0;">Kondisi Lahan & Tanah</td>
+            <td style="color: var(--clr-text-muted); padding: 12px 0;">Kondisi Lahan & Tanah</td>
             <td style="color: #fff;">${escapeHtml(l.land_condition_notes || 'Belum ada catatan khusus')}</td>
           </tr>
           <tr>
-            <td style="color: var(--clr-text-muted); padding: 10px 0;">Titik Koordinat Acuan</td>
+            <td style="color: var(--clr-text-muted); padding: 12px 0;">Titik Koordinat Acuan</td>
             <td style="color: #fff;">
               ${l.latitude && l.longitude ? `${l.latitude}° N, ${l.longitude}° E (Patok Referensi)` : '<span style="color:var(--clr-text-dim)">Tidak ada koordinat GPS (Input deskriptif tetap valid)</span>'}
             </td>
           </tr>
           <tr>
-            <td style="color: var(--clr-text-muted); padding: 10px 0;">Aksesibilitas / Rute</td>
+            <td style="color: var(--clr-text-muted); padding: 12px 0;">Aksesibilitas / Rute</td>
             <td style="color: #fff;">${escapeHtml(l.access_notes || '-')}</td>
           </tr>
           <tr>
-            <td style="color: var(--clr-text-muted); padding: 10px 0;">Alamat Administratif</td>
+            <td style="color: var(--clr-text-muted); padding: 12px 0;">Alamat Administratif</td>
             <td style="color: #fff;">${escapeHtml(l.address || '-')}, ${escapeHtml(l.village || '')}, ${escapeHtml(l.district || '')}, ${escapeHtml(l.city || '')}, ${escapeHtml(l.province || '')}</td>
           </tr>
         </tbody>
@@ -863,53 +1194,55 @@ function renderTabPenanamanHtml(data) {
   return `
     <div style="display: flex; flex-direction: column; gap: 24px;">
       <!-- Spesies Pohon Tertanam -->
-      <div style="background: var(--clr-surface); padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--clr-border);">
-        <h4 style="color: #fff; margin-top: 0; font-size: 15px;">Jenis Pohon Tertanam di Kawasan Ini (${species.length} Jenis)</h4>
+      <div style="background: var(--clr-surface); padding: 22px; border-radius: var(--radius-md); border: 1px solid var(--clr-border);">
+        <h4 style="color: #fff; margin-top: 0; font-size: 15px; font-weight: 700;">Jenis Pohon Tertanam di Kawasan Ini (${species.length} Jenis)</h4>
         ${species.length > 0 ? `
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-top: 14px;">
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin-top: 14px;">
             ${species.map((sp) => `
-              <div style="background: var(--clr-surface-card); padding: 12px 16px; border-radius: var(--radius-sm); border: 1px solid var(--clr-border-subtle);">
-                <div style="font-weight: 600; color: #fff;">${escapeHtml(sp.local_name)}</div>
-                <div style="font-style: italic; font-size: 12px; color: var(--clr-primary);">${escapeHtml(sp.scientific_name)}</div>
-                <div style="font-size: 11px; color: var(--clr-text-muted); margin-top: 4px;">Famili: ${escapeHtml(sp.family)}</div>
-                <div style="font-size: 13px; font-weight: 700; color: #fff; margin-top: 6px;">
+              <div style="background: var(--clr-surface-card); padding: 14px 16px; border-radius: var(--radius-sm); border: 1px solid var(--clr-border-subtle);">
+                <div style="font-weight: 700; color: #fff; font-size: 14px;">${escapeHtml(sp.local_name)}</div>
+                <div style="font-style: italic; font-size: 12px; color: var(--clr-primary-light);">${escapeHtml(sp.scientific_name)}</div>
+                <div style="font-size: 11px; color: var(--clr-text-muted); margin-top: 4px;">Famili: ${escapeHtml(sp.family || '-')}</div>
+                <div style="font-size: 14px; font-weight: 800; color: #fbbf24; margin-top: 8px;">
                   ${(sp.total_initial_quantity || 0).toLocaleString('id-ID')} Batang
                 </div>
               </div>
             `).join('')}
           </div>
-        ` : '<p style="color: var(--clr-text-muted); font-size: 13px;">Belum ada bibit pohon yang tercatat di kawasan ini.</p>'}
+        ` : '<p style="color: var(--clr-text-muted); font-size: 13px; margin-top: 10px;">Belum ada bibit pohon yang tercatat di kawasan ini.</p>'}
       </div>
 
       <!-- Riwayat Kegiatan Penanaman -->
-      <div style="background: var(--clr-surface); padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--clr-border);">
-        <h4 style="color: #fff; margin-top: 0; font-size: 15px;">Daftar Kegiatan Penanaman (${acts.length} Kegiatan)</h4>
+      <div style="background: var(--clr-surface); padding: 22px; border-radius: var(--radius-md); border: 1px solid var(--clr-border);">
+        <h4 style="color: #fff; margin-top: 0; font-size: 15px; font-weight: 700;">Daftar Kegiatan Penanaman (${acts.length} Kegiatan)</h4>
         ${acts.length > 0 ? `
-          <table class="data-table" style="width: 100%; font-size: 13px; margin-top: 12px;">
-            <thead>
-              <tr style="color: var(--clr-text-muted); border-bottom: 1px solid var(--clr-border);">
-                <th style="padding: 8px;">Batch Code</th>
-                <th style="padding: 8px;">Nama Kegiatan</th>
-                <th style="padding: 8px;">Tanggal</th>
-                <th style="padding: 8px;">Spesies & Jumlah</th>
-                <th style="padding: 8px;">Penanggung Jawab</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${acts.map((act) => `
-                <tr style="border-bottom: 1px solid var(--clr-border-subtle);">
-                  <td style="padding: 8px; font-family: monospace; color: var(--clr-primary);">${act.batch_code}</td>
-                  <td style="padding: 8px; font-weight: 600; color: #fff;">${escapeHtml(act.name)}</td>
-                  <td style="padding: 8px;">${formatDateDisplay(act.activity_date)}</td>
-                  <td style="padding: 8px;">
-                    ${act.items && act.items.length > 0 ? act.items.map((it) => `${it.species ? it.species.local_name : 'Pohon'}: ${it.quantity} ${it.unit || 'btg'}`).join(', ') : '-'}
-                  </td>
-                  <td style="padding: 8px;">${escapeHtml(act.person_in_charge || '-')}</td>
+          <div style="overflow-x: auto; margin-top: 14px;">
+            <table class="zones-table" style="min-width: 600px;">
+              <thead>
+                <tr>
+                  <th>Batch Code</th>
+                  <th>Nama Kegiatan</th>
+                  <th>Tanggal</th>
+                  <th>Spesies & Jumlah</th>
+                  <th>Penanggung Jawab</th>
                 </tr>
-              `).join('')}
-            </tbody>
-          </table>
-        ` : '<p style="color: var(--clr-text-muted); font-size: 13px;">Belum ada kegiatan penanaman yang dicatat pada kawasan ini.</p>'}
+              </thead>
+              <tbody>
+                ${acts.map((act) => `
+                  <tr>
+                    <td style="font-family: monospace; color: #34d399; font-weight: 700;">${act.batch_code}</td>
+                    <td style="font-weight: 600; color: #fff;">${escapeHtml(act.name)}</td>
+                    <td>${formatDateDisplay(act.activity_date)}</td>
+                    <td>
+                      ${act.items && act.items.length > 0 ? act.items.map((it) => `${it.species ? it.species.local_name : 'Pohon'}: ${it.quantity} ${it.unit || 'btg'}`).join(', ') : '-'}
+                    </td>
+                    <td>${escapeHtml(act.person_in_charge || '-')}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        ` : '<p style="color: var(--clr-text-muted); font-size: 13px; margin-top: 10px;">Belum ada kegiatan penanaman yang dicatat pada kawasan ini.</p>'}
       </div>
     </div>
   `;
@@ -919,36 +1252,38 @@ function renderTabPenanamanHtml(data) {
 function renderTabPemantauanHtml(data) {
   const surveys = data.surveys || [];
   return `
-    <div style="background: var(--clr-surface); padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--clr-border);">
-      <h4 style="color: #fff; margin-top: 0; font-size: 15px;">Catatan Survei & Pemantauan Tanaman Historis (${surveys.length} Survei)</h4>
+    <div style="background: var(--clr-surface); padding: 22px; border-radius: var(--radius-md); border: 1px solid var(--clr-border);">
+      <h4 style="color: #fff; margin-top: 0; font-size: 15px; font-weight: 700;">Catatan Survei & Pemantauan Tanaman Historis (${surveys.length} Survei)</h4>
       ${surveys.length > 0 ? `
-        <table class="data-table" style="width: 100%; font-size: 13px; margin-top: 12px;">
-          <thead>
-            <tr style="color: var(--clr-text-muted); border-bottom: 1px solid var(--clr-border);">
-              <th style="padding: 8px;">Tanggal</th>
-              <th style="padding: 8px;">Kegiatan / Batch</th>
-              <th style="padding: 8px; text-align: center;">Hidup Awal</th>
-              <th style="padding: 8px; text-align: center;">Mati</th>
-              <th style="padding: 8px; text-align: center;">Hilang</th>
-              <th style="padding: 8px;">Kondisi</th>
-              <th style="padding: 8px;">Pemeriksa</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${surveys.map((sv) => `
-              <tr style="border-bottom: 1px solid var(--clr-border-subtle);">
-                <td style="padding: 8px;">${formatDateDisplay(sv.survey_date)}</td>
-                <td style="padding: 8px; font-weight: 500; color: #fff;">${sv.activity ? sv.activity.name : '-'}</td>
-                <td style="padding: 8px; text-align: center; color: var(--clr-primary); font-weight: 600;">${sv.alive_count || 0}</td>
-                <td style="padding: 8px; text-align: center; color: var(--clr-danger);">${sv.dead_count || 0}</td>
-                <td style="padding: 8px; text-align: center; color: var(--clr-gold);">${sv.missing_count || 0}</td>
-                <td style="padding: 8px;">${escapeHtml(sv.health_condition || '-')}</td>
-                <td style="padding: 8px;">${escapeHtml(sv.inspector_name || '-')}</td>
+        <div style="overflow-x: auto; margin-top: 14px;">
+          <table class="zones-table" style="min-width: 640px;">
+            <thead>
+              <tr>
+                <th>Tanggal</th>
+                <th>Kegiatan / Batch</th>
+                <th style="text-align: center;">Hidup Awal</th>
+                <th style="text-align: center;">Mati</th>
+                <th style="text-align: center;">Hilang</th>
+                <th>Kondisi</th>
+                <th>Pemeriksa</th>
               </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      ` : '<p style="color: var(--clr-text-muted); font-size: 13px;">Belum ada survei pemantauan untuk kawasan ini.</p>'}
+            </thead>
+            <tbody>
+              ${surveys.map((sv) => `
+                <tr>
+                  <td>${formatDateDisplay(sv.survey_date)}</td>
+                  <td style="font-weight: 600; color: #fff;">${sv.activity ? sv.activity.name : '-'}</td>
+                  <td style="text-align: center; color: #34d399; font-weight: 700;">${sv.alive_count || 0}</td>
+                  <td style="text-align: center; color: var(--clr-danger); font-weight: 700;">${sv.dead_count || 0}</td>
+                  <td style="text-align: center; color: #fbbf24; font-weight: 700;">${sv.missing_count || 0}</td>
+                  <td>${escapeHtml(sv.health_condition || '-')}</td>
+                  <td>${escapeHtml(sv.inspector_name || '-')}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      ` : '<p style="color: var(--clr-text-muted); font-size: 13px; margin-top: 10px;">Belum ada survei pemantauan untuk kawasan ini.</p>'}
     </div>
   `;
 }
@@ -957,59 +1292,36 @@ function renderTabPemantauanHtml(data) {
 function renderTabPerawatanHtml(data) {
   const logs = data.maintenance || [];
   return `
-    <div style="background: var(--clr-surface); padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--clr-border);">
-      <h4 style="color: #fff; margin-top: 0; font-size: 15px;">Riwayat Tindakan Silvikultur, Perawatan & Penyulaman (${logs.length} Tindakan)</h4>
+    <div style="background: var(--clr-surface); padding: 22px; border-radius: var(--radius-md); border: 1px solid var(--clr-border);">
+      <h4 style="color: #fff; margin-top: 0; font-size: 15px; font-weight: 700;">Riwayat Tindakan Silvikultur, Perawatan & Penyulaman (${logs.length} Tindakan)</h4>
       ${logs.length > 0 ? `
-        <table class="data-table" style="width: 100%; font-size: 13px; margin-top: 12px;">
-          <thead>
-            <tr style="color: var(--clr-text-muted); border-bottom: 1px solid var(--clr-border);">
-              <th style="padding: 8px;">Tanggal</th>
-              <th style="padding: 8px;">Jenis Tindakan</th>
-              <th style="padding: 8px; text-align: center;">Jumlah Ditangani</th>
-              <th style="padding: 8px; text-align: center;">Bibit Sulaman</th>
-              <th style="padding: 8px;">Pelaksana</th>
-              <th style="padding: 8px;">Catatan</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${logs.map((lg) => `
-              <tr style="border-bottom: 1px solid var(--clr-border-subtle);">
-                <td style="padding: 8px;">${formatDateDisplay(lg.maintenance_date)}</td>
-                <td style="padding: 8px; font-weight: 600; color: #fff; text-transform: capitalize;">${escapeHtml(lg.action_type || '-')}</td>
-                <td style="padding: 8px; text-align: center;">${lg.plants_treated_count || 0}</td>
-                <td style="padding: 8px; text-align: center; color: var(--clr-primary); font-weight: 600;">${lg.replacement_plants_count || 0}</td>
-                <td style="padding: 8px;">${escapeHtml(lg.executor_name || '-')}</td>
-                <td style="padding: 8px; color: var(--clr-text-muted);">${escapeHtml(lg.notes || '-')}</td>
+        <div style="overflow-x: auto; margin-top: 14px;">
+          <table class="zones-table" style="min-width: 640px;">
+            <thead>
+              <tr>
+                <th>Tanggal</th>
+                <th>Jenis Tindakan</th>
+                <th style="text-align: center;">Jumlah Ditangani</th>
+                <th style="text-align: center;">Bibit Sulaman</th>
+                <th>Pelaksana</th>
+                <th>Catatan</th>
               </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      ` : '<p style="color: var(--clr-text-muted); font-size: 13px;">Belum ada tindakan perawatan atau penyulaman yang dicatat pada kawasan ini.</p>'}
-    </div>
-  `;
-}
-
-// ── Tab 6: Galeri Foto ──
-function renderTabGaleriHtml(data) {
-  const g = data.gallery || {};
-  const photos = g.photos || [];
-  return `
-    <div style="background: var(--clr-surface); padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--clr-border);">
-      <h4 style="color: #fff; margin-top: 0; font-size: 15px;">Dokumentasi & Galeri Foto Kawasan</h4>
-      ${photos.length > 0 ? `
-        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; margin-top: 14px;">
-          ${photos.map((p, i) => `
-            <div style="background: var(--clr-surface-card); border-radius: var(--radius-sm); overflow: hidden; border: 1px solid var(--clr-border-subtle);">
-              <img src="${p}" alt="Dokumentasi ${i + 1}" style="width: 100%; height: 140px; object-fit: cover;" onerror="this.src='/favicon.svg'" />
-              <div style="padding: 8px; font-size: 11px; color: var(--clr-text-muted); text-align: center;">Foto ${i + 1}</div>
-            </div>
-          `).join('')}
+            </thead>
+            <tbody>
+              ${logs.map((lg) => `
+                <tr>
+                  <td>${formatDateDisplay(lg.maintenance_date)}</td>
+                  <td style="font-weight: 700; color: #fff; text-transform: capitalize;">${escapeHtml(lg.action_type || '-')}</td>
+                  <td style="text-align: center;">${lg.plants_treated_count || 0}</td>
+                  <td style="text-align: center; color: #34d399; font-weight: 700;">${lg.replacement_plants_count || 0}</td>
+                  <td>${escapeHtml(lg.executor_name || '-')}</td>
+                  <td style="color: var(--clr-text-muted);">${escapeHtml(lg.notes || '-')}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
         </div>
-      ` : `
-        <div style="padding: 30px; text-align: center; color: var(--clr-text-muted);">
-          📷 Belum ada foto dokumentasi yang diunggah untuk kawasan ini.
-        </div>
-      `}
+      ` : '<p style="color: var(--clr-text-muted); font-size: 13px; margin-top: 10px;">Belum ada tindakan perawatan atau penyulaman yang dicatat pada kawasan ini.</p>'}
     </div>
   `;
 }
@@ -1018,19 +1330,21 @@ function renderTabGaleriHtml(data) {
 function renderTabTourHtml(data) {
   const scenes = data.scenes || [];
   return `
-    <div style="background: var(--clr-surface); padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--clr-border);">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
-        <h4 style="color: #fff; margin: 0; font-size: 15px;">Panorama 360° Terhubung Kawasan Ini (${scenes.length} Scene)</h4>
-        <a href="#tour" class="btn-primary-action btn-sm" style="text-decoration: none;">🌐 Buka Virtual Tour Penuh</a>
+    <div style="background: var(--clr-surface); padding: 22px; border-radius: var(--radius-md); border: 1px solid var(--clr-border);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+        <h4 style="color: #fff; margin: 0; font-size: 15px; font-weight: 700;">Panorama 360° Terhubung Kawasan Ini (${scenes.length} Scene)</h4>
+        <a href="#tour" class="btn-primary-action btn-sm" style="text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+          <span>🌐</span> Buka Virtual Tour Penuh
+        </a>
       </div>
       ${scenes.length > 0 ? `
-        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px;">
           ${scenes.map((sc) => `
             <div style="background: var(--clr-surface-card); border-radius: var(--radius-sm); overflow: hidden; border: 1px solid var(--clr-border-subtle);">
-              <img src="${sc.thumbnail_path || '/tiles/' + sc.id + '/preview.jpg'}" alt="${sc.name}" style="width: 100%; height: 120px; object-fit: cover;" onerror="this.src='/favicon.svg'" />
-              <div style="padding: 10px;">
-                <div style="font-weight: 600; color: #fff; font-size: 13px;">${escapeHtml(sc.name)}</div>
-                <div style="font-size: 11px; color: var(--clr-primary); margin-top: 4px;">🎯 ${sc.hotspots_count || 0} Hotspots</div>
+              <img src="${sc.thumbnail_path || '/tiles/' + sc.id + '/preview.jpg'}" alt="${sc.name}" style="width: 100%; height: 130px; object-fit: cover;" onerror="this.src='/favicon.svg'" />
+              <div style="padding: 12px;">
+                <div style="font-weight: 700; color: #fff; font-size: 13.5px;">${escapeHtml(sc.name)}</div>
+                <div style="font-size: 11.5px; color: var(--clr-primary-light); margin-top: 4px;">🎯 ${sc.hotspots_count || 0} Hotspots</div>
               </div>
             </div>
           `).join('')}
@@ -1045,20 +1359,22 @@ function renderTabLaporanHtml(data) {
   const z = data.zone;
   const s = data.summary;
   return `
-    <div style="background: var(--clr-surface); padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--clr-border);">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
-        <h4 style="color: #fff; margin: 0; font-size: 15px;">Ekspor Laporan Kawasan: ${escapeHtml(z.name)}</h4>
+    <div style="background: var(--clr-surface); padding: 22px; border-radius: var(--radius-md); border: 1px solid var(--clr-border);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+        <h4 style="color: #fff; margin: 0; font-size: 15px; font-weight: 700;">Ekspor Laporan Kawasan: ${escapeHtml(z.name)}</h4>
         <div style="display: flex; gap: 8px;">
-          <a href="/api/admin/trees/reports/summary/csv" class="btn-secondary-action btn-sm" style="text-decoration: none;" download>
-            📥 Unduh Ringkasan CSV
+          <a href="/api/admin/trees/reports/summary/csv" class="btn-secondary-action btn-sm" style="text-decoration: none; display: inline-flex; align-items: center; gap: 6px;" download>
+            <span>📥</span> Unduh Ringkasan CSV
           </a>
-          <button onclick="window.print()" class="btn-text-btn btn-sm">🖨️ Cetak Halaman</button>
+          <button onclick="window.print()" class="btn-text-btn btn-sm" style="display: inline-flex; align-items: center; gap: 6px; cursor: pointer;">
+            <span>🖨️</span> Cetak Halaman
+          </button>
         </div>
       </div>
-      <div style="background: var(--clr-surface-card); padding: 18px; border-radius: var(--radius-sm); border: 1px solid var(--clr-border-subtle); font-size: 13px; line-height: 1.8;">
-        <div><strong>Kawasan:</strong> ${escapeHtml(z.name)} (${z.zone_code})</div>
+      <div style="background: var(--clr-surface-card); padding: 20px; border-radius: var(--radius-sm); border: 1px solid var(--clr-border-subtle); font-size: 13.5px; line-height: 1.8;">
+        <div><strong>Kawasan:</strong> ${escapeHtml(z.name)} (${escapeHtml(z.zone_code)})</div>
         <div><strong>Luas Tercatat:</strong> ${z.area_size} ${z.area_unit} (±${s.area_in_ha} Ha)</div>
-        <div><strong>Status:</strong> ${z.status} • <strong>Target Penanaman:</strong> ${z.planting_target || '-'} batang</div>
+        <div><strong>Status:</strong> ${escapeHtml(z.status)} • <strong>Target Penanaman:</strong> ${z.planting_target || '-'} batang</div>
         <div><strong>Bibit Tertanam:</strong> ${(s.total_initial_seedlings || 0).toLocaleString('id-ID')} batang (${s.unique_species_count} jenis)</div>
         <div><strong>Kelangsungan Hidup Kelompok Awal:</strong> ${s.survival_rate !== null ? s.survival_rate + '%' : 'Data belum cukup'}</div>
         <div><strong>Total Survei Pemantauan:</strong> ${s.total_surveys} kali • <strong>Tindakan Perawatan:</strong> ${s.total_maintenance} kali</div>
@@ -1075,36 +1391,47 @@ function renderZoneGalleryView() {
   if (!pane) return;
 
   pane.innerHTML = `
-    <div style="background: var(--clr-surface); padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--clr-border);">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+    <div style="background: var(--clr-surface); padding: 22px; border-radius: var(--radius-md); border: 1px solid var(--clr-border);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px; flex-wrap: wrap; gap: 10px;">
         <div>
-          <h3 style="color: #fff; margin: 0; font-size: 16px;">Galeri Dokumentasi Foto per Kawasan</h3>
+          <h3 style="color: #fff; margin: 0; font-size: 18px; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+            <span>🖼️</span> Galeri Dokumentasi Foto per Kawasan
+          </h3>
           <p style="color: var(--clr-text-muted); font-size: 13px; margin: 4px 0 0;">
             Pilih kawasan penanaman untuk melihat, mengunggah, atau mengelola foto dokumentasi lapangannya.
           </p>
         </div>
       </div>
-      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;">
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 18px;">
         ${cachedZones.map((z) => `
-          <div style="background: var(--clr-surface-card); border-radius: var(--radius-md); overflow: hidden; border: 1px solid var(--clr-border-subtle); display: flex; flex-direction: column; justify-content: space-between;">
-            <div style="height: 160px; background: #0c1410; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative;">
+          <div class="zone-grid-card">
+            <div class="zone-card-cover">
               ${z.main_photo_path ? `
-                <img src="${z.main_photo_path}" alt="${z.name}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='/favicon.svg'" />
+                <img src="${z.main_photo_path}" alt="${escapeHtml(z.name)}" onerror="this.onerror=null; this.src='/favicon.svg';" />
               ` : `
-                <span style="font-size: 40px;">🏞️</span>
+                <div style="width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: radial-gradient(circle, rgba(16,185,129,0.15) 0%, rgba(12,20,16,0.95) 100%);">
+                  <span style="font-size: 40px; margin-bottom: 4px;">🏞️</span>
+                  <span style="font-size: 11px; color: var(--clr-text-muted);">Foto Sampul Belum Diatur</span>
+                </div>
               `}
-              <div style="position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; color: #fff;">
-                ${z.status}
+              <div style="position: absolute; top: 10px; right: 10px; z-index: 2;">
+                ${getStatusBadge(z.status)}
+              </div>
+              <div style="position: absolute; top: 10px; left: 10px; z-index: 2;">
+                <span style="font-family: monospace; font-size: 11px; font-weight: 700; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); color: #34d399; padding: 3px 8px; border-radius: 6px; border: 1px solid rgba(16,185,129,0.35);">
+                  ${escapeHtml(z.zone_code)}
+                </span>
               </div>
             </div>
-            <div style="padding: 14px; flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
+            <div class="zone-card-body">
               <div>
-                <span style="font-size: 11px; font-family: monospace; color: var(--clr-primary); font-weight: 600;">${z.zone_code}</span>
-                <h5 style="margin: 4px 0 6px; color: #fff; font-size: 14px; font-weight: 700;">${escapeHtml(z.name)}</h5>
-                <p style="font-size: 12px; color: var(--clr-text-muted); margin: 0;">${z.area_size} ${z.area_unit} • ${escapeHtml(z.category || 'Konservasi')}</p>
+                <h5 style="margin: 0 0 6px; color: #fff; font-size: 15px; font-weight: 800;">${escapeHtml(z.name)}</h5>
+                <p style="font-size: 12px; color: var(--clr-text-muted); margin: 0;">
+                  📐 ${z.area_size} ${z.area_unit} • 🏷️ ${escapeHtml(z.category || 'Konservasi')}
+                </p>
               </div>
-              <button class="btn-open-zone-gallery btn-primary-action btn-sm" data-id="${z.id}" style="width: 100%; margin-top: 14px; justify-content: center;">
-                🖼️ Buka Galeri Kawasan
+              <button class="btn-open-zone-gallery btn-primary-action btn-sm" data-id="${z.id}" style="width: 100%; margin-top: 16px; justify-content: center; display: inline-flex; align-items: center; gap: 6px; cursor: pointer;">
+                <span>🖼️</span> Buka Galeri Kawasan
               </button>
             </div>
           </div>

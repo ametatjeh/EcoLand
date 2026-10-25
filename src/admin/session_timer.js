@@ -160,12 +160,12 @@ function showWarningModal(remainingSeconds) {
 
   // Ubah status topbar indicator menjadi mode peringatan
   if (indicator && sessionText) {
-    indicator.classList.remove('bg-emerald-500/10', 'text-emerald-400', 'border-emerald-500/20');
+    indicator.classList.remove('bg-blue-500/10', 'text-blue-400', 'border-blue-500/20');
     indicator.classList.add('bg-amber-500/20', 'text-amber-300', 'border-amber-500/40', 'animate-pulse');
     sessionText.textContent = `Sesi Berakhir: ${formatTime(remainingSeconds)}`;
   }
   if (sessionDot) {
-    sessionDot.classList.remove('bg-emerald-400');
+    sessionDot.classList.remove('bg-blue-400');
     sessionDot.classList.add('bg-amber-400');
   }
 }
@@ -186,12 +186,12 @@ function hideWarningModal() {
 
   // Kembalikan status topbar indicator ke normal
   if (indicator && sessionText) {
-    indicator.classList.add('bg-emerald-500/10', 'text-emerald-400', 'border-emerald-500/20');
+    indicator.classList.add('bg-blue-500/10', 'text-blue-400', 'border-blue-500/20');
     indicator.classList.remove('bg-amber-500/20', 'text-amber-300', 'border-amber-500/40', 'animate-pulse');
     sessionText.textContent = 'Sesi Aktif';
   }
   if (sessionDot) {
-    sessionDot.classList.add('bg-emerald-400');
+    sessionDot.classList.add('bg-blue-400');
     sessionDot.classList.remove('bg-amber-400');
   }
 }

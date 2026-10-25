@@ -780,4 +780,138 @@ export const ApiService = {
     if (!res.ok) throw new Error(result.message || 'Gagal menghapus pengguna');
     return result;
   },
+
+  // ─── Album Galeri Kegiatan ─────────────────────────────────
+
+  // Public
+  async getPublicAlbums(params = {}) {
+    const query = new URLSearchParams(params).toString();
+    const res = await fetch(`/api/albums?${query}`, { credentials: 'same-origin' });
+    if (!res.ok) throw new Error('Gagal memuat album galeri');
+    return await res.json();
+  },
+
+  async getPublicAlbumDetail(id) {
+    const res = await fetch(`/api/albums/${id}`, { credentials: 'same-origin' });
+    if (!res.ok) throw new Error('Gagal memuat detail album');
+    return await res.json();
+  },
+
+  // Admin
+  async getAdminAlbums(params = {}) {
+    const query = new URLSearchParams(params).toString();
+    const res = await this.request(`/api/admin/albums?${query}`);
+    if (!res.ok) throw new Error('Gagal memuat daftar album');
+    return await res.json();
+  },
+
+  async getAdminAlbumDetail(id) {
+    const res = await this.request(`/api/admin/albums/${id}`);
+    if (!res.ok) throw new Error('Gagal memuat detail album');
+    return await res.json();
+  },
+
+  async createAlbum(data) {
+    const res = await this.request('/api/admin/albums', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.message || 'Gagal membuat album');
+    return result;
+  },
+
+  async updateAlbum(id, data) {
+    const res = await this.request(`/api/admin/albums/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.message || 'Gagal memperbarui album');
+    return result;
+  },
+
+  async deleteAlbum(id) {
+    const res = await this.request(`/api/admin/albums/${id}`, {
+      method: 'DELETE',
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.message || 'Gagal menghapus album');
+    return result;
+  },
+
+  async addPhotosToAlbum(albumId, photoIds) {
+    const res = await this.request(`/api/admin/albums/${albumId}/photos`, {
+      method: 'POST',
+      body: JSON.stringify({ photo_ids: photoIds }),
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.message || 'Gagal menambahkan foto ke album');
+    return result;
+  },
+
+  async removePhotoFromAlbum(albumId, photoId) {
+    const res = await this.request(`/api/admin/albums/${albumId}/photos/${photoId}`, {
+      method: 'DELETE',
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.message || 'Gagal menghapus foto dari album');
+    return result;
+  },
+
+  async setAlbumCover(albumId, photoId) {
+    const res = await this.request(`/api/admin/albums/${albumId}/cover`, {
+      method: 'POST',
+      body: JSON.stringify({ photo_id: photoId }),
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.message || 'Gagal mengubah sampul album');
+    return result;
+  },
+
+  async reorderAlbumPhotos(albumId, photoIds) {
+    const res = await this.request(`/api/admin/albums/${albumId}/reorder`, {
+      method: 'POST',
+      body: JSON.stringify({ photo_ids: photoIds }),
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.message || 'Gagal mengubah urutan foto');
+    return result;
+  },
+
+  async uploadPhotosToAlbum(albumId, formData) {
+    const res = await this.request(`/api/admin/albums/${albumId}/upload-photos`, {
+      method: 'POST',
+      body: formData,
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.message || 'Gagal mengunggah foto ke album');
+    return result;
+  },
+
+  async updateAlbumPhotoMetadata(albumId, photoId, data) {
+    const res = await this.request(`/api/admin/albums/${albumId}/photos/${photoId}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.message || 'Gagal memperbarui informasi foto');
+    return result;
+  },
+
+  async deleteAlbumPhotoPermanently(albumId, photoId) {
+    const res = await this.request(`/api/admin/albums/${albumId}/photos/${photoId}/permanent`, {
+      method: 'DELETE',
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.message || 'Gagal menghapus foto permanen');
+    return result;
+  },
+
+  async getAvailablePhotosForAlbum(params = {}) {
+    const query = new URLSearchParams(params).toString();
+    const res = await this.request(`/api/admin/albums/available-photos?${query}`);
+    if (!res.ok) throw new Error('Gagal memuat foto tersedia');
+    return await res.json();
+  },
 };

@@ -94,6 +94,15 @@ Route::get('/monitoring-karbon', function () {
 Route::get('/tour', fn () => redirect('/#tour'));
 Route::get('/info', fn () => redirect('/#info'));
 Route::get('/galeri', fn () => redirect('/#galeri'));
+Route::get('/galeri/album/{slug}', function (string $slug) {
+    return redirect('/#galeri?album=' . urlencode($slug));
+})->name('galeri.album.detail');
+Route::get('/galeri/{slug}', function (string $slug) {
+    return redirect('/#galeri?album=' . urlencode($slug));
+});
+Route::get('/album/{slug}', function (string $slug) {
+    return redirect('/#galeri?album=' . urlencode($slug));
+});
 Route::get('/katalog', fn () => redirect('/#katalog'));
 Route::get('/katalog-pohon/{slug}', function (string $slug) {
     $species = \App\Models\TreeSpecies::active()->where('id', $slug)->first();

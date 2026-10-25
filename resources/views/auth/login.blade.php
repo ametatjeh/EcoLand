@@ -20,12 +20,12 @@
         }
 
         :root {
-            --primary: #10b981;
-            --primary-hover: #059669;
-            --primary-glow: rgba(16, 185, 129, 0.45);
-            --accent-emerald: #34d399;
-            --bg-deep: #050e09;
-            --glass-bg: rgba(6, 20, 14, 0.72);
+            --primary: #3B82F6;
+            --primary-hover: #2563EB;
+            --primary-glow: rgba(59, 130, 246, 0.45);
+            --accent-emerald: #60A5FA;
+            --bg-deep: #0F172A;
+            --glass-bg: rgba(17, 24, 39, 0.78);
             --glass-border: rgba(255, 255, 255, 0.12);
             --glass-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.08);
         }
@@ -179,8 +179,8 @@
             height: 58px;
             flex-shrink: 0;
             border-radius: 16px;
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(255, 255, 255, 0.05) 100%);
-            border: 1px solid rgba(16, 185, 129, 0.3);
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(255, 255, 255, 0.05) 100%);
+            border: 1px solid rgba(59, 130, 246, 0.3);
             -webkit-backdrop-filter: blur(12px);
             backdrop-filter: blur(12px);
             box-shadow: 0 10px 24px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.25);
@@ -197,7 +197,7 @@
         .logo-icon-svg {
             width: 32px;
             height: 32px;
-            color: #34d399;
+            color: #60a5fa;
             filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.35));
         }
 
@@ -224,7 +224,7 @@
             color: #ffffff;
             line-height: 1.2;
             margin-bottom: 3px;
-            background: linear-gradient(135deg, #ffffff 40%, #a7f3d0 100%);
+            background: linear-gradient(135deg, #ffffff 40%, #93c5fd 100%);
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -250,10 +250,10 @@
 
         .btn-glass-back:hover {
             transform: translateY(-2px) scale(1.05);
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.22) 0%, rgba(16, 185, 129, 0.25) 100%);
-            border-color: rgba(52, 211, 153, 0.6);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.22) 0%, rgba(59, 130, 246, 0.25) 100%);
+            border-color: rgba(96, 165, 250, 0.6);
             color: #ffffff !important;
-            box-shadow: 0 8px 20px -4px rgba(16, 185, 129, 0.45), 0 0 15px rgba(52, 211, 153, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.6);
+            box-shadow: 0 8px 20px -4px rgba(59, 130, 246, 0.45), 0 0 15px rgba(96, 165, 250, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.6);
         }
 
         .btn-glass-back:active {
@@ -265,7 +265,7 @@
             position: relative;
             width: 100%;
             height: 48px;
-            background: linear-gradient(135deg, rgba(5, 150, 105, 0.75) 0%, rgba(16, 185, 129, 0.85) 50%, rgba(52, 211, 153, 0.75) 100%);
+            background: linear-gradient(135deg, rgba(29, 78, 216, 0.85) 0%, rgba(37, 99, 235, 0.95) 50%, rgba(59, 130, 246, 0.85) 100%);
             -webkit-backdrop-filter: blur(20px);
             backdrop-filter: blur(20px);
             color: #ffffff;
@@ -279,7 +279,7 @@
             align-items: center;
             justify-content: center;
             gap: 8px;
-            box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.45), inset 0 1px 1px 0 rgba(255, 255, 255, 0.5);
+            box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.45), inset 0 1px 1px 0 rgba(255, 255, 255, 0.5);
             transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
             overflow: hidden;
         }
@@ -297,9 +297,9 @@
 
         .btn-submit:hover {
             transform: translateY(-2.5px) scale(1.015);
-            background: linear-gradient(135deg, rgba(5, 150, 105, 0.9) 0%, rgba(16, 185, 129, 0.95) 50%, rgba(52, 211, 153, 0.9) 100%);
+            background: linear-gradient(135deg, rgba(29, 78, 216, 0.95) 0%, rgba(37, 99, 235, 1) 50%, rgba(59, 130, 246, 0.95) 100%);
             border-color: rgba(255, 255, 255, 0.65);
-            box-shadow: 0 18px 36px -6px rgba(16, 185, 129, 0.65), 0 0 24px rgba(52, 211, 153, 0.45), inset 0 1px 2px 0 rgba(255, 255, 255, 0.75);
+            box-shadow: 0 18px 36px -6px rgba(59, 130, 246, 0.65), 0 0 24px rgba(96, 165, 250, 0.45), inset 0 1px 2px 0 rgba(255, 255, 255, 0.75);
             color: #ffffff;
         }
 

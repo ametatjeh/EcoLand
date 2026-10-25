@@ -33,6 +33,27 @@
   <meta name="admin-idle-timeout" content="{{ config('session.admin_idle_timeout', 30) }}" />
   <meta name="admin-idle-warning" content="{{ config('session.admin_idle_warning', 5) }}" />
 
+  <!-- Eco Land Admin Theme Pre-paint Guard: Default Dark Mode (#0B1712), cegah flash light mode -->
+  <script>
+    (function () {
+      try {
+        var savedTheme = localStorage.getItem('ecoland_admin_theme');
+        var theme = (savedTheme === 'light') ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-admin-theme', theme);
+        if (theme === 'dark') {
+          document.documentElement.classList.add('dark');
+          document.documentElement.classList.remove('light');
+        } else {
+          document.documentElement.classList.add('light');
+          document.documentElement.classList.remove('dark');
+        }
+      } catch (e) {
+        document.documentElement.setAttribute('data-admin-theme', 'dark');
+        document.documentElement.classList.add('dark');
+      }
+    })();
+  </script>
+
   <!-- Instant Route Pre-paint Guard: Mencegah flash tampilan Beranda saat refresh di tab lain -->
   <script>
     (function () {
@@ -40,7 +61,8 @@
         var h = window.location.hash || '';
         var p = window.location.pathname.replace(/^\/+/, '').split('/')[0] || '';
         var tab = 'beranda';
-        var isServerAuth = {{ $isLoggedInAdmin ? 'true' : 'false' }};
+        var authMeta = document.querySelector('meta[name="eco-server-auth"]');
+        var isServerAuth = !!(authMeta && authMeta.getAttribute('content') === 'true');
         if (h.startsWith('#admin') || p === 'admin') {
           tab = isServerAuth ? 'admin' : 'beranda';
         }
@@ -206,7 +228,7 @@
             <h1 class="hero-title" id="hero-title">
               Eco Land<br /><span class="hero-title-sub">Kawasan Penanaman Pohon</span>
             </h1>
-            <p class="hero-subtitle" id="hero-desc" style="width: 100%; max-width: 100%;">
+            <p class="hero-subtitle" id="hero-desc">
               Inisiatif restorasi bentang lahan dan pemulihan keanekaragaman hayati seluas kurang lebih 2 hektare. Program ini berfokus pada pengayaan tutupan vegetasi menggunakan spesies pohon kayu keras endemik Aceh dan pohon buah hutan pakan satwa.
             </p>
             <div class="hero-actions">
@@ -254,7 +276,7 @@
               @php
                 $initSpecies = $initialAreaSummary["total_species"] ?? 6;
               @endphp
-              <span class="stat-value" id="stat-species-count"><span class="stat-emoji" style="margin-right: 6px;">🌿</span>{{ $initSpecies }}</span>
+              <span class="stat-value" id="stat-species-count"><span class="stat-emoji">🌿</span>{{ $initSpecies }}</span>
               <span class="stat-desc" id="stat-species-desc">Spesies terdata di master database</span>
             </div>
             <div class="stat-card" id="stat-card-trees">
@@ -628,32 +650,35 @@
     <!-- ==========================================
            VIEW F: LARAVEL TAILWIND CSS ADMIN DASHBOARD
            ========================================== -->
-    <section id="view-admin" class="view-pane w-full min-h-screen bg-slate-950 text-slate-100">
-      <div id="admin-dashboard-root" class="relative flex min-h-screen w-full bg-slate-950">
+    <section id="view-admin" class="view-pane w-full min-h-screen theme-dark">
+      <div id="admin-dashboard-root" class="relative flex min-h-screen w-full bg-slate-50">
         <!-- Mobile Sidebar Backdrop Overlay -->
-        <div id="admin-sidebar-backdrop" class="fixed inset-0 z-40 bg-slate-950/80 backdrop-blur-sm hidden lg:hidden transition-opacity"></div>
+        <div id="admin-sidebar-backdrop" class="fixed inset-0 z-40 bg-slate-900/40 backdrop-blur-sm hidden lg:hidden transition-opacity"></div>
 
         <!-- Left Sidebar (Desktop & Mobile Drawer) -->
-        <aside id="admin-sidebar" class="fixed inset-y-0 left-0 z-50 w-[260px] bg-slate-900 border-r border-slate-800/80 flex flex-col transition-all duration-300 ease-in-out -translate-x-full lg:translate-x-0 shadow-2xl lg:shadow-none">
+        <aside id="admin-sidebar" class="fixed inset-y-0 left-0 z-50 w-[260px] bg-white border-r border-slate-200/90 flex flex-col transition-all duration-300 ease-in-out -translate-x-full lg:translate-x-0 shadow-lg lg:shadow-none">
           <!-- Sidebar Header -->
-          <div class="h-16 px-4 flex items-center justify-between border-b border-slate-800/80 bg-slate-900/50 sidebar-header-inner">
+          <div class="h-16 px-4 flex items-center justify-between border-b border-slate-100 bg-white sidebar-header-inner">
             <div class="flex items-center gap-3 overflow-hidden">
-              <div class="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 font-bold shrink-0">
-                🌱
+              <div class="w-9 h-9 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 font-bold shrink-0">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 22v-7"/>
+                  <path d="M12 15c-3.3 0-6-2.7-6-6 0-4 6-7 6-7s6 3 6 7c0 3.3-2.7 6-6 6z"/>
+                </svg>
               </div>
               <div class="sidebar-brand-text truncate">
-                <h2 class="text-sm font-bold tracking-tight text-white leading-tight">Eco Land Admin</h2>
-                <p class="text-[11px] text-emerald-400 font-medium">IKHW Aceh &bull; Kawasan &plusmn;2 Ha</p>
+                <h2 class="text-sm font-bold tracking-tight text-slate-900 leading-tight">Eco Land Admin</h2>
+                <p class="text-[11px] text-blue-600 font-medium">IKHW Aceh &bull; Kawasan &plusmn;2 Ha</p>
               </div>
             </div>
             <!-- Desktop minimize/expand button in sidebar header -->
-            <button id="btn-sidebar-collapse-toggle" type="button" class="hidden lg:flex p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition items-center justify-center shrink-0 cursor-pointer" aria-label="Ciutkan / Perluas Sidebar" title="Ciutkan / Perluas Sidebar" aria-expanded="true">
+            <button id="btn-sidebar-collapse-toggle" type="button" class="hidden lg:flex p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition items-center justify-center shrink-0 cursor-pointer" aria-label="Ciutkan / Perluas Sidebar" title="Ciutkan / Perluas Sidebar" aria-expanded="true">
               <svg id="sidebar-collapse-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="transition-transform duration-300">
                 <path d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
               </svg>
             </button>
             <!-- Close drawer button for mobile -->
-            <button id="btn-close-admin-sidebar-mobile" class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 lg:hidden" aria-label="Tutup sidebar">
+            <button id="btn-close-admin-sidebar-mobile" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 lg:hidden" aria-label="Tutup sidebar">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M18 6L6 18M6 6l12 12" />
               </svg>
@@ -666,12 +691,16 @@
             <div>
               <p class="sidebar-group-title px-3 mb-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">1. Dashboard</p>
               <div class="space-y-1">
-                <a href="#admin/dashboard" class="admin-nav-btn active w-full flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/70 transition min-h-[42px]" data-admin-tab="dashboard" title="Dashboard Ringkasan" aria-label="Dashboard Ringkasan">
-                  <span class="admin-nav-icon text-base shrink-0 flex items-center justify-center w-6 h-6">📊</span>
+                <a href="#admin/dashboard" class="admin-nav-btn active w-full flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition min-h-[40px]" data-admin-tab="dashboard" title="Dashboard Ringkasan" aria-label="Dashboard Ringkasan">
+                  <span class="admin-nav-icon shrink-0 flex items-center justify-center w-5 h-5 text-slate-400">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                  </span>
                   <span class="sidebar-link-text truncate">Ringkasan</span>
                 </a>
-                <a href="#admin/trees/dashboard" class="admin-nav-btn w-full flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/70 transition min-h-[42px]" data-admin-tab="trees" data-tree-subtab="dashboard" title="Statistik Penanaman" aria-label="Statistik Penanaman">
-                  <span class="admin-nav-icon text-base shrink-0 flex items-center justify-center w-6 h-6">📈</span>
+                <a href="#admin/trees/dashboard" class="admin-nav-btn w-full flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition min-h-[40px]" data-admin-tab="trees" data-tree-subtab="dashboard" title="Statistik Penanaman" aria-label="Statistik Penanaman">
+                  <span class="admin-nav-icon shrink-0 flex items-center justify-center w-5 h-5 text-slate-400">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                  </span>
                   <span class="sidebar-link-text truncate">Statistik Penanaman</span>
                 </a>
               </div>
@@ -681,12 +710,16 @@
             <div>
               <p class="sidebar-group-title px-3 mb-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">2. Persiapan</p>
               <div class="space-y-1">
-                <a href="#admin/zones" class="admin-nav-btn w-full flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/70 transition min-h-[42px]" data-admin-tab="zones" data-zone-subtab="list" title="2.1. Manajemen Kawasan/Lahan" aria-label="2.1. Manajemen Kawasan/Lahan">
-                  <span class="admin-nav-icon text-base shrink-0 flex items-center justify-center w-6 h-6">🏞️</span>
+                <a href="#admin/zones" class="admin-nav-btn w-full flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition min-h-[40px]" data-admin-tab="zones" data-zone-subtab="list" title="2.1. Manajemen Kawasan/Lahan" aria-label="2.1. Manajemen Kawasan/Lahan">
+                  <span class="admin-nav-icon shrink-0 flex items-center justify-center w-5 h-5 text-slate-400">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+                  </span>
                   <span class="sidebar-link-text truncate">2.1. Manajemen Kawasan/Lahan</span>
                 </a>
-                <a href="#admin/trees/species" class="admin-nav-btn w-full flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/70 transition min-h-[42px]" data-admin-tab="trees" data-tree-subtab="species" title="2.2. Master Jenis Pohon" aria-label="2.2. Master Jenis Pohon">
-                  <span class="admin-nav-icon text-base shrink-0 flex items-center justify-center w-6 h-6">🌿</span>
+                <a href="#admin/trees/species" class="admin-nav-btn w-full flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition min-h-[40px]" data-admin-tab="trees" data-tree-subtab="species" title="2.2. Master Jenis Pohon" aria-label="2.2. Master Jenis Pohon">
+                  <span class="admin-nav-icon shrink-0 flex items-center justify-center w-5 h-5 text-slate-400">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22v-7"/><path d="M12 15c-3.3 0-6-2.7-6-6 0-4 6-7 6-7s6 3 6 7c0 3.3-2.7 6-6 6z"/><path d="M12 8c-1.5 0-3 1.5-3 3"/></svg>
+                  </span>
                   <span class="sidebar-link-text truncate">2.2. Master Jenis Pohon</span>
                 </a>
               </div>
@@ -696,8 +729,10 @@
             <div>
               <p class="sidebar-group-title px-3 mb-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">3. Pelaksanaan</p>
               <div class="space-y-1">
-                <a href="#admin/trees/activities" class="admin-nav-btn w-full flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/70 transition min-h-[42px]" data-admin-tab="trees" data-tree-subtab="activities" title="3.1. Kegiatan Penanaman" aria-label="3.1. Kegiatan Penanaman">
-                  <span class="admin-nav-icon text-base shrink-0 flex items-center justify-center w-6 h-6">📋</span>
+                <a href="#admin/trees/activities" class="admin-nav-btn w-full flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition min-h-[40px]" data-admin-tab="trees" data-tree-subtab="activities" title="3.1. Kegiatan Penanaman" aria-label="3.1. Kegiatan Penanaman">
+                  <span class="admin-nav-icon shrink-0 flex items-center justify-center w-5 h-5 text-slate-400">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M9 14l2 2 4-4"/></svg>
+                  </span>
                   <span class="sidebar-link-text truncate">3.1. Kegiatan Penanaman</span>
                 </a>
               </div>
@@ -707,12 +742,16 @@
             <div>
               <p class="sidebar-group-title px-3 mb-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">4. Pemantauan & Perawatan</p>
               <div class="space-y-1">
-                <a href="#admin/trees/surveys" class="admin-nav-btn w-full flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/70 transition min-h-[42px]" data-admin-tab="trees" data-tree-subtab="surveys" title="4.1. Pemantauan Tanaman" aria-label="4.1. Pemantauan Tanaman">
-                  <span class="admin-nav-icon text-base shrink-0 flex items-center justify-center w-6 h-6">🔍</span>
+                <a href="#admin/trees/surveys" class="admin-nav-btn w-full flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition min-h-[40px]" data-admin-tab="trees" data-tree-subtab="surveys" title="4.1. Pemantauan Tanaman" aria-label="4.1. Pemantauan Tanaman">
+                  <span class="admin-nav-icon shrink-0 flex items-center justify-center w-5 h-5 text-slate-400">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><path d="M11 8v6M8 11h6"/></svg>
+                  </span>
                   <span class="sidebar-link-text truncate">4.1. Pemantauan Tanaman</span>
                 </a>
-                <a href="#admin/trees/maintenance" class="admin-nav-btn w-full flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/70 transition min-h-[42px]" data-admin-tab="trees" data-tree-subtab="maintenance" title="4.2. Perawatan & Penyulaman" aria-label="4.2. Perawatan & Penyulaman">
-                  <span class="admin-nav-icon text-base shrink-0 flex items-center justify-center w-6 h-6">🛠️</span>
+                <a href="#admin/trees/maintenance" class="admin-nav-btn w-full flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition min-h-[40px]" data-admin-tab="trees" data-tree-subtab="maintenance" title="4.2. Perawatan & Penyulaman" aria-label="4.2. Perawatan & Penyulaman">
+                  <span class="admin-nav-icon shrink-0 flex items-center justify-center w-5 h-5 text-slate-400">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+                  </span>
                   <span class="sidebar-link-text truncate">4.2. Perawatan & Penyulaman</span>
                 </a>
               </div>
@@ -722,17 +761,23 @@
             <div>
               <p class="sidebar-group-title px-3 mb-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">5. Dokumentasi Digital</p>
               <div class="space-y-1">
-                <a href="#admin/panoramas" class="admin-nav-btn w-full flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/70 transition min-h-[42px]" data-admin-tab="panoramas" title="Manajemen Panorama" aria-label="Manajemen Panorama">
-                  <span class="admin-nav-icon text-base shrink-0 flex items-center justify-center w-6 h-6">🌐</span>
+                <a href="#admin/panoramas" class="admin-nav-btn w-full flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition min-h-[40px]" data-admin-tab="panoramas" title="Manajemen Panorama" aria-label="Manajemen Panorama">
+                  <span class="admin-nav-icon shrink-0 flex items-center justify-center w-5 h-5 text-slate-400">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+                  </span>
                   <span class="sidebar-link-text truncate">Manajemen Panorama</span>
                 </a>
-                <a href="#admin/editor" class="admin-nav-btn w-full flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/70 transition min-h-[42px]" data-admin-tab="editor" title="Editor Hotspot" aria-label="Editor Hotspot">
-                  <span class="admin-nav-icon text-base shrink-0 flex items-center justify-center w-6 h-6">🎨</span>
+                <a href="#admin/editor" class="admin-nav-btn w-full flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition min-h-[40px]" data-admin-tab="editor" title="Editor Hotspot" aria-label="Editor Hotspot">
+                  <span class="admin-nav-icon shrink-0 flex items-center justify-center w-5 h-5 text-slate-400">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                  </span>
                   <span class="sidebar-link-text truncate">Editor Hotspot</span>
                 </a>
-                <a href="#tour" id="sidebar-btn-tour-preview" class="admin-nav-btn w-full flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/70 transition min-h-[42px]" title="Pratinjau Virtual Tour" aria-label="Pratinjau Virtual Tour">
-                  <span class="admin-nav-icon text-base shrink-0 flex items-center justify-center w-6 h-6">👁️</span>
-                  <span class="sidebar-link-text truncate">Pratinjau Virtual Tour</span>
+                <a href="#admin/albums" class="admin-nav-btn w-full flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition min-h-[40px]" data-admin-tab="albums" title="Album Kegiatan Galeri" aria-label="Album Kegiatan Galeri">
+                  <span class="admin-nav-icon shrink-0 flex items-center justify-center w-5 h-5 text-slate-400">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                  </span>
+                  <span class="sidebar-link-text truncate">Album Kegiatan Galeri</span>
                 </a>
               </div>
             </div>
@@ -741,24 +786,34 @@
             <div>
               <p class="sidebar-group-title px-3 mb-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">6. Evaluasi & Pelaporan</p>
               <div class="space-y-1">
-                <a href="#admin/reports/rekap" class="admin-nav-btn w-full flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/70 transition min-h-[42px]" data-admin-tab="reports" data-report-subtab="rekap" title="6.1. Laporan & Statistik" aria-label="6.1. Laporan & Statistik">
-                  <span class="admin-nav-icon text-base shrink-0 flex items-center justify-center w-6 h-6">📑</span>
+                <a href="#admin/reports/rekap" class="admin-nav-btn w-full flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition min-h-[40px]" data-admin-tab="reports" data-report-subtab="rekap" title="6.1. Laporan & Statistik" aria-label="6.1. Laporan & Statistik">
+                  <span class="admin-nav-icon shrink-0 flex items-center justify-center w-5 h-5 text-slate-400">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                  </span>
                   <span class="sidebar-link-text truncate">6.1. Laporan & Statistik</span>
                 </a>
-                <a href="#admin/reports/per-kawasan" class="admin-nav-btn w-full flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/70 transition min-h-[42px]" data-admin-tab="reports" data-report-subtab="per-kawasan" title="Rekapitulasi Kawasan" aria-label="Rekapitulasi Kawasan">
-                  <span class="admin-nav-icon text-base shrink-0 flex items-center justify-center w-6 h-6">🏞️</span>
+                <a href="#admin/reports/per-kawasan" class="admin-nav-btn w-full flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition min-h-[40px]" data-admin-tab="reports" data-report-subtab="per-kawasan" title="Rekapitulasi Kawasan" aria-label="Rekapitulasi Kawasan">
+                  <span class="admin-nav-icon shrink-0 flex items-center justify-center w-5 h-5 text-slate-400">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                  </span>
                   <span class="sidebar-link-text truncate">Rekapitulasi Kawasan</span>
                 </a>
-                <a href="#admin/reports/per-pohon" class="admin-nav-btn w-full flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/70 transition min-h-[42px]" data-admin-tab="reports" data-report-subtab="per-pohon" title="Rekapitulasi Jenis Pohon" aria-label="Rekapitulasi Jenis Pohon">
-                  <span class="admin-nav-icon text-base shrink-0 flex items-center justify-center w-6 h-6">🌳</span>
+                <a href="#admin/reports/per-pohon" class="admin-nav-btn w-full flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition min-h-[40px]" data-admin-tab="reports" data-report-subtab="per-pohon" title="Rekapitulasi Jenis Pohon" aria-label="Rekapitulasi Jenis Pohon">
+                  <span class="admin-nav-icon shrink-0 flex items-center justify-center w-5 h-5 text-slate-400">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 19h8a4 4 0 0 0 3.8-2.8 4 4 0 0 0-1.6-4.5A5 5 0 0 0 9 6.5 5 5 0 0 0 4.2 13 4 4 0 0 0 8 19z"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
+                  </span>
                   <span class="sidebar-link-text truncate">Rekapitulasi Jenis Pohon</span>
                 </a>
-                <a href="#admin/reports/survival" class="admin-nav-btn w-full flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/70 transition min-h-[42px]" data-admin-tab="reports" data-report-subtab="survival" title="Kelangsungan Hidup Tanaman" aria-label="Kelangsungan Hidup Tanaman">
-                  <span class="admin-nav-icon text-base shrink-0 flex items-center justify-center w-6 h-6">🌱</span>
+                <a href="#admin/reports/survival" class="admin-nav-btn w-full flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition min-h-[40px]" data-admin-tab="reports" data-report-subtab="survival" title="Kelangsungan Hidup Tanaman" aria-label="Kelangsungan Hidup Tanaman">
+                  <span class="admin-nav-icon shrink-0 flex items-center justify-center w-5 h-5 text-slate-400">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.42 4.58a5.4 5.4 0 0 0-7.65 0l-.77.78-.77-.78a5.4 5.4 0 0 0-7.65 7.65l.77.78L12 20.66l7.65-7.65.77-.78a5.4 5.4 0 0 0 0-7.65z"/></svg>
+                  </span>
                   <span class="sidebar-link-text truncate">Kelangsungan Hidup Tanaman</span>
                 </a>
-                <a href="#admin/reports/ekspor" class="admin-nav-btn w-full flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/70 transition min-h-[42px]" data-admin-tab="reports" data-report-subtab="ekspor" title="6.2. Impor & Ekspor Data" aria-label="6.2. Impor & Ekspor Data">
-                  <span class="admin-nav-icon text-base shrink-0 flex items-center justify-center w-6 h-6">💾</span>
+                <a href="#admin/reports/ekspor" class="admin-nav-btn w-full flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition min-h-[40px]" data-admin-tab="reports" data-report-subtab="ekspor" title="6.2. Impor & Ekspor Data" aria-label="6.2. Impor & Ekspor Data">
+                  <span class="admin-nav-icon shrink-0 flex items-center justify-center w-5 h-5 text-slate-400">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  </span>
                   <span class="sidebar-link-text truncate">6.2. Impor & Ekspor Data</span>
                 </a>
               </div>
@@ -768,20 +823,28 @@
             <div>
               <p class="sidebar-group-title px-3 mb-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">7. Pengelolaan Sistem</p>
               <div class="space-y-1">
-                <a href="#admin/settings" class="admin-nav-btn w-full flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/70 transition min-h-[42px]" data-admin-tab="settings" title="7.1. Identitas Organisasi" aria-label="7.1. Identitas Organisasi">
-                  <span class="admin-nav-icon text-base shrink-0 flex items-center justify-center w-6 h-6">🏢</span>
+                <a href="#admin/settings" class="admin-nav-btn w-full flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition min-h-[40px]" data-admin-tab="settings" title="7.1. Identitas Organisasi" aria-label="7.1. Identitas Organisasi">
+                  <span class="admin-nav-icon shrink-0 flex items-center justify-center w-5 h-5 text-slate-400">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><line x1="9" y1="22" x2="9" y2="22.01"/><line x1="15" y1="22" x2="15" y2="22.01"/><line x1="9" y1="6" x2="9" y2="6.01"/><line x1="15" y1="6" x2="15" y2="6.01"/><line x1="9" y1="10" x2="9" y2="10.01"/><line x1="15" y1="10" x2="15" y2="10.01"/><line x1="9" y1="14" x2="9" y2="14.01"/><line x1="15" y1="14" x2="15" y2="14.01"/><line x1="9" y1="18" x2="9" y2="18.01"/><line x1="15" y1="18" x2="15" y2="18.01"/></svg>
+                  </span>
                   <span class="sidebar-link-text truncate">7.1. Identitas Organisasi</span>
                 </a>
-                <a href="#admin/users" class="admin-nav-btn w-full flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/70 transition min-h-[42px]" data-admin-tab="users" title="Pengguna & Hak Akses" aria-label="Pengguna & Hak Akses">
-                  <span class="admin-nav-icon text-base shrink-0 flex items-center justify-center w-6 h-6">👥</span>
+                <a href="#admin/users" class="admin-nav-btn w-full flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition min-h-[40px]" data-admin-tab="users" title="Pengguna & Hak Akses" aria-label="Pengguna & Hak Akses">
+                  <span class="admin-nav-icon shrink-0 flex items-center justify-center w-5 h-5 text-slate-400">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                  </span>
                   <span class="sidebar-link-text truncate">Pengguna & Hak Akses</span>
                 </a>
-                <a href="#admin/activity-logs" class="admin-nav-btn w-full flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/70 transition min-h-[42px]" data-admin-tab="activity-logs" title="Log Aktivitas" aria-label="Log Aktivitas">
-                  <span class="admin-nav-icon text-base shrink-0 flex items-center justify-center w-6 h-6">📜</span>
+                <a href="#admin/activity-logs" class="admin-nav-btn w-full flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition min-h-[40px]" data-admin-tab="activity-logs" title="Log Aktivitas" aria-label="Log Aktivitas">
+                  <span class="admin-nav-icon shrink-0 flex items-center justify-center w-5 h-5 text-slate-400">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  </span>
                   <span class="sidebar-link-text truncate">Log Aktivitas</span>
                 </a>
-                <a href="#admin/backup" class="admin-nav-btn w-full flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/70 transition min-h-[42px]" data-admin-tab="backup" title="Cadangan & Pemulihan" aria-label="Cadangan & Pemulihan">
-                  <span class="admin-nav-icon text-base shrink-0 flex items-center justify-center w-6 h-6">💾</span>
+                <a href="#admin/backup" class="admin-nav-btn w-full flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition min-h-[40px]" data-admin-tab="backup" title="Cadangan & Pemulihan" aria-label="Cadangan & Pemulihan">
+                  <span class="admin-nav-icon shrink-0 flex items-center justify-center w-5 h-5 text-slate-400">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+                  </span>
                   <span class="sidebar-link-text truncate">Cadangan & Pemulihan</span>
                 </a>
               </div>
@@ -789,16 +852,16 @@
           </nav>
 
           <!-- Sidebar User Profile Footer -->
-          <div class="p-3 border-t border-slate-800/80 bg-slate-900/50">
-            <div class="flex items-center gap-3 p-2 rounded-xl bg-slate-800/50 border border-slate-700/50">
-              <div id="sidebar-user-avatar" class="w-8 h-8 rounded-lg bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 font-bold shrink-0">
+          <div class="sidebar-footer-inner p-3 border-t border-slate-100 bg-slate-50/70">
+            <div class="sidebar-user-card flex items-center gap-3 p-2 rounded-xl bg-white border border-slate-200/80 shadow-xs">
+              <div id="sidebar-user-avatar" class="w-8 h-8 rounded-lg bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 font-bold shrink-0">
                 A
               </div>
               <div class="sidebar-user-text flex-1 min-w-0">
-                <p id="sidebar-user-name" class="text-xs font-semibold text-white truncate">Administrator</p>
-                <p id="sidebar-user-email" class="text-[11px] text-slate-400 truncate">admin@ikhw.org</p>
+                <p id="sidebar-user-name" class="text-xs font-semibold text-slate-800 truncate">Administrator</p>
+                <p id="sidebar-user-email" class="text-[11px] text-slate-500 truncate">admin@ikhw.org</p>
               </div>
-              <a href="{{ route('logout') }}" class="btn-sidebar-quick-logout p-1.5 rounded-lg text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition shrink-0" title="Keluar Sesi Administrator" aria-label="Keluar Sesi Administrator">
+              <a href="{{ route('logout') }}" class="btn-sidebar-quick-logout p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition shrink-0" title="Keluar Sesi Administrator" aria-label="Keluar Sesi Administrator">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />
                 </svg>
@@ -810,11 +873,11 @@
         <!-- Main Content Area -->
         <div id="admin-main-wrapper" class="flex-1 flex flex-col min-h-screen lg:pl-64 transition-all duration-300 w-full">
           <!-- Topbar Modern 3-Part Layout -->
-          <header id="admin-topbar" class="sticky top-0 z-30 h-16 bg-slate-900/95 backdrop-blur-md border-b border-slate-800/80 px-3 sm:px-6 flex items-center justify-between gap-3 sm:gap-4 transition-all">
+          <header id="admin-topbar" class="sticky top-0 z-30 h-16 bg-white/95 backdrop-blur-md border-b border-slate-200/90 px-3 sm:px-6 flex items-center justify-between gap-3 sm:gap-4 transition-all shadow-xs">
             <!-- A. Bagian Kiri: Sidebar Toggles & Breadcrumb Hierarki -->
             <div class="flex items-center gap-2.5 sm:gap-3.5 min-w-0">
               <!-- Mobile hamburger button -->
-              <button id="btn-admin-mobile-sidebar" class="p-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/80 active:scale-95 transition lg:hidden shrink-0" aria-label="Buka menu navigasi" title="Buka menu navigasi">
+              <button id="btn-admin-mobile-sidebar" class="p-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 active:scale-95 transition lg:hidden shrink-0" aria-label="Buka menu navigasi" title="Buka menu navigasi">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <line x1="3" y1="12" x2="21" y2="12" />
                   <line x1="3" y1="6" x2="21" y2="6" />
@@ -823,32 +886,18 @@
               </button>
 
               <!-- Desktop collapse toggle button -->
-              <button id="btn-toggle-sidebar-collapse" class="hidden lg:flex p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/80 active:scale-95 transition shrink-0" title="Ciutkan / Lebarkan Sidebar" aria-label="Ciutkan / Lebarkan Sidebar">
+              <button id="btn-toggle-sidebar-collapse" class="hidden lg:flex p-2 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 active:scale-95 transition shrink-0" title="Ciutkan / Lebarkan Sidebar" aria-label="Ciutkan / Lebarkan Sidebar">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
                   <line x1="9" y1="3" x2="9" y2="21" />
                 </svg>
               </button>
 
-              <div class="h-5 w-px bg-slate-800 hidden sm:block shrink-0"></div>
+              <div class="h-5 w-px bg-slate-200 hidden sm:block shrink-0"></div>
 
-              <!-- Dynamic Title & Hierarchical Breadcrumbs -->
+              <!-- Dynamic Page Title -->
               <div class="min-w-0 flex flex-col justify-center">
-                <!-- Breadcrumb Hierarki Sesuai Alur & Route -->
-                <nav aria-label="Breadcrumb" class="flex items-center gap-1.5 text-[11px] font-medium text-slate-400 overflow-hidden whitespace-nowrap">
-                  <button type="button" id="breadcrumb-btn-root" class="hover:text-emerald-400 transition hover:underline cursor-pointer">Admin</button>
-                  <span class="text-slate-600">/</span>
-                  <span id="breadcrumb-category-wrapper" class="hidden sm:inline-flex items-center gap-1.5 text-slate-400">
-                    <span id="breadcrumb-category-title" class="truncate max-w-[120px] md:max-w-none">Tahapan</span>
-                    <span class="text-slate-600">/</span>
-                  </span>
-                  <span id="admin-breadcrumb-active" class="text-emerald-400 font-semibold truncate max-w-[130px] sm:max-w-[200px] md:max-w-none">
-                    Dashboard Ringkasan
-                  </span>
-                </nav>
-
-                <!-- Dynamic Page Heading -->
-                <h1 id="admin-header-title" class="text-xs sm:text-sm font-bold text-white tracking-tight leading-tight truncate max-w-[180px] sm:max-w-[320px] md:max-w-lg">
+                <h1 id="admin-header-title" class="text-sm sm:text-base font-bold text-slate-900 tracking-tight leading-tight truncate max-w-[200px] sm:max-w-[360px] md:max-w-xl">
                   Dashboard Ringkasan Virtual Tour & Silvikultur
                 </h1>
               </div>
@@ -857,50 +906,63 @@
             <!-- B. Bagian Tengah: Ruang Fleksibel Seimbang -->
             <div class="flex-1"></div>
 
-            <!-- C. Bagian Kanan: Pemilih Kawasan, Indikator Sinkron, Preview Publik, & Profil Admin -->
+            <!-- C. Bagian Kanan: Preview Publik, Tema & Profil Admin -->
             <div class="flex items-center gap-2 sm:gap-3 shrink-0">
-              <!-- Pemilih Kawasan (Hanya Tampil di Halaman Relevan: Dashboard, Zones, Trees, Reports) -->
-              <div id="topbar-zone-switcher-container" class="flex items-center gap-1.5 bg-slate-800/90 hover:bg-slate-800 px-2.5 py-1.5 rounded-lg border border-slate-700/60 text-xs transition">
-                <span class="text-emerald-400 text-sm shrink-0">🏞️</span>
-                <select id="topbar-zone-switcher" class="bg-transparent text-slate-200 border-none outline-none text-xs cursor-pointer font-medium max-w-[110px] sm:max-w-[180px] truncate" aria-label="Pilih Kawasan Lahan">
-                  <option value="all" class="bg-slate-900 text-white">Semua Kawasan (Agregat)</option>
-                </select>
-              </div>
-
-              <!-- Status Sinkronisasi Real-time (Draft / Sinkron) -->
-              <span id="admin-draft-count-badge" class="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 whitespace-nowrap" title="Status Integritas Hotspot">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                Sinkron
-              </span>
-
               <!-- Indikator Sesi Administrator Aktif & Warning Countdown -->
-              <div id="admin-session-indicator" class="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 whitespace-nowrap cursor-default" title="Sesi Administrator Aktif (Batas inaktivitas 30 menit)">
-                <span id="admin-session-dot" class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+              <div id="admin-session-indicator" class="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-blue-50 text-blue-700 border border-blue-200/80 whitespace-nowrap cursor-default" title="Sesi Administrator Aktif (Batas inaktivitas 30 menit)">
+                <span id="admin-session-dot" class="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
                 <span id="admin-session-text">Sesi Aktif</span>
               </div>
 
-              <!-- Tombol Pratinjau Tampilan Publik -->
-              <button id="btn-admin-view-public" class="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-medium text-slate-200 bg-slate-800/90 hover:bg-slate-700 hover:text-white border border-slate-700/80 active:scale-95 transition" title="Lihat Tampilan Pengunjung (Public Virtual Tour)">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <!-- Tombol Pergantian Tema Dark / Light Mode -->
+              <button id="btn-admin-theme-toggle" type="button" class="inline-flex items-center justify-center w-10 h-10 rounded-xl text-xs font-medium text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 shadow-2xs active:scale-95 transition focus:outline-none focus:ring-2 focus:ring-blue-500/30 mx-1.5" aria-label="Mode Gelap aktif. Klik untuk beralih ke Mode Terang" title="Mode Gelap (Klik untuk beralih ke Mode Terang)">
+                <span id="theme-toggle-moon-icon" class="flex items-center text-blue-400">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                  </svg>
+                </span>
+                <span id="theme-toggle-sun-icon" class="hidden items-center text-amber-500">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="5"></circle>
+                    <line x1="12" y1="1" x2="12" y2="3"></line>
+                    <line x1="12" y1="21" x2="12" y2="23"></line>
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                    <line x1="1" y1="12" x2="3" y2="12"></line>
+                    <line x1="21" y1="12" x2="23" y2="12"></line>
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                  </svg>
+                </span>
+              </button>
+
+              <!-- Tombol Pratinjau Tampilan Publik (Membuka di Tab Baru) -->
+              <a href="/#beranda" target="_blank" rel="noopener noreferrer" id="btn-admin-view-public" class="inline-flex items-center gap-2 px-3 sm:px-3.5 h-10 rounded-xl text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 hover:text-slate-900 border border-slate-200 shadow-2xs active:scale-95 transition mx-1.5 no-underline" title="Lihat Tampilan Pengunjung (Public Virtual Tour) - Buka di tab baru">
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
                   <circle cx="12" cy="12" r="3" />
                 </svg>
                 <span class="hidden md:inline">Tampilan Publik</span>
-              </button>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden md:inline text-slate-400 -ml-0.5 opacity-70">
+                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                  <polyline points="15 3 21 3 21 9" />
+                  <line x1="10" y1="14" x2="21" y2="3" />
+                </svg>
+              </a>
 
               <!-- Menu Profil Administrator (Dropdown Interaktif) -->
               <div id="admin-profile-dropdown-root" class="relative">
                 <!-- Trigger Button -->
-                <button id="btn-admin-profile-toggle" type="button" aria-haspopup="true" aria-expanded="false" class="flex items-center gap-2 p-1 sm:px-2.5 sm:py-1.5 rounded-xl hover:bg-slate-800/90 border border-transparent hover:border-slate-700/80 transition cursor-pointer select-none">
+                <button id="btn-admin-profile-toggle" type="button" aria-haspopup="true" aria-expanded="false" class="flex items-center gap-2 p-1 sm:px-2.5 sm:py-1.5 rounded-xl hover:bg-slate-100 border border-transparent hover:border-slate-200 transition cursor-pointer select-none">
                   <div class="relative">
-                    <div id="topbar-user-avatar" class="w-8 h-8 rounded-full bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center font-bold text-xs shadow-sm ring-1 ring-emerald-400/30">
+                    <div id="topbar-user-avatar" class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs shadow-2xs">
                       AD
                     </div>
-                    <span class="absolute bottom-0 right-0 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-slate-900"></span>
+                    <span class="absolute bottom-0 right-0 w-2 h-2 rounded-full bg-blue-500 ring-2 ring-white"></span>
                   </div>
                   <div class="hidden md:flex flex-col text-left">
-                    <span id="topbar-user-name" class="text-xs font-semibold text-slate-200 leading-tight truncate max-w-[110px]">Administrator</span>
-                    <span id="topbar-user-role" class="text-[10px] text-emerald-400 font-medium leading-none mt-0.5">Admin Sistem</span>
+                    <span id="topbar-user-name" class="text-xs font-semibold text-slate-800 leading-tight truncate max-w-[110px]">Administrator</span>
+                    <span id="topbar-user-role" class="text-[10px] text-blue-600 font-medium leading-none mt-0.5">Admin Sistem</span>
                   </div>
                   <svg id="topbar-profile-chevron" class="w-3.5 h-3.5 text-slate-400 transition-transform duration-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <polyline points="6 9 12 15 18 9"></polyline>
@@ -908,18 +970,18 @@
                 </button>
 
                 <!-- Dropdown Menu Box -->
-                <div id="admin-profile-menu" class="hidden absolute right-0 top-full mt-2 w-64 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-2 z-50 text-xs animate-in fade-in zoom-in-95 duration-150 backdrop-blur-xl">
+                <div id="admin-profile-menu" class="hidden absolute right-0 top-full mt-2 w-72 bg-white border border-slate-200 rounded-2xl shadow-xl p-2 z-50 text-xs text-slate-700 animate-in fade-in zoom-in-95 duration-150">
                   <!-- User Header Card -->
-                  <div class="p-3 bg-slate-800/60 rounded-xl mb-1.5 border border-slate-700/40">
+                  <div class="profile-dropdown-user-header p-3 bg-slate-50 rounded-xl mb-1.5 border border-slate-100">
                     <div class="flex items-center gap-3">
-                      <div id="dropdown-user-avatar-lg" class="w-10 h-10 rounded-full bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center font-bold text-sm shadow ring-1 ring-emerald-400/40 shrink-0">
+                      <div id="dropdown-user-avatar-lg" class="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm shadow-2xs shrink-0">
                         AD
                       </div>
-                      <div class="min-w-0">
-                        <h3 id="dropdown-user-fullname" class="font-bold text-white text-xs truncate">Administrator IKHW</h3>
-                        <p id="dropdown-user-email" class="text-[11px] text-slate-400 truncate">admin@ikhw.org</p>
+                      <div class="min-w-0 flex-1">
+                        <h3 id="dropdown-user-fullname" class="font-bold text-slate-800 text-xs truncate">Administrator IKHW</h3>
+                        <p id="dropdown-user-email" class="text-[11px] text-slate-500 truncate">admin@ikhw.org</p>
                         <div class="mt-1">
-                          <span id="dropdown-user-role-badge" class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                          <span id="dropdown-user-role-badge" class="profile-dropdown-role-badge inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
                             Administrator
                           </span>
                         </div>
@@ -929,24 +991,24 @@
 
                   <!-- Quick Navigation Links -->
                   <div class="space-y-0.5 py-1">
-                    <button type="button" class="profile-menu-nav-item w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/70 transition text-left cursor-pointer" data-target-tab="settings">
-                      <span class="text-sm shrink-0">⚙️</span>
+                    <button type="button" class="profile-menu-nav-item w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition text-left cursor-pointer" data-target-tab="settings">
+                      <svg class="w-4 h-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
                       <span>Pengaturan & Identitas</span>
                     </button>
-                    <button type="button" class="profile-menu-nav-item w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/70 transition text-left cursor-pointer" data-target-tab="users">
-                      <span class="text-sm shrink-0">👥</span>
+                    <button type="button" class="profile-menu-nav-item w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition text-left cursor-pointer" data-target-tab="users">
+                      <svg class="w-4 h-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                       <span>Manajemen Pengguna</span>
                     </button>
-                    <button type="button" class="profile-menu-nav-item w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/70 transition text-left cursor-pointer" data-target-tab="activity-logs">
-                      <span class="text-sm shrink-0">🕒</span>
+                    <button type="button" class="profile-menu-nav-item w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition text-left cursor-pointer" data-target-tab="activity-logs">
+                      <svg class="w-4 h-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                       <span>Log Histori Aktivitas</span>
                     </button>
                   </div>
 
-                  <div class="my-1 border-t border-slate-800/80"></div>
+                  <div class="profile-dropdown-divider my-1 border-t border-slate-100"></div>
 
                   <!-- Logout Action Button -->
-                  <a href="{{ route('logout') }}" id="btn-admin-logout" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-red-400 hover:text-red-300 hover:bg-red-500/10 active:bg-red-500/20 transition text-left cursor-pointer font-medium no-underline" title="Keluar dari sesi administrator">
+                  <a href="{{ route('logout') }}" id="btn-admin-logout" class="profile-dropdown-logout-btn w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-red-600 hover:text-red-700 hover:bg-red-50 transition text-left cursor-pointer font-medium no-underline" title="Keluar dari sesi administrator">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                       <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />
                     </svg>
@@ -1135,6 +1197,11 @@
               <div id="admin-pane-activity-logs" class="admin-subpane">
                 <div id="admin-activity-logs-content" class="admin-pane-wrapper"></div>
               </div>
+
+              <!-- SUBPANE 11: ALBUM KEGIATAN GALERI -->
+              <div id="admin-pane-albums" class="admin-subpane">
+                <div id="admin-albums-content" class="admin-pane-wrapper"></div>
+              </div>
             </div>
           </div>
         </div>
@@ -1286,34 +1353,33 @@
   @endif
 
   <!-- Modal Peringatan Inaktivitas Sesi Administrator (Auto Logout Warning) -->
-  <div id="admin-session-warning-modal" class="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/80 backdrop-blur-md hidden transition-all duration-300 p-4" role="dialog" aria-modal="true" aria-labelledby="session-warning-title">
-    <div class="w-full max-w-md bg-slate-900 border border-amber-500/30 rounded-2xl p-6 shadow-2xl text-center relative overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-      <div class="absolute -top-12 -left-12 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl pointer-events-none"></div>
-      <div class="absolute -bottom-12 -right-12 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl pointer-events-none"></div>
-
-      <div class="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center mx-auto mb-4 text-2xl shadow-inner">
-        ⏳
+  <div id="admin-session-warning-modal" class="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm hidden transition-all duration-300 p-4" role="dialog" aria-modal="true" aria-labelledby="session-warning-title">
+    <div class="w-full max-w-md bg-white border border-slate-200 rounded-2xl p-6 shadow-2xl text-center relative overflow-hidden">
+      <div class="w-12 h-12 rounded-xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center mx-auto mb-4">
+        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
       </div>
 
-      <h3 id="session-warning-title" class="text-lg font-bold text-white mb-2">Sesi Anda akan berakhir</h3>
-      <p class="text-xs text-slate-300 mb-4 leading-relaxed">
+      <h3 id="session-warning-title" class="text-base font-bold text-slate-900 mb-1.5">Sesi Anda akan berakhir</h3>
+      <p class="text-xs text-slate-500 mb-4 leading-relaxed">
         Anda tidak melakukan aktivitas selama beberapa waktu.<br />
         Demi keamanan akun administrator, sesi akan berakhir dalam:
       </p>
 
-      <div class="bg-slate-950/70 border border-amber-500/40 rounded-xl py-3 px-4 mb-5 inline-block min-w-[160px] shadow-inner">
-        <span id="session-warning-timer" class="text-3xl font-mono font-extrabold text-amber-400 tracking-wider">
+      <div class="bg-amber-50/70 border border-amber-200 rounded-xl py-3 px-4 mb-4 inline-block min-w-[160px]">
+        <span id="session-warning-timer" class="text-3xl font-mono font-extrabold text-amber-700 tracking-wider">
           05:00
         </span>
       </div>
 
-      <p class="text-xs text-slate-400 mb-6">Apakah Anda masih ingin melanjutkan?</p>
+      <p class="text-xs text-slate-500 mb-5">Apakah Anda masih ingin melanjutkan aktivitas?</p>
 
       <div class="flex items-center justify-center gap-3">
-        <button id="btn-session-keep-alive" type="button" class="flex-1 py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-lg shadow-emerald-900/30 active:scale-95 transition cursor-pointer">
+        <button id="btn-session-keep-alive" type="button" class="flex-1 py-2.5 px-4 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-xs active:scale-95 transition cursor-pointer">
           Tetap Login
         </button>
-        <button id="btn-session-logout-now" type="button" class="py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 text-xs font-semibold active:scale-95 transition cursor-pointer">
+        <button id="btn-session-logout-now" type="button" class="py-2.5 px-4 rounded-lg bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 text-xs font-semibold active:scale-95 transition cursor-pointer">
           Logout
         </button>
       </div>

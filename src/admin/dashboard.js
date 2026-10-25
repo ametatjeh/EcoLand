@@ -182,249 +182,295 @@ export async function renderDashboard({
 
   container.innerHTML = `
     <!-- Top Action Banner -->
-    <div class="admin-dashboard-hero" style="margin-bottom: 24px;">
+    <div class="admin-dashboard-hero bg-white border border-slate-200 rounded-xl p-5 sm:p-6 mb-6 shadow-xs flex flex-col md:flex-row md:items-center md:justify-between gap-4">
       <div class="admin-hero-content">
-        <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 6px;">Ringkasan Sistem Informasi Eco Land & Restorasi Kawasan</h2>
-        <p style="color: var(--clr-text-muted); font-size: 13px; line-height: 1.5;">
+        <div class="flex items-center gap-2 text-blue-600 text-xs font-semibold uppercase tracking-wider mb-1">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22v-7"/><path d="M12 15c-3.3 0-6-2.7-6-6 0-4 6-7 6-7s6 3 6 7c0 3.3-2.7 6-6 6z"/></svg>
+          <span>Sistem Informasi Terpadu</span>
+        </div>
+        <h2 class="text-lg sm:text-xl font-bold text-slate-900 leading-tight">Ringkasan Sistem Informasi Eco Land & Restorasi Kawasan</h2>
+        <p class="text-slate-500 text-xs sm:text-sm mt-1 max-w-2xl leading-relaxed">
           Pantau status kelengkapan 6 panorama Marzipano, integritas hotspot interaktif, dan statistik penanaman bibit pohon kawasan ±2 hektare secara aktual.
         </p>
       </div>
-      <div class="admin-hero-actions" style="display: flex; gap: 10px; flex-wrap: wrap;">
-        <button id="dash-btn-open-editor" class="btn-primary-action btn-sm">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <div class="admin-hero-actions flex items-center gap-2.5 flex-wrap shrink-0">
+        <button id="dash-btn-open-editor" class="btn-primary-action btn-sm inline-flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold cursor-pointer">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
           </svg>
-          Editor Hotspot
+          <span>Editor Hotspot</span>
         </button>
-        <button id="dash-btn-open-panoramas" class="btn-secondary-action btn-sm">
-          🌐 Panorama (${totalScenes})
+        <button id="dash-btn-open-panoramas" class="btn-secondary-action btn-sm inline-flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-medium cursor-pointer">
+          <svg class="w-4 h-4 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+          <span>Panorama (${totalScenes})</span>
         </button>
-        <button id="dash-btn-open-trees" class="btn-secondary-action btn-sm">
-          🌱 Data Penanaman
+        <button id="dash-btn-open-trees" class="btn-secondary-action btn-sm inline-flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-medium cursor-pointer">
+          <svg class="w-4 h-4 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22v-7"/><path d="M12 15c-3.3 0-6-2.7-6-6 0-4 6-7 6-7s6 3 6 7c0 3.3-2.7 6-6 6z"/><path d="M12 8c-1.5 0-3 1.5-3 3"/></svg>
+          <span>Data Penanaman</span>
         </button>
       </div>
     </div>
 
     <!-- E.1. DELAPAN KARTU STATISTIK UTAMA (AKTUAL & NON-FIKTIF) -->
-    <div style="margin-bottom: 24px;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-        <h3 style="font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--clr-primary-light); font-weight: 700;">
-          📊 Indikator Kunci Kawasan & Penanaman (Data Aktual)
-        </h3>
-        <span class="admin-header-pill ${survivalBadge}" style="font-size: 11px;">
+    <div class="mb-8">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-2">
+          <svg class="w-4 h-4 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">
+            Indikator Kunci Kawasan & Penanaman (Data Aktual)
+          </h3>
+        </div>
+        <span class="admin-header-pill ${survivalBadge} text-[11px] font-semibold px-2.5 py-0.5 rounded-full">
           ${indicators.survival_rate_status === 'terverifikasi' ? 'Terverifikasi' : 'Belum Ada Sensus'}
         </span>
       </div>
-      <div class="admin-stats-grid" style="grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));">
+      <div class="admin-stats-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <!-- 1. Total Kawasan -->
-        <div class="admin-stat-card">
-          <div class="stat-card-header">
-            <span class="stat-title">Total Kawasan</span>
-            <span class="stat-icon">🏞️</span>
+        <div class="admin-stat-card bg-white border border-slate-200 rounded-xl p-5 shadow-xs hover:border-slate-300 transition-all flex flex-col justify-between">
+          <div class="stat-card-header flex items-center justify-between mb-3">
+            <span class="stat-title text-xs font-semibold uppercase tracking-wider text-slate-500">Total Kawasan</span>
+            <div class="w-9 h-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+            </div>
           </div>
-          <div class="stat-number text-accent">${indicators.total_zones}</div>
-          <div class="stat-footer-text">Lahan terdaftar dalam sistem</div>
+          <div class="stat-number text-2xl font-bold text-slate-900 leading-tight">${indicators.total_zones}</div>
+          <div class="stat-footer-text text-xs text-slate-500 mt-2">Lahan terdaftar dalam sistem</div>
         </div>
 
         <!-- 2. Kawasan Aktif -->
-        <div class="admin-stat-card">
-          <div class="stat-card-header">
-            <span class="stat-title">Kawasan Aktif</span>
-            <span class="stat-icon">✅</span>
+        <div class="admin-stat-card bg-white border border-slate-200 rounded-xl p-5 shadow-xs hover:border-slate-300 transition-all flex flex-col justify-between">
+          <div class="stat-card-header flex items-center justify-between mb-3">
+            <span class="stat-title text-xs font-semibold uppercase tracking-wider text-slate-500">Kawasan Aktif</span>
+            <div class="w-9 h-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            </div>
           </div>
-          <div class="stat-number text-success">${indicators.total_zones}</div>
-          <div class="stat-footer-text">Dalam status restorasi aktif</div>
+          <div class="stat-number text-2xl font-bold text-blue-600 leading-tight">${indicators.total_zones}</div>
+          <div class="stat-footer-text text-xs text-slate-500 mt-2">Dalam status restorasi aktif</div>
         </div>
 
         <!-- 3. Total Jenis Pohon -->
-        <div class="admin-stat-card">
-          <div class="stat-card-header">
-            <span class="stat-title">Total Jenis Pohon</span>
-            <span class="stat-icon">🌿</span>
+        <div class="admin-stat-card bg-white border border-slate-200 rounded-xl p-5 shadow-xs hover:border-slate-300 transition-all flex flex-col justify-between">
+          <div class="stat-card-header flex items-center justify-between mb-3">
+            <span class="stat-title text-xs font-semibold uppercase tracking-wider text-slate-500">Total Jenis Pohon</span>
+            <div class="w-9 h-9 rounded-lg bg-teal-50 text-teal-700 flex items-center justify-center shrink-0">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22v-7"/><path d="M12 15c-3.3 0-6-2.7-6-6 0-4 6-7 6-7s6 3 6 7c0 3.3-2.7 6-6 6z"/><path d="M12 8c-1.5 0-3 1.5-3 3"/></svg>
+            </div>
           </div>
-          <div class="stat-number">${indicators.total_species}</div>
-          <div class="stat-footer-text">Spesies terdata di master database</div>
+          <div class="stat-number text-2xl font-bold text-slate-900 leading-tight">${indicators.total_species}</div>
+          <div class="stat-footer-text text-xs text-slate-500 mt-2">Spesies terdata di master database</div>
         </div>
 
         <!-- 4. Total Kegiatan Penanaman -->
-        <div class="admin-stat-card">
-          <div class="stat-card-header">
-            <span class="stat-title">Kegiatan Penanaman</span>
-            <span class="stat-icon">📋</span>
+        <div class="admin-stat-card bg-white border border-slate-200 rounded-xl p-5 shadow-xs hover:border-slate-300 transition-all flex flex-col justify-between">
+          <div class="stat-card-header flex items-center justify-between mb-3">
+            <span class="stat-title text-xs font-semibold uppercase tracking-wider text-slate-500">Kegiatan Penanaman</span>
+            <div class="w-9 h-9 rounded-lg bg-sky-50 text-sky-700 flex items-center justify-center shrink-0">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M9 14l2 2 4-4"/></svg>
+            </div>
           </div>
-          <div class="stat-number text-accent">${indicators.total_activities}</div>
-          <div class="stat-footer-text">Batch kelompok bibit tercatat</div>
+          <div class="stat-number text-2xl font-bold text-sky-700 leading-tight">${indicators.total_activities}</div>
+          <div class="stat-footer-text text-xs text-slate-500 mt-2">Batch kelompok bibit tercatat</div>
         </div>
 
         <!-- 5. Total Bibit Awal yang Tercatat -->
-        <div class="admin-stat-card">
-          <div class="stat-card-header">
-            <span class="stat-title">Total Bibit Awal</span>
-            <span class="stat-icon">🌱</span>
+        <div class="admin-stat-card bg-white border border-slate-200 rounded-xl p-5 shadow-xs hover:border-slate-300 transition-all flex flex-col justify-between">
+          <div class="stat-card-header flex items-center justify-between mb-3">
+            <span class="stat-title text-xs font-semibold uppercase tracking-wider text-slate-500">Total Bibit Awal</span>
+            <div class="w-9 h-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22v-7"/><path d="M12 15c-3.3 0-6-2.7-6-6 0-4 6-7 6-7s6 3 6 7c0 3.3-2.7 6-6 6z"/></svg>
+            </div>
           </div>
-          <div class="stat-number text-success">${indicators.total_initial_seedlings}</div>
-          <div class="stat-footer-text">Batang ditanam (rekaman historis)</div>
+          <div class="stat-number text-2xl font-bold text-blue-600 leading-tight">${indicators.total_initial_seedlings?.toLocaleString('id-ID') || 0}</div>
+          <div class="stat-footer-text text-xs text-slate-500 mt-2">Batang ditanam (rekaman historis)</div>
         </div>
 
         <!-- 6. Jumlah Kelompok yang Sudah Dipantau -->
-        <div class="admin-stat-card">
-          <div class="stat-card-header">
-            <span class="stat-title">Kelompok Dipantau</span>
-            <span class="stat-icon">🔍</span>
+        <div class="admin-stat-card bg-white border border-slate-200 rounded-xl p-5 shadow-xs hover:border-slate-300 transition-all flex flex-col justify-between">
+          <div class="stat-card-header flex items-center justify-between mb-3">
+            <span class="stat-title text-xs font-semibold uppercase tracking-wider text-slate-500">Kelompok Dipantau</span>
+            <div class="w-9 h-9 rounded-lg bg-indigo-50 text-indigo-700 flex items-center justify-center shrink-0">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><path d="M11 8v6M8 11h6"/></svg>
+            </div>
           </div>
-          <div class="stat-number text-info">${indicators.monitored_batches_count}</div>
-          <div class="stat-footer-text">Memiliki catatan sensus lapangan</div>
+          <div class="stat-number text-2xl font-bold text-indigo-700 leading-tight">${indicators.monitored_batches_count}</div>
+          <div class="stat-footer-text text-xs text-slate-500 mt-2">Memiliki catatan sensus lapangan</div>
         </div>
 
         <!-- 7. Jumlah Scene Panorama -->
-        <div class="admin-stat-card">
-          <div class="stat-card-header">
-            <span class="stat-title">Scene Panorama</span>
-            <span class="stat-icon">🌐</span>
+        <div class="admin-stat-card bg-white border border-slate-200 rounded-xl p-5 shadow-xs hover:border-slate-300 transition-all flex flex-col justify-between">
+          <div class="stat-card-header flex items-center justify-between mb-3">
+            <span class="stat-title text-xs font-semibold uppercase tracking-wider text-slate-500">Scene Panorama</span>
+            <div class="w-9 h-9 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+            </div>
           </div>
-          <div class="stat-number">${totalScenes}</div>
-          <div class="stat-footer-text">Titik foto 360° Marzipano</div>
+          <div class="stat-number text-2xl font-bold text-slate-900 leading-tight">${totalScenes}</div>
+          <div class="stat-footer-text text-xs text-slate-500 mt-2">Titik foto 360° Marzipano</div>
         </div>
 
         <!-- 8. Jumlah Hotspot Valid & Terdaftar -->
-        <div class="admin-stat-card">
-          <div class="stat-card-header">
-            <span class="stat-title">Hotspot Valid</span>
-            <span class="stat-icon">📍</span>
+        <div class="admin-stat-card bg-white border border-slate-200 rounded-xl p-5 shadow-xs hover:border-slate-300 transition-all flex flex-col justify-between">
+          <div class="stat-card-header flex items-center justify-between mb-3">
+            <span class="stat-title text-xs font-semibold uppercase tracking-wider text-slate-500">Hotspot Valid</span>
+            <div class="w-9 h-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            </div>
           </div>
-          <div class="stat-number text-info">${validRegisteredHotspots}</div>
-          <div class="stat-footer-text">${publishedHotspots.length} publik, ${draftHotspots.length} draft</div>
+          <div class="stat-number text-2xl font-bold text-blue-600 leading-tight">${validRegisteredHotspots}</div>
+          <div class="stat-footer-text text-xs text-slate-500 mt-2">${publishedHotspots.length} publik, ${draftHotspots.length} draft</div>
         </div>
       </div>
     </div>
 
     <!-- E.2. PANEL TAHAPAN PENGELOLAAN KAWASAN (WORKFLOW 5 TAHAPAN) -->
-    <div style="margin-bottom: 24px;">
-      <div style="margin-bottom: 12px;">
-        <h3 style="font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--clr-primary-light); font-weight: 700;">
-          🧭 Alur & Tahapan Pengelolaan Kawasan Penanaman
-        </h3>
-        <p style="color: var(--clr-text-muted); font-size: 12px; margin-top: 2px;">
+    <div class="mb-8">
+      <div class="mb-4">
+        <div class="flex items-center gap-2">
+          <svg class="w-4 h-4 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 19 21 12 17 5 21 12 2"/></svg>
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">
+            Alur & Tahapan Pengelolaan Kawasan Penanaman
+          </h3>
+        </div>
+        <p class="text-slate-500 text-xs mt-1">
           Panduan progres berbasis data aktual. Admin dapat membuka seluruh modul kapan saja secara mandiri.
         </p>
       </div>
 
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
         <!-- Tahap 1: Persiapan -->
-        <div class="admin-stat-card" style="border-left: 4px solid ${stage1Status === 'Selesai' ? '#10b981' : stage1Status === 'Sedang Berjalan' ? '#38bdf8' : '#f59e0b'};">
-          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
-            <div>
-              <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--clr-text-muted);">Tahap 1</span>
-              <h4 style="font-size: 14px; font-weight: 700; color: #fff; margin-top: 2px;">Persiapan Kawasan & Spesies</h4>
+        <div class="admin-stat-card bg-white border border-slate-200 rounded-xl p-5 shadow-xs flex flex-col justify-between" style="border-left: 4px solid ${stage1Status === 'Selesai' ? '#059669' : stage1Status === 'Sedang Berjalan' ? '#0284c7' : '#d97706'};">
+          <div>
+            <div class="flex items-start justify-between gap-2 mb-2">
+              <div>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Tahap 1</span>
+                <h4 class="text-xs font-bold text-slate-900 mt-0.5">Persiapan Kawasan & Spesies</h4>
+              </div>
+              <span class="admin-header-pill ${stage1Badge} text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0">${stage1Status}</span>
             </div>
-            <span class="admin-header-pill ${stage1Badge}" style="font-size: 10px;">${stage1Status}</span>
+            <p class="text-xs text-slate-700 mb-2 leading-relaxed">
+              <strong class="font-semibold text-slate-900">Aktivitas:</strong> ${stage1Summary}
+            </p>
+            <p class="text-[11px] text-slate-500 mb-4 leading-relaxed">
+              <strong class="font-medium text-slate-600">Catatan:</strong> ${stage1Missing}
+            </p>
           </div>
-          <p style="font-size: 12px; color: var(--clr-text-main); margin-bottom: 6px; line-height: 1.4;">
-            <strong>Aktivitas:</strong> ${stage1Summary}
-          </p>
-          <p style="font-size: 11px; color: var(--clr-text-muted); margin-bottom: 12px; line-height: 1.4;">
-            <strong>Catatan:</strong> ${stage1Missing}
-          </p>
-          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-            <button id="stage-btn-zones" class="btn-secondary-action btn-sm" style="font-size: 11px; padding: 4px 10px;">
-              🏞️ Kelola Kawasan
+          <div class="flex gap-2 flex-wrap pt-2 border-t border-slate-100">
+            <button id="stage-btn-zones" class="btn-secondary-action btn-sm inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium cursor-pointer">
+              <svg class="w-3.5 h-3.5 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/></svg>
+              <span>Kelola Kawasan</span>
             </button>
-            <button id="stage-btn-species" class="btn-secondary-action btn-sm" style="font-size: 11px; padding: 4px 10px;">
-              🌿 Master Spesies
+            <button id="stage-btn-species" class="btn-secondary-action btn-sm inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium cursor-pointer">
+              <svg class="w-3.5 h-3.5 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22v-7"/><path d="M12 15c-3.3 0-6-2.7-6-6 0-4 6-7 6-7s6 3 6 7c0 3.3-2.7 6-6 6z"/></svg>
+              <span>Master Spesies</span>
             </button>
           </div>
         </div>
 
         <!-- Tahap 2: Kegiatan Penanaman -->
-        <div class="admin-stat-card" style="border-left: 4px solid ${stage2Status === 'Selesai' ? '#10b981' : stage2Status === 'Sedang Berjalan' ? '#38bdf8' : '#f59e0b'};">
-          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
-            <div>
-              <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--clr-text-muted);">Tahap 2</span>
-              <h4 style="font-size: 14px; font-weight: 700; color: #fff; margin-top: 2px;">Kegiatan Penanaman</h4>
+        <div class="admin-stat-card bg-white border border-slate-200 rounded-xl p-5 shadow-xs flex flex-col justify-between" style="border-left: 4px solid ${stage2Status === 'Selesai' ? '#059669' : stage2Status === 'Sedang Berjalan' ? '#0284c7' : '#d97706'};">
+          <div>
+            <div class="flex items-start justify-between gap-2 mb-2">
+              <div>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Tahap 2</span>
+                <h4 class="text-xs font-bold text-slate-900 mt-0.5">Kegiatan Penanaman</h4>
+              </div>
+              <span class="admin-header-pill ${stage2Badge} text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0">${stage2Status}</span>
             </div>
-            <span class="admin-header-pill ${stage2Badge}" style="font-size: 10px;">${stage2Status}</span>
+            <p class="text-xs text-slate-700 mb-2 leading-relaxed">
+              <strong class="font-semibold text-slate-900">Aktivitas:</strong> ${stage2Summary}
+            </p>
+            <p class="text-[11px] text-slate-500 mb-4 leading-relaxed">
+              <strong class="font-medium text-slate-600">Catatan:</strong> ${stage2Missing}
+            </p>
           </div>
-          <p style="font-size: 12px; color: var(--clr-text-main); margin-bottom: 6px; line-height: 1.4;">
-            <strong>Aktivitas:</strong> ${stage2Summary}
-          </p>
-          <p style="font-size: 11px; color: var(--clr-text-muted); margin-bottom: 12px; line-height: 1.4;">
-            <strong>Catatan:</strong> ${stage2Missing}
-          </p>
-          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-            <button id="stage-btn-activities" class="btn-secondary-action btn-sm" style="font-size: 11px; padding: 4px 10px;">
-              📋 Pencatatan Penanaman
+          <div class="flex gap-2 flex-wrap pt-2 border-t border-slate-100">
+            <button id="stage-btn-activities" class="btn-secondary-action btn-sm inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium cursor-pointer">
+              <svg class="w-3.5 h-3.5 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
+              <span>Pencatatan Penanaman</span>
             </button>
           </div>
         </div>
 
         <!-- Tahap 3: Pemantauan dan Perawatan -->
-        <div class="admin-stat-card" style="border-left: 4px solid ${stage3Status === 'Selesai' ? '#10b981' : stage3Status === 'Sedang Berjalan' ? '#38bdf8' : '#f59e0b'};">
-          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
-            <div>
-              <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--clr-text-muted);">Tahap 3</span>
-              <h4 style="font-size: 14px; font-weight: 700; color: #fff; margin-top: 2px;">Pemantauan & Perawatan</h4>
+        <div class="admin-stat-card bg-white border border-slate-200 rounded-xl p-5 shadow-xs flex flex-col justify-between" style="border-left: 4px solid ${stage3Status === 'Selesai' ? '#059669' : stage3Status === 'Sedang Berjalan' ? '#0284c7' : '#d97706'};">
+          <div>
+            <div class="flex items-start justify-between gap-2 mb-2">
+              <div>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Tahap 3</span>
+                <h4 class="text-xs font-bold text-slate-900 mt-0.5">Pemantauan & Perawatan</h4>
+              </div>
+              <span class="admin-header-pill ${stage3Badge} text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0">${stage3Status}</span>
             </div>
-            <span class="admin-header-pill ${stage3Badge}" style="font-size: 10px;">${stage3Status}</span>
+            <p class="text-xs text-slate-700 mb-2 leading-relaxed">
+              <strong class="font-semibold text-slate-900">Aktivitas:</strong> ${stage3Summary}
+            </p>
+            <p class="text-[11px] text-slate-500 mb-4 leading-relaxed">
+              <strong class="font-medium text-slate-600">Catatan:</strong> ${stage3Missing}
+            </p>
           </div>
-          <p style="font-size: 12px; color: var(--clr-text-main); margin-bottom: 6px; line-height: 1.4;">
-            <strong>Aktivitas:</strong> ${stage3Summary}
-          </p>
-          <p style="font-size: 11px; color: var(--clr-text-muted); margin-bottom: 12px; line-height: 1.4;">
-            <strong>Catatan:</strong> ${stage3Missing}
-          </p>
-          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-            <button id="stage-btn-surveys" class="btn-secondary-action btn-sm" style="font-size: 11px; padding: 4px 10px;">
-              🔍 Pemantauan
+          <div class="flex gap-2 flex-wrap pt-2 border-t border-slate-100">
+            <button id="stage-btn-surveys" class="btn-secondary-action btn-sm inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium cursor-pointer">
+              <svg class="w-3.5 h-3.5 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <span>Pemantauan</span>
             </button>
-            <button id="stage-btn-maintenance" class="btn-secondary-action btn-sm" style="font-size: 11px; padding: 4px 10px;">
-              🛠️ Perawatan & Sulam
+            <button id="stage-btn-maintenance" class="btn-secondary-action btn-sm inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium cursor-pointer">
+              <svg class="w-3.5 h-3.5 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+              <span>Perawatan & Sulam</span>
             </button>
           </div>
         </div>
 
         <!-- Tahap 4: Dokumentasi Digital (Virtual Tour) -->
-        <div class="admin-stat-card" style="border-left: 4px solid ${stage4Status === 'Selesai' ? '#10b981' : stage4Status === 'Sedang Berjalan' ? '#38bdf8' : '#f59e0b'};">
-          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
-            <div>
-              <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--clr-text-muted);">Tahap 4</span>
-              <h4 style="font-size: 14px; font-weight: 700; color: #fff; margin-top: 2px;">Dokumentasi Digital 360°</h4>
+        <div class="admin-stat-card bg-white border border-slate-200 rounded-xl p-5 shadow-xs flex flex-col justify-between" style="border-left: 4px solid ${stage4Status === 'Selesai' ? '#059669' : stage4Status === 'Sedang Berjalan' ? '#0284c7' : '#d97706'};">
+          <div>
+            <div class="flex items-start justify-between gap-2 mb-2">
+              <div>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Tahap 4</span>
+                <h4 class="text-xs font-bold text-slate-900 mt-0.5">Dokumentasi Digital 360°</h4>
+              </div>
+              <span class="admin-header-pill ${stage4Badge} text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0">${stage4Status}</span>
             </div>
-            <span class="admin-header-pill ${stage4Badge}" style="font-size: 10px;">${stage4Status}</span>
+            <p class="text-xs text-slate-700 mb-2 leading-relaxed">
+              <strong class="font-semibold text-slate-900">Aktivitas:</strong> ${stage4Summary}
+            </p>
+            <p class="text-[11px] text-slate-500 mb-4 leading-relaxed">
+              <strong class="font-medium text-slate-600">Catatan:</strong> ${stage4Missing}
+            </p>
           </div>
-          <p style="font-size: 12px; color: var(--clr-text-main); margin-bottom: 6px; line-height: 1.4;">
-            <strong>Aktivitas:</strong> ${stage4Summary}
-          </p>
-          <p style="font-size: 11px; color: var(--clr-text-muted); margin-bottom: 12px; line-height: 1.4;">
-            <strong>Catatan:</strong> ${stage4Missing}
-          </p>
-          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-            <button id="stage-btn-editor" class="btn-secondary-action btn-sm" style="font-size: 11px; padding: 4px 10px;">
-              🎨 Editor Hotspot
+          <div class="flex gap-2 flex-wrap pt-2 border-t border-slate-100">
+            <button id="stage-btn-editor" class="btn-secondary-action btn-sm inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium cursor-pointer">
+              <svg class="w-3.5 h-3.5 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+              <span>Editor Hotspot</span>
             </button>
-            <button id="stage-btn-panoramas" class="btn-secondary-action btn-sm" style="font-size: 11px; padding: 4px 10px;">
-              🌐 Panorama
+            <button id="stage-btn-panoramas" class="btn-secondary-action btn-sm inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium cursor-pointer">
+              <svg class="w-3.5 h-3.5 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+              <span>Panorama</span>
             </button>
           </div>
         </div>
 
         <!-- Tahap 5: Evaluasi dan Pelaporan -->
-        <div class="admin-stat-card" style="border-left: 4px solid ${stage5Status === 'Selesai' ? '#10b981' : stage5Status === 'Sedang Berjalan' ? '#38bdf8' : '#f59e0b'};">
-          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
-            <div>
-              <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--clr-text-muted);">Tahap 5</span>
-              <h4 style="font-size: 14px; font-weight: 700; color: #fff; margin-top: 2px;">Evaluasi & Pelaporan</h4>
+        <div class="admin-stat-card bg-white border border-slate-200 rounded-xl p-5 shadow-xs flex flex-col justify-between" style="border-left: 4px solid ${stage5Status === 'Selesai' ? '#059669' : stage5Status === 'Sedang Berjalan' ? '#0284c7' : '#d97706'};">
+          <div>
+            <div class="flex items-start justify-between gap-2 mb-2">
+              <div>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Tahap 5</span>
+                <h4 class="text-xs font-bold text-slate-900 mt-0.5">Evaluasi & Pelaporan</h4>
+              </div>
+              <span class="admin-header-pill ${stage5Badge} text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0">${stage5Status}</span>
             </div>
-            <span class="admin-header-pill ${stage5Badge}" style="font-size: 10px;">${stage5Status}</span>
+            <p class="text-xs text-slate-700 mb-2 leading-relaxed">
+              <strong class="font-semibold text-slate-900">Aktivitas:</strong> ${stage5Summary}
+            </p>
+            <p class="text-[11px] text-slate-500 mb-4 leading-relaxed">
+              <strong class="font-medium text-slate-600">Catatan:</strong> ${stage5Missing}
+            </p>
           </div>
-          <p style="font-size: 12px; color: var(--clr-text-main); margin-bottom: 6px; line-height: 1.4;">
-            <strong>Aktivitas:</strong> ${stage5Summary}
-          </p>
-          <p style="font-size: 11px; color: var(--clr-text-muted); margin-bottom: 12px; line-height: 1.4;">
-            <strong>Catatan:</strong> ${stage5Missing}
-          </p>
-          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-            <button id="stage-btn-reports" class="btn-secondary-action btn-sm" style="font-size: 11px; padding: 4px 10px;">
-              📑 Rekapitulasi & Ekspor
+          <div class="flex gap-2 flex-wrap pt-2 border-t border-slate-100">
+            <button id="stage-btn-reports" class="btn-secondary-action btn-sm inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium cursor-pointer">
+              <svg class="w-3.5 h-3.5 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+              <span>Rekapitulasi & Ekspor</span>
             </button>
           </div>
         </div>

@@ -17,6 +17,7 @@ use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\AppSettingController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\PublicCarbonController;
+use App\Http\Controllers\GalleryAlbumController;
 
 // ─── Public Routes ──────────────────────────────────────────────
 Route::get('/scenes', [SceneController::class, 'index']);
@@ -30,6 +31,10 @@ Route::get('/zones', [PlantingZoneController::class, 'publicIndex']);
 Route::get('/zones/{id}', [PlantingZoneController::class, 'publicShow']);
 Route::get('/zones/{id}/photos', [PlantingZoneController::class, 'publicPhotos']);
 Route::get('/photos', [PlantingZoneController::class, 'allPublicPhotos']);
+
+// Public Album Galeri Kegiatan
+Route::get('/albums', [GalleryAlbumController::class, 'publicIndex']);
+Route::get('/albums/{id}', [GalleryAlbumController::class, 'publicShow']);
 
 // Public Tree Species Catalog & Settings
 Route::get('/tree-species', [TreeSpeciesController::class, 'publicIndex']);
@@ -94,6 +99,21 @@ Route::middleware(['auth:sanctum,web', 'admin.session.active'])->group(function 
         Route::delete('/zones/{id}/photos/{photoId}', [PlantingZoneController::class, 'deletePhoto']);
         Route::post('/zones/{id}/photos/{photoId}/set-cover', [PlantingZoneController::class, 'setCoverPhoto']);
         Route::post('/zones/{id}/photos/reorder', [PlantingZoneController::class, 'reorderPhotos']);
+
+        // 3b. Album Galeri Kegiatan
+        Route::get('/albums', [GalleryAlbumController::class, 'index']);
+        Route::post('/albums', [GalleryAlbumController::class, 'store']);
+        Route::get('/albums/available-photos', [GalleryAlbumController::class, 'availablePhotos']);
+        Route::get('/albums/{id}', [GalleryAlbumController::class, 'show']);
+        Route::put('/albums/{id}', [GalleryAlbumController::class, 'update']);
+        Route::delete('/albums/{id}', [GalleryAlbumController::class, 'destroy']);
+        Route::post('/albums/{id}/photos', [GalleryAlbumController::class, 'addPhotos']);
+        Route::delete('/albums/{id}/photos/{photoId}', [GalleryAlbumController::class, 'removePhoto']);
+        Route::post('/albums/{id}/upload-photos', [GalleryAlbumController::class, 'uploadPhotos']);
+        Route::put('/albums/{id}/photos/{photoId}', [GalleryAlbumController::class, 'updatePhotoMetadata']);
+        Route::delete('/albums/{id}/photos/{photoId}/permanent', [GalleryAlbumController::class, 'deletePhotoPermanently']);
+        Route::post('/albums/{id}/cover', [GalleryAlbumController::class, 'setCover']);
+        Route::post('/albums/{id}/reorder', [GalleryAlbumController::class, 'reorderPhotos']);
 
         // 4. Cadangan & Pemulihan
         Route::post('/backup/import', [BackupController::class, 'import']);

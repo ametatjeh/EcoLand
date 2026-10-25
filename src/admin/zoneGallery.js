@@ -47,7 +47,7 @@ export function renderAdminZoneGallery(container, zoneData) {
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
         <div>
           <h4 class="text-base font-bold text-white flex items-center gap-2">
-            <span>🖼️</span> Galeri Foto Kawasan: <span class="text-emerald-400 font-semibold">${escapeHtml(zoneData.name)}</span>
+            <span>🖼️</span> Galeri Foto Kawasan: <span class="text-blue-400 font-semibold">${escapeHtml(zoneData.name)}</span>
           </h4>
           <p class="text-xs text-slate-400 mt-1">
             Unggah dan kelola foto dokumentasi lapangan, kegiatan penanaman, pemantauan, dan pilih foto sampul utama.
@@ -64,7 +64,7 @@ export function renderAdminZoneGallery(container, zoneData) {
       <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-slate-900/60 p-3 rounded-xl border border-slate-800/80">
         <div class="flex flex-wrap items-center gap-2">
           <label class="text-xs text-slate-400">Kategori:</label>
-          <select id="admin-gallery-cat-filter" class="bg-slate-800 border border-slate-700 text-white text-xs rounded-lg px-2.5 py-1.5 outline-none focus:border-emerald-500">
+          <select id="admin-gallery-cat-filter" class="bg-slate-800 border border-slate-700 text-white text-xs rounded-lg px-2.5 py-1.5 outline-none focus:border-blue-500">
             <option value="all">Semua Kategori</option>
             <option value="Kondisi Kawasan">Kondisi Kawasan</option>
             <option value="Kegiatan Penanaman">Kegiatan Penanaman</option>
@@ -76,7 +76,7 @@ export function renderAdminZoneGallery(container, zoneData) {
           </select>
 
           <label class="text-xs text-slate-400 ml-2">Status:</label>
-          <select id="admin-gallery-status-filter" class="bg-slate-800 border border-slate-700 text-white text-xs rounded-lg px-2.5 py-1.5 outline-none focus:border-emerald-500">
+          <select id="admin-gallery-status-filter" class="bg-slate-800 border border-slate-700 text-white text-xs rounded-lg px-2.5 py-1.5 outline-none focus:border-blue-500">
             <option value="all">Semua Status</option>
             <option value="published">Publikasi Saja</option>
             <option value="draft">Internal Saja</option>
@@ -89,7 +89,7 @@ export function renderAdminZoneGallery(container, zoneData) {
             type="text"
             id="admin-gallery-search"
             placeholder="Cari foto..."
-            class="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-lg pl-8 pr-3 py-1.5 outline-none focus:border-emerald-500 placeholder-slate-500"
+            class="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-lg pl-8 pr-3 py-1.5 outline-none focus:border-blue-500 placeholder-slate-500"
           />
         </div>
       </div>

@@ -22,6 +22,11 @@ import { initReportsModule, switchReportSubTab } from './reports.js';
 import { initUsersModule } from './users.js';
 import { initActivityLogsModule } from './activity_logs.js';
 import { initSessionTimer, stopSessionTimer, resetSessionTimer } from './session_timer.js';
+import { initAlbumsModule } from './albumManager.js';
+import { initTheme } from './theme.js';
+
+// Auto-initialize theme immediately
+initTheme();
 
 let activeAdminTab = 'dashboard';
 let activeTreeSubTab = null;
@@ -56,6 +61,10 @@ const MENU_META = {
   reports: {
     title: 'Laporan & Statistik Penanaman Komprehensif',
     breadcrumb: 'Laporan',
+  },
+  albums: {
+    title: 'Manajemen Album Kegiatan Galeri Foto Kawasan',
+    breadcrumb: 'Dokumentasi Digital / Album Kegiatan',
   },
   users: {
     title: 'Manajemen Pengguna & Hak Akses',
@@ -101,6 +110,9 @@ const REPORT_SUBTAB_TITLES = {
 };
 
 export async function initAdminPanel({ onPublicTourUpdate, onExitAdminToTour }) {
+  // 0. Inisialisasi Tema (Dark / Light Mode)
+  initTheme();
+
   // 1. Inisialisasi Auth & sinkronisasi token sesi
   await initAuth();
 
@@ -280,18 +292,18 @@ export function updateAdminProfileUI() {
     } else if (user.role === 'editor_konten') {
       roleEl.className = 'text-[10px] text-amber-400 font-medium leading-none mt-0.5';
     } else {
-      roleEl.className = 'text-[10px] text-emerald-400 font-medium leading-none mt-0.5';
+      roleEl.className = 'text-[10px] text-blue-400 font-medium leading-none mt-0.5';
     }
   }
 
   if (roleBadgeEl) {
     roleBadgeEl.textContent = roleText;
     if (user.role === 'petugas_penanaman') {
-      roleBadgeEl.className = 'inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-sky-500/10 text-sky-400 border border-sky-500/20';
+      roleBadgeEl.className = 'profile-dropdown-role-badge inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-sky-500/10 text-sky-400 border border-sky-500/20';
     } else if (user.role === 'editor_konten') {
-      roleBadgeEl.className = 'inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20';
+      roleBadgeEl.className = 'profile-dropdown-role-badge inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20';
     } else {
-      roleBadgeEl.className = 'inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+      roleBadgeEl.className = 'profile-dropdown-role-badge inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20';
     }
   }
 
@@ -452,6 +464,10 @@ export function updateTopbarBreadcrumbsAndTitle(tabName, subTab = null) {
     category = '5. Dokumentasi Digital';
     pageTitle = 'Visual Hotspot & Spatial Editor Marzipano';
     activeBreadcrumb = 'Editor Hotspot';
+  } else if (tabName === 'albums') {
+    category = '5. Dokumentasi Digital';
+    pageTitle = 'Manajemen Album Kegiatan Galeri Kawasan';
+    activeBreadcrumb = 'Album Kegiatan';
   } else if (tabName === 'reports') {
     category = '6. Evaluasi & Pelaporan';
     if (subTab === 'per-kawasan') {
@@ -537,6 +553,7 @@ export function getRouteFromTab(tabName, subTab = null) {
   if (tabName === 'trees') return subTab && subTab !== 'dashboard' ? `#admin/trees/${subTab}` : '#admin/trees/dashboard';
   if (tabName === 'panoramas') return '#admin/panoramas';
   if (tabName === 'editor') return '#admin/editor';
+  if (tabName === 'albums') return '#admin/albums';
   if (tabName === 'settings') return '#admin/settings';
   if (tabName === 'reports') return subTab && subTab !== 'rekap' ? `#admin/reports/${subTab}` : '#admin/reports';
   if (tabName === 'users') return '#admin/users';
@@ -570,6 +587,9 @@ export function parseAdminRoute(hashStr) {
   }
   if (rawTab === 'logs' || rawTab === 'activity-logs') {
     return { tab: 'activity-logs', subTab: null };
+  }
+  if (rawTab === 'albums' || rawTab === 'album') {
+    return { tab: 'albums', subTab: rawSubTab || 'list' };
   }
   if (rawTab === 'reports') {
     return { tab: 'reports', subTab: rawSubTab || 'rekap' };
@@ -700,27 +720,16 @@ function setupAdminSubmenuTabs(onExitAdminToTour) {
     });
   });
 
-  // Tombol Pratinjau Virtual Tour di sidebar
-  const btnSidebarTourPreview = document.getElementById('sidebar-btn-tour-preview');
-  if (btnSidebarTourPreview) {
-    btnSidebarTourPreview.addEventListener('click', (e) => {
-      closeMobileSidebarDrawer();
-      if (onExitAdminToTour) {
-        e.preventDefault();
-        onExitAdminToTour();
-      } else {
-        window.location.hash = 'tour';
-      }
-    });
-  }
 
-  // Tombol Tampilan Publik di Topbar
+  // Tombol Tampilan Publik di Topbar - Membuka tampilan publik di tab baru
   const btnPublicPreview = document.getElementById('btn-admin-view-public');
   if (btnPublicPreview) {
-    btnPublicPreview.addEventListener('click', () => {
+    btnPublicPreview.addEventListener('click', (e) => {
       closeMobileSidebarDrawer();
-      if (onExitAdminToTour) onExitAdminToTour();
-      else window.location.hash = 'beranda';
+      if (btnPublicPreview.tagName.toLowerCase() !== 'a') {
+        e.preventDefault();
+        window.open(window.location.origin + '/#beranda', '_blank', 'noopener,noreferrer');
+      }
     });
   }
 
@@ -886,6 +895,8 @@ function refreshActiveAdminTab() {
       editorInstance.renderHotspotsList();
       editorInstance.renderHotspotsOnCurrentScene();
     }
+  } else if (activeAdminTab === 'albums') {
+    initAlbumsModule();
   }
 }
 

@@ -117,6 +117,20 @@ function parseHash(fullHash) {
         queryParams.set('species', sub);
       }
     }
+  } else if (route === 'galeri' || route.startsWith('galeri/') || route.startsWith('album/')) {
+    tab = 'galeri';
+    if (route.startsWith('galeri/')) {
+      const sub = routePart.slice(7).trim();
+      const albumSub = sub.replace(/^album\//, '').trim();
+      if (albumSub && !queryParams.has('album')) {
+        queryParams.set('album', albumSub);
+      }
+    } else if (route.startsWith('album/')) {
+      const sub = routePart.slice(6).trim();
+      if (sub && !queryParams.has('album')) {
+        queryParams.set('album', sub);
+      }
+    }
   } else if (route === 'monitoring-karbon') {
     tab = 'karbon';
   }
@@ -715,7 +729,9 @@ function switchTab(tabId) {
     });
     invalidateLocationMapSize();
   } else if (tabId === 'galeri') {
-    initPublicGallery('public-gallery-container');
+    const { queryParams } = parseHash(window.location.hash);
+    const initialAlbum = queryParams ? (queryParams.get('album') || queryParams.get('id')) : null;
+    initPublicGallery('public-gallery-container', initialAlbum);
   } else if (tabId === 'katalog') {
     const { queryParams } = parseHash(window.location.hash);
     const initialSpecies = queryParams ? queryParams.get('species') : null;

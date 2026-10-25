@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Builder;
 
 class PlantingZonePhoto extends Model
@@ -51,6 +52,19 @@ class PlantingZonePhoto extends Model
     public function uploader(): BelongsTo
     {
         return $this->belongsTo(User::class, 'uploaded_by', 'id');
+    }
+
+    /**
+     * Albums this photo belongs to (many-to-many).
+     */
+    public function albums(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            GalleryAlbum::class,
+            'gallery_album_photos',
+            'planting_zone_photo_id',
+            'gallery_album_id'
+        )->withPivot('sort_order')->withTimestamps();
     }
 
     public function getFileUrlAttribute(): string
