@@ -6394,8 +6394,8 @@ File foto dan catatannya akan dihapus jika tidak digunakan di album/fitur lain.`
 
                 <!-- Top Badges -->
                 <div style="position: absolute; top: 12px; left: 12px; right: 12px; display: flex; align-items: center; justify-content: space-between; z-index: 2; pointer-events: none;">
-                  <span style="font-size: 11.5px; padding: 4px 12px; border-radius: 9999px; font-weight: 600; background: rgba(9, 20, 15, 0.88); backdrop-filter: blur(8px); border: 1px solid rgba(16, 185, 129, 0.4); color: #6ee7b7; box-shadow: 0 2px 8px rgba(0,0,0,0.5);">
-                    ${dm(e.category||`Dokumentasi`)}
+                  <span style="font-size: 11.5px; padding: 4px 12px; border-radius: 9999px; font-weight: 600; background: rgba(9, 20, 15, 0.88); backdrop-filter: blur(8px); border: 1px solid rgba(16, 185, 129, 0.4); color: #6ee7b7; box-shadow: 0 2px 8px rgba(0,0,0,0.5); display: inline-flex; align-items: center; gap: 4px;">
+                    <span>🏞️</span> ${dm(n||`Kawasan Restorasi`)}
                   </span>
                   <span style="font-size: 11px; padding: 4px 11px; border-radius: 9999px; font-weight: 700; background: rgba(9, 20, 15, 0.88); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.2); color: #e2e8f0; box-shadow: 0 2px 8px rgba(0,0,0,0.5); display: inline-flex; align-items: center; gap: 4px;">
                     <span>📷</span> ${i} Foto
@@ -6427,12 +6427,12 @@ File foto dan catatannya akan dihapus jika tidak digunakan di album/fitur lain.`
 
                 <!-- Metadata -->
                 <div style="display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; background: rgba(0, 0, 0, 0.3); border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.06); font-size: 12px;">
-                  ${n?`
-                    <div style="display: flex; align-items: flex-start; gap: 7px; color: #cbd5e1;">
-                      <span style="font-size: 13px; line-height: 1.2;">🏞️</span>
-                      <span style="font-weight: 500; line-height: 1.35; color: #e2e8f0;">${dm(n)}</span>
+                  <div style="display: flex; align-items: center; justify-content: space-between; gap: 7px; color: #cbd5e1;">
+                    <div style="display: flex; align-items: center; gap: 7px;">
+                      <span style="font-size: 13px; line-height: 1.2;">🏷️</span>
+                      <span style="font-weight: 500; line-height: 1.35; color: #6ee7b7;">${dm(e.category||`Dokumentasi`)}</span>
                     </div>
-                  `:``}
+                  </div>
                   ${r?`
                     <div style="display: flex; align-items: center; gap: 7px; color: var(--clr-text-dim);">
                       <span style="font-size: 13px; line-height: 1.2;">📅</span>
