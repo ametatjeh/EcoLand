@@ -97,7 +97,7 @@ export async function initPublicGallery(containerId = 'public-gallery-container'
   container.innerHTML = `
     <div class="gallery-wrapper">
       <!-- Section Header Hero Banner -->
-      <div class="hero-section text-center relative overflow-hidden" style="padding: 36px 24px 32px; margin-bottom: 28px;">
+      <div id="gallery-hero-banner" class="hero-section text-center relative overflow-hidden${targetAlbumParam ? ' hidden' : ''}" style="padding: 36px 24px 32px; margin-bottom: 28px;">
         <div class="hero-badge" style="margin-bottom: 14px;">
           <span>📸</span> Dokumentasi Visual &amp; Silvikultur Kawasan
         </div>
@@ -450,6 +450,12 @@ export async function loadAlbumDetail(albumIdOrSlug, updateUrl = true) {
       zone: p.zone || currentAlbumData.zone || null,
     }));
 
+    // Hide hero banner and filter bar when viewing album detail
+    const heroBanner = document.getElementById('gallery-hero-banner');
+    if (heroBanner) heroBanner.classList.add('hidden');
+    const filterBar = document.querySelector('.gallery-filter-bar');
+    if (filterBar) filterBar.classList.add('hidden');
+
     // Show album detail header
     showAlbumDetailHeader(currentAlbumData);
 
@@ -462,6 +468,12 @@ export async function loadAlbumDetail(albumIdOrSlug, updateUrl = true) {
     renderPhotoGrid();
   } catch (err) {
     console.error('Error loading album detail:', err);
+    // Hide hero banner and filter bar even on error state
+    const heroBanner = document.getElementById('gallery-hero-banner');
+    if (heroBanner) heroBanner.classList.add('hidden');
+    const filterBar = document.querySelector('.gallery-filter-bar');
+    if (filterBar) filterBar.classList.add('hidden');
+
     gridContainer.innerHTML = `
       <div class="bg-slate-900/80 border border-red-500/30 text-red-300 rounded-2xl p-8 text-center text-sm max-w-lg mx-auto shadow-xl my-8">
         <span class="text-4xl block mb-2">📁</span>
@@ -491,6 +503,12 @@ export function navigateBackToAlbums(updateUrl = true) {
       window.history.pushState(null, '', '#galeri');
     }
   }
+
+  // Restore hero banner and filter bar
+  const heroBanner = document.getElementById('gallery-hero-banner');
+  if (heroBanner) heroBanner.classList.remove('hidden');
+  const filterBar = document.querySelector('.gallery-filter-bar');
+  if (filterBar) filterBar.classList.remove('hidden');
 
   // Hide album detail header
   const backBar = document.getElementById('gallery-album-back-bar');
