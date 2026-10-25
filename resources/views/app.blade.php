@@ -139,24 +139,15 @@
             <div class="nav-dropdown-menu" aria-labelledby="nav-btn-informasi" role="menu">
               <a href="#galeri" class="nav-dropdown-item" data-tab="galeri" role="menuitem">
                 <span class="dropdown-item-icon">🖼️</span>
-                <div class="dropdown-item-content">
-                  <span class="dropdown-item-title">Galeri</span>
-                  <span class="dropdown-item-desc">Dokumentasi visual & foto kawasan</span>
-                </div>
+                <span class="dropdown-item-title">Galeri</span>
               </a>
               <a href="#katalog" class="nav-dropdown-item" data-tab="katalog" role="menuitem">
                 <span class="dropdown-item-icon">🌳</span>
-                <div class="dropdown-item-content">
-                  <span class="dropdown-item-title">Data Pohon</span>
-                  <span class="dropdown-item-desc">Katalog master jenis & bibit pohon</span>
-                </div>
+                <span class="dropdown-item-title">Data Pohon</span>
               </a>
               <a href="#tree-qr" class="nav-dropdown-item" data-tab="tree-qr" role="menuitem">
                 <span class="dropdown-item-icon">📱</span>
-                <div class="dropdown-item-content">
-                  <span class="dropdown-item-title">Tree QR</span>
-                  <span class="dropdown-item-desc">Identifikasi digital pohon & blok</span>
-                </div>
+                <span class="dropdown-item-title">Tree QR</span>
               </a>
             </div>
           </div>
