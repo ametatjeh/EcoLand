@@ -6335,14 +6335,14 @@ File foto dan catatannya akan dihapus jika tidak digunakan di album/fitur lain.`
             </h2>
             ${e.description?`<p style="font-size: 13px; color: #94a3b8; line-height: 1.6; margin-bottom: 10px;">${dm(e.description)}</p>`:``}
             <div class="flex flex-wrap items-center gap-2 text-xs">
-              <span style="padding: 4px 12px; border-radius: 9999px; font-weight: 600; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); color: #6ee7b7;">
-                ${dm(e.category||`Dokumentasi`)}
-              </span>
               ${t?`
                 <span style="padding: 4px 12px; border-radius: 9999px; font-weight: 500; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #cbd5e1;">
                   🏞️ ${dm(t)}
                 </span>
               `:``}
+              <span style="padding: 4px 12px; border-radius: 9999px; font-weight: 600; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); color: #6ee7b7;">
+                ${dm(e.category||`Dokumentasi`)}
+              </span>
               ${r?`
                 <span style="padding: 4px 12px; border-radius: 9999px; font-weight: 500; background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.2); color: #6ee7b7;">
                   📅 ${r}
