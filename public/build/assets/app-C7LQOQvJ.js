@@ -2525,93 +2525,120 @@ Kelangsungan Hidup: 95%`,O(p.value),this.showToast(`Template kegiatan penanaman 
     </div>
 
     <!-- Upload Modal Container -->
-    <div id="admin-upload-modal" class="modal-overlay hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl relative">
-        <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-4">
-          <h4 class="text-sm font-bold text-white flex items-center gap-2">
+    <div id="admin-upload-modal" class="admin-modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="upload-modal-title">
+      <div class="admin-modal-box" style="max-width: 620px;">
+        <div class="admin-modal-header">
+          <h3 id="upload-modal-title" style="margin: 0; font-size: 16px; font-weight: 700; color: #ffffff; display: flex; align-items: center; gap: 8px;">
             <span>📤</span> Unggah Foto Dokumentasi Kawasan
-          </h4>
-          <button id="btn-close-upload-modal" class="text-slate-400 hover:text-white p-1 rounded-lg">✕</button>
+          </h3>
+          <button type="button" id="btn-close-upload-modal" class="icon-btn-sm" title="Tutup Popup">✕</button>
         </div>
 
-        <form id="admin-upload-form" class="space-y-4">
-          <div id="admin-upload-error" class="hidden p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-xs"></div>
+        <form id="admin-upload-form" style="display: flex; flex-direction: column; margin: 0; min-height: 0;">
+          <div class="admin-modal-body" style="display: flex; flex-direction: column; gap: 16px; max-height: calc(85vh - 140px); overflow-y: auto;">
+            <div id="admin-upload-error" class="hidden alert-box error" style="padding: 10px 14px; font-size: 12px; border-radius: 8px;"></div>
 
-          <div>
-            <label class="block text-xs font-semibold text-slate-300 mb-1.5">Pilih File Foto (Bisa pilih beberapa) *</label>
-            <input
-              type="file"
-              id="upload-file-input"
-              multiple
-              accept="image/jpeg,image/png,image/webp"
-              required
-              class="w-full text-xs text-slate-400 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-emerald-500/10 file:text-emerald-400 hover:file:bg-emerald-500/20 cursor-pointer bg-slate-800/80 p-2 rounded-xl border border-slate-700"
-            />
-            <p class="text-[11px] text-slate-500 mt-1">Format: JPG, PNG, atau WebP. Maks 5 MB per file.</p>
-          </div>
-
-          <div id="upload-preview-list" class="flex flex-wrap gap-2 max-h-32 overflow-y-auto p-2 bg-slate-950/60 rounded-xl border border-slate-800 hidden"></div>
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <!-- File Upload Zone -->
             <div>
-              <label class="block text-xs font-semibold text-slate-300 mb-1">Judul / Label Foto</label>
-              <input
-                type="text"
-                id="upload-title-input"
-                placeholder="Kosongkan untuk nama file"
-                class="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-xl px-3 py-2 outline-none focus:border-emerald-500"
-              />
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-slate-300 mb-1">Kategori Foto *</label>
-              <select id="upload-category-input" class="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-xl px-3 py-2 outline-none focus:border-emerald-500">
-                <option value="Kondisi Kawasan">Kondisi Kawasan</option>
-                <option value="Kegiatan Penanaman">Kegiatan Penanaman</option>
-                <option value="Pertumbuhan Tanaman">Pertumbuhan Tanaman</option>
-                <option value="Pemantauan">Pemantauan</option>
-                <option value="Perawatan">Perawatan</option>
-                <option value="Fasilitas">Fasilitas</option>
-                <option value="Dokumentasi Lainnya">Dokumentasi Lainnya</option>
-              </select>
-            </div>
-          </div>
-
-          <div>
-            <label class="block text-xs font-semibold text-slate-300 mb-1">Deskripsi / Keterangan (Caption)</label>
-            <textarea
-              id="upload-caption-input"
-              rows="2"
-              placeholder="Catatan tambahan mengenai foto ini..."
-              class="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-xl p-2.5 outline-none focus:border-emerald-500"
-            ></textarea>
-          </div>
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label class="block text-xs font-semibold text-slate-300 mb-1">Tanggal Dokumentasi</label>
-              <input
-                type="date"
-                id="upload-date-input"
-                class="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-xl px-3 py-2 outline-none focus:border-emerald-500"
-              />
-            </div>
-            <div class="flex flex-col justify-end space-y-1.5 pb-1">
-              <label class="inline-flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
-                <input type="checkbox" id="upload-is-published" checked class="rounded bg-slate-800 text-emerald-500" />
-                <span>Publikasikan foto</span>
+              <label style="display: block; font-size: 12.5px; font-weight: 600; color: #e2e8f0; margin-bottom: 6px;">
+                Pilih File Foto (Bisa pilih beberapa sekaligus) <span style="color: #ef4444;">*</span>
               </label>
-              <label class="inline-flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
-                <input type="checkbox" id="upload-is-cover" class="rounded bg-slate-800 text-emerald-500" />
-                <span>Jadikan Sampul Kawasan</span>
+              <div style="position: relative; border: 2px dashed rgba(16, 185, 129, 0.35); border-radius: 12px; background: rgba(16, 185, 129, 0.05); padding: 20px 16px; text-align: center; transition: all 0.2s ease;">
+                <input
+                  type="file"
+                  id="upload-file-input"
+                  multiple
+                  accept="image/jpeg,image/png,image/webp"
+                  required
+                  style="position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 2;"
+                />
+                <div style="display: flex; flex-direction: column; align-items: center; gap: 6px; pointer-events: none;">
+                  <span style="font-size: 28px;">📁</span>
+                  <span style="font-size: 13px; font-weight: 600; color: #6ee7b7;">Klik atau seret foto ke area ini</span>
+                  <span style="font-size: 11px; color: var(--clr-text-muted);">Format didukung: JPG, PNG, atau WebP (Maksimal 5 MB per berkas)</span>
+                </div>
+              </div>
+              <div id="upload-preview-list" class="hidden" style="margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; max-height: 110px; overflow-y: auto; padding: 8px 10px; background: rgba(0, 0, 0, 0.35); border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.08);"></div>
+            </div>
+
+            <!-- Two-Column: Judul & Kategori -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+              <div>
+                <label style="display: block; font-size: 12.5px; font-weight: 600; color: #e2e8f0; margin-bottom: 6px;">
+                  Judul / Label Foto
+                </label>
+                <input
+                  type="text"
+                  id="upload-title-input"
+                  placeholder="Kosongkan untuk nama berkas asli"
+                  style="width: 100%; padding: 10px 14px; background: rgba(15, 23, 42, 0.65); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 10px; color: #ffffff; font-size: 13px; outline: none; box-sizing: border-box;"
+                />
+              </div>
+
+              <div>
+                <label style="display: block; font-size: 12.5px; font-weight: 600; color: #e2e8f0; margin-bottom: 6px;">
+                  Kategori Foto <span style="color: #ef4444;">*</span>
+                </label>
+                <select
+                  id="upload-category-input"
+                  style="width: 100%; padding: 10px 14px; background: rgba(15, 23, 42, 0.65); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 10px; color: #ffffff; font-size: 13px; outline: none; box-sizing: border-box;"
+                >
+                  <option value="Lanskap & Topografi">Lanskap & Topografi</option>
+                  <option value="Kegiatan Penanaman">Kegiatan Penanaman</option>
+                  <option value="Bibit & Spesies">Bibit & Spesies</option>
+                  <option value="Pertumbuhan Vegetasi">Pertumbuhan Vegetasi</option>
+                  <option value="Pemantauan">Pemantauan</option>
+                  <option value="Perawatan">Perawatan</option>
+                  <option value="Kondisi Kawasan">Kondisi Kawasan</option>
+                  <option value="Fasilitas">Fasilitas</option>
+                  <option value="Dokumentasi Lainnya">Dokumentasi Lainnya</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Deskripsi / Keterangan -->
+            <div>
+              <label style="display: block; font-size: 12.5px; font-weight: 600; color: #e2e8f0; margin-bottom: 6px;">
+                Deskripsi / Keterangan Foto (Caption)
               </label>
+              <textarea
+                id="upload-caption-input"
+                rows="2"
+                placeholder="Tulis uraian konteks dokumentasi kawasan ini..."
+                style="width: 100%; padding: 10px 14px; background: rgba(15, 23, 42, 0.65); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 10px; color: #ffffff; font-size: 13px; outline: none; resize: vertical; box-sizing: border-box;"
+              ></textarea>
+            </div>
+
+            <!-- Tanggal & Checkboxes -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start;">
+              <div>
+                <label style="display: block; font-size: 12.5px; font-weight: 600; color: #e2e8f0; margin-bottom: 6px;">
+                  Tanggal Dokumentasi Lapangan
+                </label>
+                <input
+                  type="date"
+                  id="upload-date-input"
+                  style="width: 100%; padding: 9px 14px; background: rgba(15, 23, 42, 0.65); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 10px; color: #ffffff; font-size: 13px; outline: none; box-sizing: border-box;"
+                />
+              </div>
+
+              <!-- Checkbox panel -->
+              <div style="padding: 10px 14px; background: rgba(0, 0, 0, 0.28); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; display: flex; flex-direction: column; gap: 8px; margin-top: 22px;">
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: #e2e8f0; cursor: pointer; user-select: none;">
+                  <input type="checkbox" id="upload-is-published" checked style="width: 16px; height: 16px; accent-color: #10b981; cursor: pointer;" />
+                  <span>Publikasikan ke Galeri Publik</span>
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: #e2e8f0; cursor: pointer; user-select: none;">
+                  <input type="checkbox" id="upload-is-cover" style="width: 16px; height: 16px; accent-color: #10b981; cursor: pointer;" />
+                  <span>Jadikan Foto Sampul Kawasan</span>
+                </label>
+              </div>
             </div>
           </div>
 
-          <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-800">
-            <button type="button" id="btn-cancel-upload" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 transition">
-              Batal
-            </button>
-            <button type="submit" id="btn-submit-upload" class="px-5 py-2 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 transition shadow-lg flex items-center gap-1.5">
+          <div class="admin-modal-footer">
+            <button type="button" id="btn-cancel-upload" class="btn-secondary-action btn-sm">Batal</button>
+            <button type="submit" id="btn-submit-upload" class="btn-primary-action btn-sm" style="display: inline-flex; align-items: center; gap: 6px;">
               <span>🚀</span> Mulai Unggah
             </button>
           </div>
@@ -2620,76 +2647,109 @@ Kelangsungan Hidup: 95%`,O(p.value),this.showToast(`Template kegiatan penanaman 
     </div>
 
     <!-- Edit Photo Modal Container -->
-    <div id="admin-edit-photo-modal" class="modal-overlay hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
-        <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-4">
-          <h4 class="text-sm font-bold text-white flex items-center gap-2">
-            <span>✏️</span> Edit Metadata Foto
-          </h4>
-          <button id="btn-close-edit-modal" class="text-slate-400 hover:text-white p-1 rounded-lg">✕</button>
+    <div id="admin-edit-photo-modal" class="admin-modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="edit-modal-title">
+      <div class="admin-modal-box" style="max-width: 580px;">
+        <div class="admin-modal-header">
+          <h3 id="edit-modal-title" style="margin: 0; font-size: 16px; font-weight: 700; color: #ffffff; display: flex; align-items: center; gap: 8px;">
+            <span>✏️</span> Edit Metadata Foto Dokumentasi
+          </h3>
+          <button type="button" id="btn-close-edit-modal" class="icon-btn-sm" title="Tutup Popup">✕</button>
         </div>
 
-        <form id="admin-edit-photo-form" class="space-y-3.5">
+        <form id="admin-edit-photo-form" style="display: flex; flex-direction: column; margin: 0; min-height: 0;">
           <input type="hidden" id="edit-photo-id" />
-          <div id="admin-edit-error" class="hidden p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-xs"></div>
+          <div class="admin-modal-body" style="display: flex; flex-direction: column; gap: 16px; max-height: calc(85vh - 140px); overflow-y: auto;">
+            <div id="admin-edit-error" class="hidden alert-box error" style="padding: 10px 14px; font-size: 12px; border-radius: 8px;"></div>
 
-          <div class="flex items-center gap-3 p-2 bg-slate-950/70 rounded-xl border border-slate-800">
-            <img id="edit-preview-img" src="" alt="" class="w-16 h-16 rounded-lg object-cover" />
-            <div class="text-xs text-slate-400 flex-1 overflow-hidden">
-              <p id="edit-preview-filename" class="font-mono text-slate-300 truncate">-</p>
-              <label class="mt-1.5 inline-block text-[11px] text-emerald-400 hover:underline cursor-pointer">
-                Ganti File Foto
-                <input type="file" id="edit-replace-file" accept="image/jpeg,image/png,image/webp" class="hidden" />
+            <!-- Preview & Replace File -->
+            <div style="display: flex; align-items: center; gap: 14px; padding: 12px 14px; background: rgba(0, 0, 0, 0.35); border: 1px solid rgba(16, 185, 129, 0.22); border-radius: 12px;">
+              <img id="edit-preview-img" src="" alt="" style="width: 68px; height: 68px; border-radius: 10px; object-fit: cover; border: 1px solid rgba(255, 255, 255, 0.15); flex-shrink: 0;" />
+              <div style="font-size: 12.5px; color: var(--clr-text-muted); flex: 1; min-width: 0;">
+                <p id="edit-preview-filename" style="font-family: monospace; font-size: 12px; color: #e2e8f0; font-weight: 600; margin-bottom: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">-</p>
+                <label style="display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 600; color: #34d399; background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.35); padding: 5px 12px; border-radius: 8px; cursor: pointer; transition: all 0.2s ease;">
+                  <span>🔄 Ganti File Foto</span>
+                  <input type="file" id="edit-replace-file" accept="image/jpeg,image/png,image/webp" style="display: none;" />
+                </label>
+              </div>
+            </div>
+
+            <!-- Judul Foto -->
+            <div>
+              <label style="display: block; font-size: 12.5px; font-weight: 600; color: #e2e8f0; margin-bottom: 6px;">
+                Judul Foto / Label
+              </label>
+              <input
+                type="text"
+                id="edit-title-input"
+                placeholder="Masukkan judul foto dokumentasi..."
+                style="width: 100%; padding: 10px 14px; background: rgba(15, 23, 42, 0.65); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 10px; color: #ffffff; font-size: 13px; outline: none; box-sizing: border-box;"
+              />
+            </div>
+
+            <!-- Deskripsi Foto -->
+            <div>
+              <label style="display: block; font-size: 12.5px; font-weight: 600; color: #e2e8f0; margin-bottom: 6px;">
+                Deskripsi / Keterangan Foto (Caption)
+              </label>
+              <textarea
+                id="edit-caption-input"
+                rows="2"
+                placeholder="Deskripsi dokumentasi lapangan..."
+                style="width: 100%; padding: 10px 14px; background: rgba(15, 23, 42, 0.65); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 10px; color: #ffffff; font-size: 13px; outline: none; resize: vertical; box-sizing: border-box;"
+              ></textarea>
+            </div>
+
+            <!-- Two-Column: Kategori & Tanggal -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+              <div>
+                <label style="display: block; font-size: 12.5px; font-weight: 600; color: #e2e8f0; margin-bottom: 6px;">
+                  Kategori Foto
+                </label>
+                <select
+                  id="edit-category-input"
+                  style="width: 100%; padding: 10px 14px; background: rgba(15, 23, 42, 0.65); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 10px; color: #ffffff; font-size: 13px; outline: none; box-sizing: border-box;"
+                >
+                  <option value="Lanskap & Topografi">Lanskap & Topografi</option>
+                  <option value="Kegiatan Penanaman">Kegiatan Penanaman</option>
+                  <option value="Bibit & Spesies">Bibit & Spesies</option>
+                  <option value="Pertumbuhan Vegetasi">Pertumbuhan Vegetasi</option>
+                  <option value="Pemantauan">Pemantauan</option>
+                  <option value="Perawatan">Perawatan</option>
+                  <option value="Kondisi Kawasan">Kondisi Kawasan</option>
+                  <option value="Fasilitas">Fasilitas</option>
+                  <option value="Dokumentasi Lainnya">Dokumentasi Lainnya</option>
+                </select>
+              </div>
+
+              <div>
+                <label style="display: block; font-size: 12.5px; font-weight: 600; color: #e2e8f0; margin-bottom: 6px;">
+                  Tanggal Dokumentasi
+                </label>
+                <input
+                  type="date"
+                  id="edit-date-input"
+                  style="width: 100%; padding: 9px 14px; background: rgba(15, 23, 42, 0.65); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 10px; color: #ffffff; font-size: 13px; outline: none; box-sizing: border-box;"
+                />
+              </div>
+            </div>
+
+            <!-- Checkbox panel -->
+            <div style="padding: 12px 14px; background: rgba(0, 0, 0, 0.28); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; display: flex; flex-direction: column; gap: 8px;">
+              <label style="display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: #e2e8f0; cursor: pointer; user-select: none;">
+                <input type="checkbox" id="edit-is-published" style="width: 16px; height: 16px; accent-color: #10b981; cursor: pointer;" />
+                <span>Publikasikan Foto di Galeri Publik</span>
+              </label>
+              <label style="display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: #e2e8f0; cursor: pointer; user-select: none;">
+                <input type="checkbox" id="edit-is-cover" style="width: 16px; height: 16px; accent-color: #10b981; cursor: pointer;" />
+                <span>Jadikan Foto Sampul Utama Kawasan</span>
               </label>
             </div>
           </div>
 
-          <div>
-            <label class="block text-xs font-semibold text-slate-300 mb-1">Judul Foto</label>
-            <input type="text" id="edit-title-input" class="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-xl px-3 py-2 outline-none focus:border-emerald-500" />
-          </div>
-
-          <div>
-            <label class="block text-xs font-semibold text-slate-300 mb-1">Deskripsi / Keterangan</label>
-            <textarea id="edit-caption-input" rows="2" class="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-xl p-2.5 outline-none focus:border-emerald-500"></textarea>
-          </div>
-
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label class="block text-xs font-semibold text-slate-300 mb-1">Kategori</label>
-              <select id="edit-category-input" class="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-xl px-2.5 py-2 outline-none focus:border-emerald-500">
-                <option value="Kondisi Kawasan">Kondisi Kawasan</option>
-                <option value="Kegiatan Penanaman">Kegiatan Penanaman</option>
-                <option value="Pertumbuhan Tanaman">Pertumbuhan Tanaman</option>
-                <option value="Pemantauan">Pemantauan</option>
-                <option value="Perawatan">Perawatan</option>
-                <option value="Fasilitas">Fasilitas</option>
-                <option value="Dokumentasi Lainnya">Dokumentasi Lainnya</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-slate-300 mb-1">Tanggal Dokumentasi</label>
-              <input type="date" id="edit-date-input" class="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-xl px-2.5 py-2 outline-none focus:border-emerald-500" />
-            </div>
-          </div>
-
-          <div class="flex items-center gap-4 pt-1">
-            <label class="inline-flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
-              <input type="checkbox" id="edit-is-published" class="rounded bg-slate-800 text-emerald-500" />
-              <span>Publikasikan foto</span>
-            </label>
-            <label class="inline-flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
-              <input type="checkbox" id="edit-is-cover" class="rounded bg-slate-800 text-emerald-500" />
-              <span>Foto Sampul</span>
-            </label>
-          </div>
-
-          <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-800">
-            <button type="button" id="btn-cancel-edit" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 transition">
-              Batal
-            </button>
-            <button type="submit" id="btn-submit-edit" class="px-5 py-2 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 transition shadow-lg">
-              Simpan Perubahan
+          <div class="admin-modal-footer">
+            <button type="button" id="btn-cancel-edit" class="btn-secondary-action btn-sm">Batal</button>
+            <button type="submit" id="btn-submit-edit" class="btn-primary-action btn-sm" style="display: inline-flex; align-items: center; gap: 6px;">
+              <span>💾</span> Simpan Perubahan
             </button>
           </div>
         </form>
@@ -2792,11 +2852,11 @@ Kelangsungan Hidup: 95%`,O(p.value),this.showToast(`Template kegiatan penanaman 
           </div>
         `}).join(``)}
     </div>
-  `,e.querySelectorAll(`.btn-set-cover`).forEach(e=>{e.addEventListener(`click`,async()=>{let t=e.getAttribute(`data-id`);try{e.textContent=`Menyimpan...`,e.disabled=!0,await X.setZoneCoverPhoto(Ul.id,t),m.updated(`Foto berhasil ditetapkan sebagai sampul kawasan.`),await Yl()}catch(e){m.error(`✕ Gagal menetapkan foto sampul`,e.message)}finally{e.disabled=!1,e.textContent=`⭐ Jadikan Sampul`}})}),e.querySelectorAll(`.btn-edit-photo`).forEach(e=>{e.addEventListener(`click`,()=>{let t=parseInt(e.getAttribute(`data-id`),10),n=Wl.find(e=>e.id===t);n&&tu(n)})}),e.querySelectorAll(`.btn-delete-photo`).forEach(e=>{e.addEventListener(`click`,async()=>{let t=e.getAttribute(`data-id`);if(confirm(`Apakah Anda yakin ingin menghapus foto dokumentasi ini?`))try{await X.deleteZonePhoto(Ul.id,t),m.deleted(`Foto dokumentasi kawasan berhasil dihapus.`),await Yl()}catch(e){m.error(`✕ Gagal menghapus foto`,e.message)}})})}function Zl(){let e=document.getElementById(`btn-admin-upload-photos`);document.getElementById(`admin-upload-modal`);let t=document.getElementById(`btn-close-upload-modal`),n=document.getElementById(`btn-cancel-upload`),r=document.getElementById(`admin-upload-form`),i=document.getElementById(`upload-file-input`),a=document.getElementById(`upload-preview-list`);e&&e.addEventListener(`click`,Ql),t&&t.addEventListener(`click`,$l),n&&n.addEventListener(`click`,$l),i&&i.addEventListener(`change`,e=>{let t=Array.from(e.target.files);t.length>0&&a?(a.classList.remove(`hidden`),a.innerHTML=t.map(e=>`
-          <span class="inline-flex items-center gap-1 bg-slate-800 text-slate-300 text-[10px] px-2 py-1 rounded-md border border-slate-700">
+  `,e.querySelectorAll(`.btn-set-cover`).forEach(e=>{e.addEventListener(`click`,async()=>{let t=e.getAttribute(`data-id`);try{e.textContent=`Menyimpan...`,e.disabled=!0,await X.setZoneCoverPhoto(Ul.id,t),m.updated(`Foto berhasil ditetapkan sebagai sampul kawasan.`),await Yl()}catch(e){m.error(`✕ Gagal menetapkan foto sampul`,e.message)}finally{e.disabled=!1,e.textContent=`⭐ Jadikan Sampul`}})}),e.querySelectorAll(`.btn-edit-photo`).forEach(e=>{e.addEventListener(`click`,()=>{let t=parseInt(e.getAttribute(`data-id`),10),n=Wl.find(e=>e.id===t);n&&tu(n)})}),e.querySelectorAll(`.btn-delete-photo`).forEach(e=>{e.addEventListener(`click`,async()=>{let t=e.getAttribute(`data-id`);if(confirm(`Apakah Anda yakin ingin menghapus foto dokumentasi ini?`))try{await X.deleteZonePhoto(Ul.id,t),m.deleted(`Foto dokumentasi kawasan berhasil dihapus.`),await Yl()}catch(e){m.error(`✕ Gagal menghapus foto`,e.message)}})})}function Zl(){let e=document.getElementById(`btn-admin-upload-photos`),t=document.getElementById(`admin-upload-modal`),n=document.getElementById(`btn-close-upload-modal`),r=document.getElementById(`btn-cancel-upload`),i=document.getElementById(`admin-upload-form`),a=document.getElementById(`upload-file-input`),o=document.getElementById(`upload-preview-list`);e&&e.addEventListener(`click`,Ql),n&&n.addEventListener(`click`,$l),r&&r.addEventListener(`click`,$l),t&&t.addEventListener(`click`,e=>{e.target===t&&$l()}),a&&a.addEventListener(`change`,e=>{let t=Array.from(e.target.files);t.length>0&&o?(o.classList.remove(`hidden`),o.innerHTML=t.map(e=>`
+          <span style="display: inline-flex; align-items: center; gap: 5px; background: rgba(16, 185, 129, 0.15); color: #6ee7b7; font-size: 11.5px; padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(16, 185, 129, 0.35); font-weight: 500;">
             📄 ${ru(e.name)} (${Math.round(e.size/1024)} KB)
           </span>
-        `).join(``)):a&&a.classList.add(`hidden`)}),r&&r.addEventListener(`submit`,async e=>{e.preventDefault();let t=document.getElementById(`admin-upload-error`),n=document.getElementById(`btn-submit-upload`);t&&t.classList.add(`hidden`);let o=i.files;if(!o||o.length===0){t&&(t.textContent=`Pilih setidaknya satu file foto.`,t.classList.remove(`hidden`));return}let s=new FormData;Array.from(o).forEach(e=>{s.append(`photos[]`,e)}),s.append(`title`,document.getElementById(`upload-title-input`).value.trim()),s.append(`category`,document.getElementById(`upload-category-input`).value),s.append(`caption`,document.getElementById(`upload-caption-input`).value.trim());let c=gl(document.getElementById(`upload-date-input`).value);c&&s.append(`documented_at`,c),s.append(`is_published`,document.getElementById(`upload-is-published`).checked?`1`:`0`),s.append(`is_cover`,document.getElementById(`upload-is-cover`).checked?`1`:`0`),n.disabled=!0,n.innerHTML=`<span class="animate-spin">⏳</span> Mengunggah...`;try{let e=await X.uploadZonePhotos(Ul.id,s);$l(),r.reset(),a&&a.classList.add(`hidden`),m.uploaded(e?.message||`Foto kawasan dan metadata berhasil diunggah.`),await Yl()}catch(e){t&&(t.textContent=e.message||`Gagal mengunggah foto.`,t.classList.remove(`hidden`)),m.error(`✕ Gagal mengunggah foto`,e.message||`Periksa file foto dan coba lagi.`)}finally{n.disabled=!1,n.innerHTML=`<span>🚀</span> Mulai Unggah`}})}function Ql(){let e=document.getElementById(`admin-upload-modal`),t=document.getElementById(`upload-date-input`);t&&!t.value&&(t.value=new Date().toISOString().substring(0,10)),e&&e.classList.remove(`hidden`)}function $l(){let e=document.getElementById(`admin-upload-modal`);e&&e.classList.add(`hidden`)}function eu(){document.getElementById(`admin-edit-photo-modal`);let e=document.getElementById(`btn-close-edit-modal`),t=document.getElementById(`btn-cancel-edit`),n=document.getElementById(`admin-edit-photo-form`),r=document.getElementById(`edit-replace-file`);e&&e.addEventListener(`click`,nu),t&&t.addEventListener(`click`,nu),r&&r.addEventListener(`change`,e=>{let t=e.target.files[0];if(t){let e=document.getElementById(`edit-preview-img`),n=document.getElementById(`edit-preview-filename`);e&&(e.src=URL.createObjectURL(t)),n&&(n.textContent=`File Baru: ${t.name}`)}}),n&&n.addEventListener(`submit`,async e=>{e.preventDefault();let t=document.getElementById(`edit-photo-id`).value,n=document.getElementById(`btn-submit-edit`),i=document.getElementById(`admin-edit-error`);i&&i.classList.add(`hidden`);let a=new FormData;a.append(`title`,document.getElementById(`edit-title-input`).value.trim()),a.append(`caption`,document.getElementById(`edit-caption-input`).value.trim()),a.append(`category`,document.getElementById(`edit-category-input`).value);let o=gl(document.getElementById(`edit-date-input`).value);o&&a.append(`documented_at`,o),a.append(`is_published`,document.getElementById(`edit-is-published`).checked?`1`:`0`),a.append(`is_cover`,document.getElementById(`edit-is-cover`).checked?`1`:`0`),r&&r.files.length>0&&a.append(`photo`,r.files[0]),n.disabled=!0,n.textContent=`Menyimpan...`;try{let e=await X.updateZonePhoto(Ul.id,t,a);nu(),m.updated(e?.message||`Metadata foto kawasan berhasil diperbarui.`),await Yl()}catch(e){i&&(i.textContent=e.message||`Gagal memperbarui metadata foto.`,i.classList.remove(`hidden`)),m.error(`✕ Gagal memperbarui foto`,e.message)}finally{n.disabled=!1,n.textContent=`Simpan Perubahan`}})}function tu(e){let t=document.getElementById(`admin-edit-photo-modal`);if(!t)return;document.getElementById(`edit-photo-id`).value=e.id,document.getElementById(`edit-title-input`).value=e.title||``,document.getElementById(`edit-caption-input`).value=e.caption||``,document.getElementById(`edit-category-input`).value=e.category||`Kondisi Kawasan`,document.getElementById(`edit-date-input`).value=ml(e.documented_at),document.getElementById(`edit-is-published`).checked=!!e.is_published,document.getElementById(`edit-is-cover`).checked=!!e.is_cover;let n=document.getElementById(`edit-preview-img`),r=document.getElementById(`edit-preview-filename`);n&&(n.src=e.file_url||e.file_path),r&&(r.textContent=e.title||`Foto #${e.id}`);let i=document.getElementById(`edit-replace-file`);i&&(i.value=``);let a=document.getElementById(`admin-edit-error`);a&&a.classList.add(`hidden`),t.classList.remove(`hidden`)}function nu(){let e=document.getElementById(`admin-edit-photo-modal`);e&&e.classList.add(`hidden`)}function ru(e){return e?String(e).replace(/&/g,`&amp;`).replace(/</g,`&lt;`).replace(/>/g,`&gt;`).replace(/"/g,`&quot;`):``}var iu=[],au=null;async function ou({scenes:e=[],onNavigateToTour:t,onOpenHotspotEditor:n}={}){let r=document.getElementById(`admin-zones-content`);r&&(cu(r),await lu())}async function su(e,t=null,n=`tab-ringkasan`){t&&(au=t);let r=document.getElementById(`admin-zones-content`);r&&(document.getElementById(`zone-pane-container`)||cu(r),r.querySelectorAll(`.zone-nav-tab`).forEach(t=>{t.classList.toggle(`active`,t.getAttribute(`data-zone-tab`)===e)}),e===`list`?iu.length===0?await lu():uu():e===`create`?pu(null):e===`detail`&&au?mu(au,n):e===`gallery`&&(iu.length===0&&await lu(),Cu()))}function cu(e){e.innerHTML=`
+        `).join(``)):o&&o.classList.add(`hidden`)}),i&&i.addEventListener(`submit`,async e=>{e.preventDefault();let t=document.getElementById(`admin-upload-error`),n=document.getElementById(`btn-submit-upload`);t&&t.classList.add(`hidden`);let r=a.files;if(!r||r.length===0){t&&(t.textContent=`Pilih setidaknya satu file foto.`,t.classList.remove(`hidden`));return}let s=new FormData;Array.from(r).forEach(e=>{s.append(`photos[]`,e)}),s.append(`title`,document.getElementById(`upload-title-input`).value.trim()),s.append(`category`,document.getElementById(`upload-category-input`).value),s.append(`caption`,document.getElementById(`upload-caption-input`).value.trim());let c=gl(document.getElementById(`upload-date-input`).value);c&&s.append(`documented_at`,c),s.append(`is_published`,document.getElementById(`upload-is-published`).checked?`1`:`0`),s.append(`is_cover`,document.getElementById(`upload-is-cover`).checked?`1`:`0`),n.disabled=!0,n.innerHTML=`<span class="animate-spin">⏳</span> Mengunggah...`;try{let e=await X.uploadZonePhotos(Ul.id,s);$l(),i.reset(),o&&o.classList.add(`hidden`),m.uploaded(e?.message||`Foto kawasan dan metadata berhasil diunggah.`),await Yl()}catch(e){t&&(t.textContent=e.message||`Gagal mengunggah foto.`,t.classList.remove(`hidden`)),m.error(`✕ Gagal mengunggah foto`,e.message||`Periksa file foto dan coba lagi.`)}finally{n.disabled=!1,n.innerHTML=`<span>🚀</span> Mulai Unggah`}})}function Ql(){let e=document.getElementById(`admin-upload-modal`),t=document.getElementById(`upload-date-input`);t&&!t.value&&(t.value=new Date().toISOString().substring(0,10)),e&&e.classList.remove(`hidden`)}function $l(){let e=document.getElementById(`admin-upload-modal`);e&&e.classList.add(`hidden`)}function eu(){let e=document.getElementById(`admin-edit-photo-modal`),t=document.getElementById(`btn-close-edit-modal`),n=document.getElementById(`btn-cancel-edit`),r=document.getElementById(`admin-edit-photo-form`),i=document.getElementById(`edit-replace-file`);t&&t.addEventListener(`click`,nu),n&&n.addEventListener(`click`,nu),e&&e.addEventListener(`click`,t=>{t.target===e&&nu()}),i&&i.addEventListener(`change`,e=>{let t=e.target.files[0];if(t){let e=document.getElementById(`edit-preview-img`),n=document.getElementById(`edit-preview-filename`);e&&(e.src=URL.createObjectURL(t)),n&&(n.textContent=`File Baru: ${t.name}`)}}),r&&r.addEventListener(`submit`,async e=>{e.preventDefault();let t=document.getElementById(`edit-photo-id`).value,n=document.getElementById(`btn-submit-edit`),r=document.getElementById(`admin-edit-error`);r&&r.classList.add(`hidden`);let a=new FormData;a.append(`title`,document.getElementById(`edit-title-input`).value.trim()),a.append(`caption`,document.getElementById(`edit-caption-input`).value.trim()),a.append(`category`,document.getElementById(`edit-category-input`).value);let o=gl(document.getElementById(`edit-date-input`).value);o&&a.append(`documented_at`,o),a.append(`is_published`,document.getElementById(`edit-is-published`).checked?`1`:`0`),a.append(`is_cover`,document.getElementById(`edit-is-cover`).checked?`1`:`0`),i&&i.files.length>0&&a.append(`photo`,i.files[0]),n.disabled=!0,n.textContent=`Menyimpan...`;try{let e=await X.updateZonePhoto(Ul.id,t,a);nu(),m.updated(e?.message||`Metadata foto kawasan berhasil diperbarui.`),await Yl()}catch(e){r&&(r.textContent=e.message||`Gagal memperbarui metadata foto.`,r.classList.remove(`hidden`)),m.error(`✕ Gagal memperbarui foto`,e.message)}finally{n.disabled=!1,n.textContent=`Simpan Perubahan`}})}function tu(e){let t=document.getElementById(`admin-edit-photo-modal`);if(!t)return;document.getElementById(`edit-photo-id`).value=e.id,document.getElementById(`edit-title-input`).value=e.title||``,document.getElementById(`edit-caption-input`).value=e.caption||``,document.getElementById(`edit-category-input`).value=e.category||`Kondisi Kawasan`,document.getElementById(`edit-date-input`).value=ml(e.documented_at),document.getElementById(`edit-is-published`).checked=!!e.is_published,document.getElementById(`edit-is-cover`).checked=!!e.is_cover;let n=document.getElementById(`edit-preview-img`),r=document.getElementById(`edit-preview-filename`);n&&(n.src=e.file_url||e.file_path),r&&(r.textContent=e.title||`Foto #${e.id}`);let i=document.getElementById(`edit-replace-file`);i&&(i.value=``);let a=document.getElementById(`admin-edit-error`);a&&a.classList.add(`hidden`),t.classList.remove(`hidden`)}function nu(){let e=document.getElementById(`admin-edit-photo-modal`);e&&e.classList.add(`hidden`)}function ru(e){return e?String(e).replace(/&/g,`&amp;`).replace(/</g,`&lt;`).replace(/>/g,`&gt;`).replace(/"/g,`&quot;`):``}var iu=[],au=null;async function ou({scenes:e=[],onNavigateToTour:t,onOpenHotspotEditor:n}={}){let r=document.getElementById(`admin-zones-content`);r&&(cu(r),await lu())}async function su(e,t=null,n=`tab-ringkasan`){t&&(au=t);let r=document.getElementById(`admin-zones-content`);r&&(document.getElementById(`zone-pane-container`)||cu(r),r.querySelectorAll(`.zone-nav-tab`).forEach(t=>{t.classList.toggle(`active`,t.getAttribute(`data-zone-tab`)===e)}),e===`list`?iu.length===0?await lu():uu():e===`create`?pu(null):e===`detail`&&au?mu(au,n):e===`gallery`&&(iu.length===0&&await lu(),Cu()))}function cu(e){e.innerHTML=`
     <div class="admin-section-header" style="margin-bottom: 16px;">
       <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; width: 100%;">
         <div>
