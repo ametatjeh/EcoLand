@@ -4339,7 +4339,7 @@ Kelangsungan Hidup: 95%`,O(p.value),this.showToast(`Template kegiatan penanaman 
           </div>
 
           <!-- Tabel Identitas Ringkas -->
-          <div style="background: rgba(0, 0, 0, 0.32); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 14px 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 13px;">
+          <div style="background: rgba(0, 0, 0, 0.32); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 14px 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; font-size: 13px;">
             <div>
               <span style="color: var(--clr-text-dim); display: block; font-size: 11px; text-transform: uppercase; font-weight: 600;">Nama Daerah / Lokal</span>
               <strong style="color: #f1f5f9; font-weight: 600;">${$(t.local_name||`Data belum tersedia`)}</strong>
@@ -4351,10 +4351,6 @@ Kelangsungan Hidup: 95%`,O(p.value),this.showToast(`Template kegiatan penanaman 
             <div>
               <span style="color: var(--clr-text-dim); display: block; font-size: 11px; text-transform: uppercase; font-weight: 600;">Status Asal Spesies</span>
               <span style="color: #e2e8f0;">${$(n)}</span>
-            </div>
-            <div>
-              <span style="color: var(--clr-text-dim); display: block; font-size: 11px; text-transform: uppercase; font-weight: 600;">Status Publikasi</span>
-              <span style="color: #6ee7b7; font-weight: 600;">✓ Terverifikasi Aktif</span>
             </div>
           </div>
         </div>
