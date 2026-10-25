@@ -882,6 +882,17 @@ body:has(#view-admin.active) #public-global-footer,
   transform: scale(1.05);
 }
 
+.gallery-card:hover .btn-view-photo {
+  background: rgba(16, 185, 129, 0.22) !important;
+  border-color: rgba(16, 185, 129, 0.55) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25);
+}
+
+.gallery-card:hover .btn-view-photo span:last-child {
+  transform: translateX(4px);
+}
+
 .gallery-img-box {
   aspect-ratio: 16 / 10;
 }

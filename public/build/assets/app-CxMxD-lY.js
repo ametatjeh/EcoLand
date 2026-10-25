@@ -4847,60 +4847,75 @@ Kelangsungan Hidup: 95%`,O(p.value),this.showToast(`Template kegiatan penanaman 
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-7">
       ${Nf.map((e,t)=>{let n=e.zone?e.zone.name:`Kawasan Penanaman`,r=e.documented_at?Xf(e.documented_at):hl(e.created_at),i=e.thumbnail_url||e.file_url||e.file_path||``;return i&&!i.startsWith(`http://`)&&!i.startsWith(`https://`)&&!i.startsWith(`/`)&&(i=`/`+i),`
           <div
-            class="gallery-card group bg-slate-900/75 backdrop-blur-md border border-white/10 hover:border-emerald-500/50 rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl hover:shadow-emerald-950/30 transition-all duration-300 flex flex-col cursor-pointer hover:-translate-y-1.5"
+            class="gallery-card point-card group"
             data-index="${t}"
+            style="display: flex; flex-direction: column; justify-content: space-between; background: rgba(15, 28, 22, 0.9); border: 1px solid rgba(16, 185, 129, 0.22); border-radius: 16px; overflow: hidden; box-shadow: 0 10px 24px -10px rgba(0, 0, 0, 0.5); cursor: pointer; transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;"
           >
-            <!-- Thumbnail Media Box (16:10 aspect ratio) -->
-            <div class="relative gallery-img-box bg-slate-950 overflow-hidden">
-              <img
-                src="${i}"
-                alt="${Zf(e.alt_text||e.title||`Foto Kawasan`)}"
-                loading="lazy"
-                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                onerror="this.onerror=null; this.src='${Ff}';"
-              />
-              <!-- Subtle Dark Gradient & Expand Button on Hover -->
-              <div class="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-between p-3.5 sm:p-4">
-                <span class="text-xs font-semibold text-white flex items-center gap-2 bg-slate-900/90 backdrop-blur-md px-3.5 py-1.5 rounded-xl border border-white/20 shadow-lg group-hover:border-emerald-400/50">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-emerald-400"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
-                  <span>Perbesar Foto</span>
-                </span>
-                <span class="text-[11px] font-mono text-slate-300 bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-lg border border-white/10">
-                  #${t+1}
-                </span>
-              </div>
-              <!-- Top Badges -->
-              <div class="absolute top-3 left-3 right-3 flex items-center justify-between pointer-events-none">
-                <span class="text-[11px] font-semibold bg-slate-950/85 backdrop-blur-md text-emerald-400 border border-emerald-500/30 px-2.5 py-1 rounded-lg shadow-md">
-                  ${Zf(e.category||`Dokumentasi`)}
-                </span>
-                ${e.is_cover?`
-                  <span class="text-[11px] font-bold bg-amber-500 text-slate-950 px-2.5 py-1 rounded-lg shadow-md flex items-center gap-1">
-                    <span>⭐</span> Sampul
+            <div>
+              <!-- Thumbnail Media Box (16:10 aspect ratio) -->
+              <div style="position: relative; width: 100%; aspect-ratio: 16 / 10; overflow: hidden; background: #070d0a;">
+                <img
+                  src="${i}"
+                  alt="${Zf(e.alt_text||e.title||`Foto Kawasan`)}"
+                  loading="lazy"
+                  style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease;"
+                  class="gallery-img"
+                  onerror="this.onerror=null; this.src='${Ff}';"
+                />
+
+                <!-- Top Badges -->
+                <div style="position: absolute; top: 12px; left: 12px; right: 12px; display: flex; align-items: center; justify-content: space-between; z-index: 2; pointer-events: none;">
+                  <span style="font-size: 11.5px; padding: 4px 12px; border-radius: 9999px; font-weight: 600; background: rgba(9, 20, 15, 0.88); backdrop-filter: blur(8px); border: 1px solid rgba(16, 185, 129, 0.4); color: #6ee7b7; box-shadow: 0 2px 8px rgba(0,0,0,0.5);">
+                    ${Zf(e.category||`Dokumentasi`)}
                   </span>
-                `:``}
+                  ${e.is_cover?`
+                    <span style="font-size: 11px; padding: 4px 11px; border-radius: 9999px; font-weight: 700; background: #f59e0b; color: #1e1b4b; box-shadow: 0 2px 8px rgba(0,0,0,0.5); display: inline-flex; align-items: center; gap: 4px;">
+                      <span>⭐</span> Sampul
+                    </span>
+                  `:``}
+                </div>
+              </div>
+
+              <!-- Content Details -->
+              <div style="padding: 18px 20px 14px;">
+                <h3 style="font-size: 17px; font-weight: 700; color: #ffffff; margin-bottom: 8px; line-height: 1.35; transition: color 0.2s ease;">
+                  ${Zf(e.title||`Dokumentasi Kawasan`)}
+                </h3>
+                <p style="font-size: 13px; color: var(--clr-text-muted); line-height: 1.6; margin-bottom: 14px;">
+                  ${Zf(e.caption||`Foto dokumentasi resmi kegiatan penanaman dan pemulihan tutupan lahan kawasan.`)}
+                </p>
+
+                <!-- Metadata Kawasan & Tanggal -->
+                <div style="display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; background: rgba(0, 0, 0, 0.3); border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.06); font-size: 12px;">
+                  <div style="display: flex; align-items: flex-start; gap: 7px; color: #cbd5e1;">
+                    <span style="font-size: 13px; line-height: 1.2;">🏞️</span>
+                    <span style="font-weight: 500; line-height: 1.35; color: #e2e8f0;">${Zf(n)}</span>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 7px; color: var(--clr-text-dim);">
+                    <span style="font-size: 13px; line-height: 1.2;">📅</span>
+                    <span>Dokumentasi: <strong style="color: #6ee7b7; font-weight: 600;">${r}</strong></span>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <!-- Content Details -->
-            <div class="p-5 flex-1 flex flex-col justify-between gap-3 bg-slate-900/40">
-              <div>
-                <h3 class="text-base font-bold text-white line-clamp-2 group-hover:text-emerald-400 transition-colors leading-snug tracking-tight">
-                  ${Zf(e.title||`Dokumentasi Kawasan`)}
-                </h3>
-                <p class="text-xs text-slate-300 line-clamp-2 mt-2 leading-relaxed">
-                  ${Zf(e.caption||`Foto dokumentasi resmi kegiatan penanaman dan pemulihan tutupan lahan kawasan.`)}
-                </p>
-              </div>
-              <div class="pt-3 border-t border-white/10 flex items-center justify-between text-xs text-slate-400 gap-2">
-                <span class="truncate font-medium text-slate-300 flex items-center gap-1.5" title="${Zf(n)}">
-                  <span>🏞️</span>
-                  <span class="truncate">${Zf(n)}</span>
-                </span>
-                <span class="font-mono text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-md border border-emerald-500/20 shrink-0 text-[11px]">
-                  📅 ${r}
-                </span>
-              </div>
+            <!-- Footer Tombol Aksi -->
+            <div style="padding: 12px 20px 16px; border-top: 1px solid rgba(255, 255, 255, 0.08);">
+              <button
+                type="button"
+                class="btn-view-photo btn-secondary-action btn-sm"
+                data-index="${t}"
+                style="width: 100%; display: flex; justify-content: center; align-items: center; gap: 8px; font-weight: 600; font-size: 13px; padding: 9px 16px; border-radius: 10px; background: rgba(16, 185, 129, 0.12); color: #ecfdf5; border: 1px solid rgba(16, 185, 129, 0.3); cursor: pointer; transition: all 0.2s ease;"
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                  <line x1="11" y1="8" x2="11" y2="14"></line>
+                  <line x1="8" y1="11" x2="14" y2="11"></line>
+                </svg>
+                <span>Lihat Foto Resolusi Penuh</span>
+                <span style="margin-left: 2px; transition: transform 0.2s ease;">→</span>
+              </button>
             </div>
           </div>
         `}).join(``)}
