@@ -269,6 +269,19 @@ body {
   transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1),
               transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
               visibility 0.2s;
+  /* Invisible bridge to bridge the 10px hover gap seamlessly */
+  margin-top: 0;
+}
+
+/* Invisible hover bridge between trigger and menu */
+.nav-dropdown-menu::after {
+  content: '';
+  position: absolute;
+  top: -14px;
+  left: 0;
+  right: 0;
+  height: 14px;
+  background: transparent;
 }
 
 /* Top pointer arrow */

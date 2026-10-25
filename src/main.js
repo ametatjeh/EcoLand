@@ -408,6 +408,30 @@ function setupNavigation() {
   // Setup Dropdown Interactive Toggles (Informasi)
   dropdownContainers.forEach((dd) => {
     const trigger = dd.querySelector('.nav-dropdown-trigger');
+    let hoverTimeout = null;
+
+    // 1. Mouse Hover Behavior (Desktop)
+    dd.addEventListener('mouseenter', () => {
+      if (window.innerWidth > 900) {
+        if (hoverTimeout) {
+          clearTimeout(hoverTimeout);
+          hoverTimeout = null;
+        }
+        dd.classList.add('is-open');
+        if (trigger) trigger.setAttribute('aria-expanded', 'true');
+      }
+    });
+
+    dd.addEventListener('mouseleave', () => {
+      if (window.innerWidth > 900) {
+        hoverTimeout = setTimeout(() => {
+          dd.classList.remove('is-open');
+          if (trigger) trigger.setAttribute('aria-expanded', 'false');
+        }, 120);
+      }
+    });
+
+    // 2. Click Toggle Behavior (Mobile & Tablet / Touch)
     if (trigger) {
       trigger.addEventListener('click', (e) => {
         e.preventDefault();
