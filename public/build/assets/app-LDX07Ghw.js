@@ -1157,43 +1157,14 @@ Kelangsungan Hidup: 95%`,O(p.value),this.showToast(`Template kegiatan penanaman 
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
         </svg>
-      `)})}function ml(e){if(!e)return``;if(e instanceof Date)return isNaN(e.getTime())?``:`${e.getFullYear()}-${String(e.getMonth()+1).padStart(2,`0`)}-${String(e.getDate()).padStart(2,`0`)}`;let t=String(e).trim();if(!t||t===`dd/mm/yyyy`||t===`-`)return``;let n=t.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);if(n)return`${n[1]}-${n[2].padStart(2,`0`)}-${n[3].padStart(2,`0`)}`;let r=t.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);if(r){let e=r[1].padStart(2,`0`),t=r[2].padStart(2,`0`);return`${r[3]}-${t}-${e}`}return``}function hl(e,t=`-`){if(!e)return t;let n=ml(e);if(!n)return t;let[r,i,a]=n.split(`-`);return`${a}/${i}/${r}`}function gl(e){return e&&ml(e)||null}var _l=`dashboard`,vl=[],yl=[],bl=[],xl=[];async function Sl({scenes:e=[]}={}){xl=e;let t=document.getElementById(`admin-trees-content`);t&&(wl(t,e),await Tl(_l,e))}async function Cl(e,t=[]){t&&t.length>0&&(xl=t),_l=e;let n=document.getElementById(`admin-trees-content`);n&&(document.getElementById(`tree-subpane-content`)||wl(n,t),n.querySelectorAll(`.tree-tab-btn`).forEach(t=>{t.classList.toggle(`active`,t.getAttribute(`data-tree-tab`)===e)}),await Tl(e,t))}function wl(e,t){e.innerHTML=`
-    <div class="admin-section-header" style="margin-bottom: 16px;">
-      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; width: 100%;">
-        <div>
-          <h2 style="display: flex; align-items: center; gap: 8px;">
-            <span style="font-size: 24px;">🌱</span> Data Penanaman & Pemantauan Pohon
-          </h2>
-          <p style="color: var(--clr-text-muted); font-size: 13px; margin-top: 4px;">
-            Dokumentasi jenis pohon, bibit tertanam, kelompok batch, survei pemantauan historis, dan tindakan silvikultur kawasan ±2 hektare.
-          </p>
-        </div>
-        <div style="display: flex; gap: 8px;">
-          <a href="#katalog" class="btn-secondary-action btn-sm" style="text-decoration: none;">
-            🌳 Katalog Publik Pohon →
-          </a>
-        </div>
-      </div>
-    </div>
-
-    <!-- Tree Module Sub-tabs -->
-    <div class="tree-subtabs" style="display: flex; gap: 6px; border-bottom: 1px solid var(--clr-border); padding-bottom: 10px; margin-bottom: 20px; overflow-x: auto;">
-      <button class="tree-tab-btn active" data-tree-tab="dashboard">📊 Dashboard</button>
-      <button class="tree-tab-btn" data-tree-tab="species">🌿 Master Jenis Pohon</button>
-      <button class="tree-tab-btn" data-tree-tab="activities">📋 Kegiatan Penanaman</button>
-      <button class="tree-tab-btn" data-tree-tab="surveys">🔍 Pemantauan Tanaman</button>
-      <button class="tree-tab-btn" data-tree-tab="maintenance">🛠️ Perawatan & Penyulaman</button>
-      <button class="tree-tab-btn" data-tree-tab="reports">📑 Laporan</button>
-      <button class="tree-tab-btn" data-tree-tab="import-export">🔄 Impor & Ekspor</button>
-    </div>
-
+      `)})}function ml(e){if(!e)return``;if(e instanceof Date)return isNaN(e.getTime())?``:`${e.getFullYear()}-${String(e.getMonth()+1).padStart(2,`0`)}-${String(e.getDate()).padStart(2,`0`)}`;let t=String(e).trim();if(!t||t===`dd/mm/yyyy`||t===`-`)return``;let n=t.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);if(n)return`${n[1]}-${n[2].padStart(2,`0`)}-${n[3].padStart(2,`0`)}`;let r=t.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);if(r){let e=r[1].padStart(2,`0`),t=r[2].padStart(2,`0`);return`${r[3]}-${t}-${e}`}return``}function hl(e,t=`-`){if(!e)return t;let n=ml(e);if(!n)return t;let[r,i,a]=n.split(`-`);return`${a}/${i}/${r}`}function gl(e){return e&&ml(e)||null}var _l=`dashboard`,vl=[],yl=[],bl=[],xl=[];async function Sl({scenes:e=[]}={}){xl=e;let t=document.getElementById(`admin-trees-content`);t&&(wl(t,e),await Tl(_l,e))}async function Cl(e,t=[]){t&&t.length>0&&(xl=t),_l=e;let n=document.getElementById(`admin-trees-content`);n&&(document.getElementById(`tree-subpane-content`)||wl(n,t),await Tl(e,t))}function wl(e,t){e.innerHTML=`
     <!-- Tree Subpane Content Area -->
     <div id="tree-subpane-content" style="min-height: 400px;">
       <div style="display: flex; justify-content: center; align-items: center; padding: 40px;">
         <span class="loading-spinner"></span> Memuat data penanaman...
       </div>
     </div>
-  `,e.querySelectorAll(`.tree-tab-btn`).forEach(n=>{n.addEventListener(`click`,async()=>{let r=n.getAttribute(`data-tree-tab`);_l=r,e.querySelectorAll(`.tree-tab-btn`).forEach(e=>e.classList.toggle(`active`,e===n)),await Tl(r,t)})})}async function Tl(e,t){let n=document.getElementById(`tree-subpane-content`);if(n)try{e===`dashboard`?await El(n):e===`species`?await Dl(n):e===`activities`?await jl(n,t):e===`surveys`?await Fl(n):e===`maintenance`?await Ll(n):e===`reports`?zl(n):e===`import-export`&&Bl(n)}catch(e){n.innerHTML=`
+  `}async function Tl(e,t){let n=document.getElementById(`tree-subpane-content`);if(n)try{e===`dashboard`?await El(n):e===`species`?await Dl(n):e===`activities`?await jl(n,t):e===`surveys`?await Fl(n):e===`maintenance`?await Ll(n):e===`reports`?zl(n):e===`import-export`&&Bl(n)}catch(e){n.innerHTML=`
       <div class="alert-banner alert-danger" style="margin: 20px 0;">
         ⚠️ Terjadi kesalahan saat memuat modul: ${Z(e.message)}
       </div>
@@ -4200,12 +4171,14 @@ Kelangsungan Hidup: 95%`,O(p.value),this.showToast(`Template kegiatan penanaman 
               </strong>
             </div>
 
-            <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 10px; padding: 10px 14px;">
-              <span style="font-size: 11px; color: var(--clr-text-muted); display: block; margin-bottom: 2px;">Status Pemantauan</span>
-              <strong style="font-size: 14px; color: ${l&&l.scope===`spesies`?`#fcd34d`:`var(--clr-text-muted)`};">
-                ${l&&l.scope===`spesies`?l.survival_rate===null?hf(l.health_condition||`Terpantau`):`Hidup ${l.survival_rate}%`:`Belum Ada Survei`}
-              </strong>
-            </div>
+            ${l&&l.scope===`spesies`?`
+              <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 10px; padding: 10px 14px;">
+                <span style="font-size: 11px; color: var(--clr-text-muted); display: block; margin-bottom: 2px;">Status Pemantauan</span>
+                <strong style="font-size: 14px; color: #fcd34d;">
+                  ${l.survival_rate===null?hf(l.health_condition||`Terpantau`):`Hidup ${l.survival_rate}%`}
+                </strong>
+              </div>
+            `:``}
           </div>
         </div>
       </div>
@@ -4240,7 +4213,6 @@ Kelangsungan Hidup: 95%`,O(p.value),this.showToast(`Template kegiatan penanaman 
                     </td>
                     <td style="padding: 10px 12px; font-weight: 600; color: #ffffff;">
                       ${$(e.activity_name||`-`)}
-                      ${e.batch_code?`<span style="display: block; font-size: 11px; font-family: monospace; color: var(--clr-text-dim); font-weight: 400;">Batch: ${$(e.batch_code)}</span>`:``}
                     </td>
                     <td style="padding: 10px 12px; color: #cbd5e1;">
                       ${$(e.location_zone||e.zone_name||`-`)}

@@ -37,43 +37,11 @@ export async function switchTreeSubTab(tabName, scenes = []) {
   if (!document.getElementById('tree-subpane-content')) {
     renderTreeModuleLayout(container, scenes);
   }
-  container.querySelectorAll('.tree-tab-btn').forEach((b) => {
-    b.classList.toggle('active', b.getAttribute('data-tree-tab') === tabName);
-  });
   await loadTreeTabData(tabName, scenes);
 }
 
 function renderTreeModuleLayout(container, scenes) {
   container.innerHTML = `
-    <div class="admin-section-header" style="margin-bottom: 16px;">
-      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; width: 100%;">
-        <div>
-          <h2 style="display: flex; align-items: center; gap: 8px;">
-            <span style="font-size: 24px;">🌱</span> Data Penanaman & Pemantauan Pohon
-          </h2>
-          <p style="color: var(--clr-text-muted); font-size: 13px; margin-top: 4px;">
-            Dokumentasi jenis pohon, bibit tertanam, kelompok batch, survei pemantauan historis, dan tindakan silvikultur kawasan ±2 hektare.
-          </p>
-        </div>
-        <div style="display: flex; gap: 8px;">
-          <a href="#katalog" class="btn-secondary-action btn-sm" style="text-decoration: none;">
-            🌳 Katalog Publik Pohon →
-          </a>
-        </div>
-      </div>
-    </div>
-
-    <!-- Tree Module Sub-tabs -->
-    <div class="tree-subtabs" style="display: flex; gap: 6px; border-bottom: 1px solid var(--clr-border); padding-bottom: 10px; margin-bottom: 20px; overflow-x: auto;">
-      <button class="tree-tab-btn active" data-tree-tab="dashboard">📊 Dashboard</button>
-      <button class="tree-tab-btn" data-tree-tab="species">🌿 Master Jenis Pohon</button>
-      <button class="tree-tab-btn" data-tree-tab="activities">📋 Kegiatan Penanaman</button>
-      <button class="tree-tab-btn" data-tree-tab="surveys">🔍 Pemantauan Tanaman</button>
-      <button class="tree-tab-btn" data-tree-tab="maintenance">🛠️ Perawatan & Penyulaman</button>
-      <button class="tree-tab-btn" data-tree-tab="reports">📑 Laporan</button>
-      <button class="tree-tab-btn" data-tree-tab="import-export">🔄 Impor & Ekspor</button>
-    </div>
-
     <!-- Tree Subpane Content Area -->
     <div id="tree-subpane-content" style="min-height: 400px;">
       <div style="display: flex; justify-content: center; align-items: center; padding: 40px;">
@@ -81,16 +49,6 @@ function renderTreeModuleLayout(container, scenes) {
       </div>
     </div>
   `;
-
-  // Bind tab switching
-  container.querySelectorAll('.tree-tab-btn').forEach((btn) => {
-    btn.addEventListener('click', async () => {
-      const target = btn.getAttribute('data-tree-tab');
-      currentTreeTab = target;
-      container.querySelectorAll('.tree-tab-btn').forEach((b) => b.classList.toggle('active', b === btn));
-      await loadTreeTabData(target, scenes);
-    });
-  });
 }
 
 async function loadTreeTabData(tab, scenes) {

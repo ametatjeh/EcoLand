@@ -617,12 +617,14 @@ function renderSpeciesDetailView(container, sp) {
               </strong>
             </div>
 
-            <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 10px; padding: 10px 14px;">
-              <span style="font-size: 11px; color: var(--clr-text-muted); display: block; margin-bottom: 2px;">Status Pemantauan</span>
-              <strong style="font-size: 14px; color: ${survey && survey.scope === 'spesies' ? '#fcd34d' : 'var(--clr-text-muted)'};">
-                ${survey && survey.scope === 'spesies' ? (survey.survival_rate !== null ? `Hidup ${survey.survival_rate}%` : capitalize(survey.health_condition || 'Terpantau')) : 'Belum Ada Survei'}
-              </strong>
-            </div>
+            ${survey && survey.scope === 'spesies' ? `
+              <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 10px; padding: 10px 14px;">
+                <span style="font-size: 11px; color: var(--clr-text-muted); display: block; margin-bottom: 2px;">Status Pemantauan</span>
+                <strong style="font-size: 14px; color: #fcd34d;">
+                  ${survey.survival_rate !== null ? `Hidup ${survey.survival_rate}%` : capitalize(survey.health_condition || 'Terpantau')}
+                </strong>
+              </div>
+            ` : ''}
           </div>
         </div>
       </div>
@@ -657,7 +659,6 @@ function renderSpeciesDetailView(container, sp) {
                     </td>
                     <td style="padding: 10px 12px; font-weight: 600; color: #ffffff;">
                       ${escapeHtml(p.activity_name || '-')}
-                      ${p.batch_code ? `<span style="display: block; font-size: 11px; font-family: monospace; color: var(--clr-text-dim); font-weight: 400;">Batch: ${escapeHtml(p.batch_code)}</span>` : ''}
                     </td>
                     <td style="padding: 10px 12px; color: #cbd5e1;">
                       ${escapeHtml(p.location_zone || p.zone_name || '-')}
