@@ -1019,18 +1019,6 @@ function renderPhotoGrid() {
               onerror="this.onerror=null; this.src='${FALLBACK_PHOTO_SVG}';"
             />
 
-            <!-- Hover overlay with zoom icon -->
-            <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center pointer-events-none">
-              <div class="w-11 h-11 rounded-full bg-emerald-500/80 text-white flex items-center justify-center shadow-lg transform scale-90 group-hover:scale-100 transition-transform duration-200">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="11" cy="11" r="8"></circle>
-                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                  <line x1="11" y1="8" x2="11" y2="14"></line>
-                  <line x1="8" y1="11" x2="14" y2="11"></line>
-                </svg>
-              </div>
-            </div>
-
             ${photo.is_cover ? `
               <div class="absolute top-3 left-3 z-2 pointer-events-none">
                 <span style="font-size: 11px; padding: 4px 11px; border-radius: 9999px; font-weight: 700; background: #f59e0b; color: #1e1b4b; box-shadow: 0 2px 8px rgba(0,0,0,0.5); display: inline-flex; align-items: center; gap: 4px;">
