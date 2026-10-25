@@ -374,6 +374,17 @@ export const ApiService = {
     return await res.json();
   },
 
+  async getTreeSpeciesDetail(id) {
+    const res = await this.request(`/api/admin/trees/species/${encodeURIComponent(id)}`);
+    if (!res.ok) {
+      if (res.status === 404) {
+        throw new Error(`Jenis pohon dengan ID "${id}" tidak ditemukan atau telah dihapus.`);
+      }
+      throw new Error(`Gagal memuat detail jenis pohon (HTTP ${res.status})`);
+    }
+    return await res.json();
+  },
+
   async saveTreeSpecies(data, id = null) {
     const isFormData = data instanceof FormData;
     const url = id ? `/api/admin/trees/species/${id}` : '/api/admin/trees/species';

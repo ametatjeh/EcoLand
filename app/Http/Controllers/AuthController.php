@@ -52,6 +52,9 @@ class AuthController extends Controller
             ], 403);
         }
 
+        // Catat waktu login terakhir pengguna
+        $user->forceFill(['last_login_at' => now()])->save();
+
         // Hapus token lama jika ada agar bersih
         $user->tokens()->where('name', 'admin_session')->delete();
 
@@ -234,6 +237,9 @@ class AuthController extends Controller
 
         // 5. Autentikasi Sukses: Bersihkan Rate Limiter
         RateLimiter::clear($throttleKey);
+
+        // Catat waktu login terakhir pengguna
+        $user->forceFill(['last_login_at' => now()])->save();
 
         // Login ke Web Session Laravel (Remember Me dinonaktifkan demi kepatuhan keamanan sesi Admin)
         Auth::login($user, false);

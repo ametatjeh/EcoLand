@@ -445,20 +445,19 @@ async function renderSpeciesTab(container) {
   cachedSpecies = res.species || [];
 
   container.innerHTML = `
-    <!-- Breadcrumb & Header -->
-    <div style="margin-bottom: 16px;">
-      <nav style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--clr-text-muted); margin-bottom: 8px;">
-        <a href="#admin" style="color: var(--clr-text-muted); text-decoration: none;">Admin Dashboard</a>
-        <span>&rsaquo;</span>
-        <span style="color: #34d399; font-weight: 600;">Master Jenis Pohon</span>
-      </nav>
-      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-        <div>
-          <h2 style="font-size: 18px; font-weight: 700; color: #fff; margin: 0;">Master Data Jenis Pohon</h2>
-          <p style="font-size: 12px; color: var(--clr-text-muted); margin: 4px 0 0;">Koleksi taksonomi jenis pohon silvikultur, status asal, dan data ekologis.</p>
-        </div>
-        <button id="btn-add-species" class="btn-primary-action btn-sm">
-          ➕ Tambah Jenis Pohon Baru
+    <div class="zones-hero-card">
+      <div style="flex: 1; min-width: 280px;">
+        <h2 class="zones-hero-title">
+          <span class="zones-hero-icon">🌳</span>
+          <span>Master Data Jenis Pohon</span>
+        </h2>
+        <p class="zones-hero-desc">
+          Koleksi taksonomi jenis pohon silvikultur, status asal, atribut morfologi, dan data ekologis kawasan restorasi.
+        </p>
+      </div>
+      <div style="display: flex; gap: 8px; align-items: center; z-index: 2;">
+        <button id="btn-add-species" class="btn-primary-action btn-sm" style="display: inline-flex; align-items: center; gap: 6px;">
+          <span>➕</span> Tambah Jenis Pohon Baru
         </button>
       </div>
     </div>
@@ -613,40 +612,38 @@ function renderSpeciesFormView(item = null, container) {
   const pageTitle = isEdit ? `Edit Jenis Pohon: ${escapeHtml(item.common_name)}` : 'Tambah Jenis Pohon Baru';
 
   container.innerHTML = `
-    <!-- Breadcrumb Navigasi -->
-    <div style="margin-bottom: 20px;">
-      <nav style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--clr-text-muted); margin-bottom: 8px;">
-        <a href="#admin" style="color: var(--clr-text-muted); text-decoration: none;">Admin Dashboard</a>
-        <span>&rsaquo;</span>
-        <button id="breadcrumb-btn-species-list" style="background: none; border: none; color: var(--clr-text-muted); cursor: pointer; padding: 0; font-size: 12px; text-decoration: underline;">Master Jenis Pohon</button>
-        <span>&rsaquo;</span>
-        <span style="color: #34d399; font-weight: 600;">${isEdit ? 'Edit Spesies' : 'Tambah Spesies'}</span>
-      </nav>
+    <!-- Hero Banner Card & Navigasi -->
+    <div class="zones-hero-card" style="margin-bottom: 20px;">
+      <div style="flex: 1; min-width: 280px;">
+        <nav style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--clr-text-muted); margin-bottom: 8px;">
+          <a href="#admin/dashboard" style="color: var(--clr-text-muted); text-decoration: none;">Dashboard</a>
+          <span>&rsaquo;</span>
+          <button type="button" id="breadcrumb-btn-species-list" style="background: none; border: none; color: var(--clr-text-muted); cursor: pointer; padding: 0; font-size: 12px; text-decoration: underline;">Master Jenis Pohon</button>
+          <span>&rsaquo;</span>
+          <span style="color: #34d399; font-weight: 600;">${isEdit ? 'Edit Spesies' : 'Tambah Spesies'}</span>
+        </nav>
+        <h2 class="zones-hero-title">
+          <span class="zones-hero-icon">${isEdit ? '✏️' : '🌱'}</span>
+          <span>${pageTitle}</span>
+        </h2>
+        <p class="zones-hero-desc">
+          Lengkapi atribut taksonomi, informasi morfologi, parameter silvikultur, dan dokumentasi visual jenis pohon untuk katalog restorasi.
+        </p>
+      </div>
 
-      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
-        <div>
-          <h2 style="font-size: 20px; font-weight: 700; color: #fff; margin: 0; display: flex; align-items: center; gap: 8px;">
-            <span>${isEdit ? '✏️' : '🌱'}</span> ${pageTitle}
-          </h2>
-          <p style="font-size: 13px; color: var(--clr-text-muted); margin: 4px 0 0;">
-            Lengkapi atribut pohon untuk katalog publik dan modul pemantauan restorasi silvikultur kawasan ±2 hektare.
-          </p>
-        </div>
-
-        <div style="display: flex; align-items: center; gap: 10px;">
-          <button type="button" id="btn-back-to-species" class="btn-secondary-action btn-sm">
-            ← Kembali
-          </button>
-          <button type="button" id="btn-preview-species-form" class="btn-secondary-action btn-sm">
-            👁️ Preview Singkat
-          </button>
-          <button type="button" id="btn-cancel-species-form" class="btn-secondary-action btn-sm">
-            Batal
-          </button>
-          <button type="button" id="btn-save-species-form" class="btn-primary-action btn-sm">
-            💾 ${isEdit ? 'Simpan Perubahan' : 'Simpan Jenis Pohon'}
-          </button>
-        </div>
+      <div style="display: flex; align-items: center; gap: 10px; z-index: 2; flex-wrap: wrap;">
+        <button type="button" id="btn-back-to-species" class="btn-secondary-action btn-sm">
+          ← Kembali
+        </button>
+        <button type="button" id="btn-preview-species-form" class="btn-secondary-action btn-sm">
+          👁️ Preview Singkat
+        </button>
+        <button type="button" id="btn-cancel-species-form" class="btn-secondary-action btn-sm">
+          Batal
+        </button>
+        <button type="button" id="btn-save-species-form" class="btn-primary-action btn-sm">
+          💾 ${isEdit ? 'Simpan Perubahan' : 'Simpan Jenis Pohon'}
+        </button>
       </div>
     </div>
 
@@ -1344,13 +1341,27 @@ async function renderActivitiesTab(container, scenes) {
   cachedZones = zonesList;
 
   container.innerHTML = `
+    <div class="zones-hero-card">
+      <div style="flex: 1; min-width: 280px;">
+        <h2 class="zones-hero-title">
+          <span class="zones-hero-icon">🌱</span>
+          <span>Kegiatan Penanaman &amp; Batch Bibit</span>
+        </h2>
+        <p class="zones-hero-desc">
+          Pencatatan batch penanaman bibit pohon silvikultur, alokasi kawasan restorasi, tim pelaksana, dan rincian varietas tanaman.
+        </p>
+      </div>
+      <div style="display: flex; gap: 8px; align-items: center; z-index: 2;">
+        <button id="btn-add-activity" class="btn-primary-action btn-sm" style="display: inline-flex; align-items: center; gap: 6px;">
+          <span>➕</span> Catat Kegiatan Penanaman
+        </button>
+      </div>
+    </div>
+
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
       <div style="display: flex; gap: 8px; flex: 1;">
         <input type="text" id="filter-act-search" class="form-input" placeholder="Cari batch, kegiatan, zona..." style="max-width: 320px;" />
       </div>
-      <button id="btn-add-activity" class="btn-primary-action btn-sm">
-        ➕ Catat Kegiatan Penanaman
-      </button>
     </div>
 
     <div class="admin-table-wrapper" style="overflow-x: auto; background: var(--clr-surface); border-radius: 8px; border: 1px solid var(--clr-border);">
@@ -1510,39 +1521,37 @@ async function renderActivityFormView(activity = null, container, scenes = [], z
   const existingItems = activity && activity.items && activity.items.length > 0 ? activity.items : [];
 
   container.innerHTML = `
-    <!-- Breadcrumb Navigasi -->
-    <div style="margin-bottom: 20px;">
-      <nav style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--clr-text-muted); margin-bottom: 8px;">
-        <a href="#admin/dashboard" style="color: var(--clr-text-muted); text-decoration: none;">Dashboard</a>
-        <span>&rsaquo;</span>
-        <span style="color: var(--clr-text-muted);">Data Penanaman</span>
-        <span>&rsaquo;</span>
-        <button type="button" id="breadcrumb-btn-act-list" style="background: none; border: none; color: var(--clr-text-muted); cursor: pointer; padding: 0; font-size: 12px; text-decoration: underline;">Kegiatan Penanaman</button>
-        <span>&rsaquo;</span>
-        <span style="color: ${isEdit ? '#38bdf8' : '#10b981'}; font-weight: 600;">${isEdit ? 'Edit' : 'Catat Baru'}</span>
-      </nav>
+    <!-- Hero Banner Card & Navigasi -->
+    <div class="zones-hero-card" style="margin-bottom: 20px;">
+      <div style="flex: 1; min-width: 280px;">
+        <nav style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--clr-text-muted); margin-bottom: 8px;">
+          <a href="#admin/dashboard" style="color: var(--clr-text-muted); text-decoration: none;">Dashboard</a>
+          <span>&rsaquo;</span>
+          <span style="color: var(--clr-text-muted);">Data Penanaman</span>
+          <span>&rsaquo;</span>
+          <button type="button" id="breadcrumb-btn-act-list" style="background: none; border: none; color: var(--clr-text-muted); cursor: pointer; padding: 0; font-size: 12px; text-decoration: underline;">Kegiatan Penanaman</button>
+          <span>&rsaquo;</span>
+          <span style="color: ${isEdit ? '#38bdf8' : '#10b981'}; font-weight: 600;">${isEdit ? 'Edit' : 'Catat Baru'}</span>
+        </nav>
+        <h2 class="zones-hero-title">
+          <span class="zones-hero-icon">${isEdit ? '✏️' : '🌱'}</span>
+          <span>${isEdit ? `Edit Kegiatan Penanaman: ${escapeHtml(activity.batch_code)}` : 'Catat Kegiatan Penanaman Baru'}</span>
+        </h2>
+        <p class="zones-hero-desc">
+          ${isEdit ? 'Perbarui data pelaksanaan, kawasan penanaman, tim pelaksana, dan rincian jenis bibit yang ditanam.' : 'Catat data pelaksanaan kegiatan penanaman baru, kawasan target, tim pelaksana, dan rincian bibit awal yang ditanam.'}
+        </p>
+      </div>
 
-      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
-        <div>
-          <h2 style="font-size: 20px; font-weight: 700; color: #fff; margin: 0; display: flex; align-items: center; gap: 8px;">
-            <span>${isEdit ? '✏️' : '🌱'}</span> ${isEdit ? `Edit Kegiatan Penanaman: ${escapeHtml(activity.batch_code)}` : 'Catat Kegiatan Penanaman Baru'}
-          </h2>
-          <p style="font-size: 13px; color: var(--clr-text-muted); margin: 4px 0 0;">
-            ${isEdit ? 'Perbarui data pelaksanaan, kawasan penanaman, tim pelaksana, dan rincian jenis bibit yang ditanam.' : 'Catat data pelaksanaan kegiatan penanaman baru, kawasan target, tim pelaksana, dan rincian bibit awal yang ditanam.'}
-          </p>
-        </div>
-
-        <div style="display: flex; align-items: center; gap: 10px;">
-          <button type="button" id="btn-back-to-act" class="btn-secondary-action btn-sm">
-            ← Kembali
-          </button>
-          <button type="button" id="btn-cancel-act-top" class="btn-secondary-action btn-sm">
-            Batal
-          </button>
-          <button type="button" id="btn-save-act-top" class="btn-primary-action btn-sm">
-            💾 ${isEdit ? 'Simpan Perubahan' : 'Simpan Kegiatan'}
-          </button>
-        </div>
+      <div style="display: flex; align-items: center; gap: 10px; z-index: 2; flex-wrap: wrap;">
+        <button type="button" id="btn-back-to-act" class="btn-secondary-action btn-sm">
+          ← Kembali
+        </button>
+        <button type="button" id="btn-cancel-act-top" class="btn-secondary-action btn-sm">
+          Batal
+        </button>
+        <button type="button" id="btn-save-act-top" class="btn-primary-action btn-sm">
+          💾 ${isEdit ? 'Simpan Perubahan' : 'Simpan Kegiatan'}
+        </button>
       </div>
     </div>
 
@@ -2028,14 +2037,21 @@ async function renderSurveysTab(container) {
   cachedActivities = resAct.activities || [];
 
   container.innerHTML = `
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
-      <div>
-        <h3 style="font-size: 15px; margin-bottom: 4px;">Riwayat Survei Pemantauan Tanaman</h3>
-        <p style="color: var(--clr-text-muted); font-size: 12px;">Setiap pemeriksaan disimpan terpisah menurut tanggal; tidak menimpa data survei sebelumnya.</p>
+    <div class="zones-hero-card">
+      <div style="flex: 1; min-width: 280px;">
+        <h2 class="zones-hero-title">
+          <span class="zones-hero-icon">📋</span>
+          <span>Pemantauan Pertumbuhan &amp; Sensus Pohon</span>
+        </h2>
+        <p class="zones-hero-desc">
+          Riwayat survei sensus berkala tanaman, analisis laju kelangsungan hidup (survival rate), dan evaluasi kondisi pertumbuhan bibit per batch.
+        </p>
       </div>
-      <button id="btn-add-survey" class="btn-primary-action btn-sm">
-        ➕ Catat Hasil Survei
-      </button>
+      <div style="display: flex; gap: 8px; align-items: center; z-index: 2;">
+        <button id="btn-add-survey" class="btn-primary-action btn-sm" style="display: inline-flex; align-items: center; gap: 6px;">
+          <span>➕</span> Catat Hasil Survei
+        </button>
+      </div>
     </div>
 
     <div class="admin-table-wrapper" style="overflow-x: auto; background: var(--clr-surface); border-radius: 8px; border: 1px solid var(--clr-border);">
@@ -2152,39 +2168,37 @@ async function renderSurveyFormView(survey = null, container) {
   }
 
   container.innerHTML = `
-    <!-- Breadcrumb Navigasi -->
-    <div style="margin-bottom: 20px;">
-      <nav style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--clr-text-muted); margin-bottom: 8px;">
-        <a href="#admin/dashboard" style="color: var(--clr-text-muted); text-decoration: none;">Dashboard</a>
-        <span>&rsaquo;</span>
-        <span style="color: var(--clr-text-muted);">Data Penanaman</span>
-        <span>&rsaquo;</span>
-        <button type="button" id="breadcrumb-btn-srv-list" style="background: none; border: none; color: var(--clr-text-muted); cursor: pointer; padding: 0; font-size: 12px; text-decoration: underline;">Pemantauan Tanaman</button>
-        <span>&rsaquo;</span>
-        <span style="color: #38bdf8; font-weight: 600;">${isEdit ? 'Edit' : 'Catat Baru'}</span>
-      </nav>
+    <!-- Hero Banner Card & Navigasi -->
+    <div class="zones-hero-card" style="margin-bottom: 20px;">
+      <div style="flex: 1; min-width: 280px;">
+        <nav style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--clr-text-muted); margin-bottom: 8px;">
+          <a href="#admin/dashboard" style="color: var(--clr-text-muted); text-decoration: none;">Dashboard</a>
+          <span>&rsaquo;</span>
+          <span style="color: var(--clr-text-muted);">Data Penanaman</span>
+          <span>&rsaquo;</span>
+          <button type="button" id="breadcrumb-btn-srv-list" style="background: none; border: none; color: var(--clr-text-muted); cursor: pointer; padding: 0; font-size: 12px; text-decoration: underline;">Pemantauan Tanaman</button>
+          <span>&rsaquo;</span>
+          <span style="color: #38bdf8; font-weight: 600;">${isEdit ? 'Edit' : 'Catat Baru'}</span>
+        </nav>
+        <h2 class="zones-hero-title">
+          <span class="zones-hero-icon">${isEdit ? '✏️' : '📋'}</span>
+          <span>${isEdit ? `Edit Pemantauan Tanaman: ${escapeHtml(survey.batch_code || survey.id)}` : 'Catat Hasil Survei Pemantauan Tanaman'}</span>
+        </h2>
+        <p class="zones-hero-desc">
+          ${isEdit ? 'Koreksi hasil sensus lapangan, kondisi kesehatan bibit, dan pengukuran silvikultur batch tanaman.' : 'Rekam hasil sensus berkala, laju kelangsungan hidup, dan catatan silvikultur per batch penanaman.'}
+        </p>
+      </div>
 
-      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
-        <div>
-          <h2 style="font-size: 20px; font-weight: 700; color: #fff; margin: 0; display: flex; align-items: center; gap: 8px;">
-            <span>${isEdit ? '✏️' : '➕'}</span> ${isEdit ? `Edit Pemantauan Tanaman: ${escapeHtml(survey.batch_code || survey.id)}` : 'Catat Hasil Survei Pemantauan Tanaman'}
-          </h2>
-          <p style="font-size: 13px; color: var(--clr-text-muted); margin: 4px 0 0;">
-            ${isEdit ? 'Koreksi hasil sensus lapangan, kondisi kesehatan bibit, dan pengukuran silvikultur batch tanaman.' : 'Rekam hasil sensus berkala, laju kelangsungan hidup, dan catatan silvikultur per batch penanaman.'}
-          </p>
-        </div>
-
-        <div style="display: flex; align-items: center; gap: 10px;">
-          <button type="button" id="btn-back-to-srv" class="btn-secondary-action btn-sm">
-            ← Kembali
-          </button>
-          <button type="button" id="btn-cancel-srv-top" class="btn-secondary-action btn-sm">
-            Batal
-          </button>
-          <button type="button" id="btn-save-srv-top" class="btn-primary-action btn-sm">
-            💾 ${isEdit ? 'Simpan Perubahan' : 'Simpan Survei'}
-          </button>
-        </div>
+      <div style="display: flex; align-items: center; gap: 10px; z-index: 2; flex-wrap: wrap;">
+        <button type="button" id="btn-back-to-srv" class="btn-secondary-action btn-sm">
+          ← Kembali
+        </button>
+        <button type="button" id="btn-cancel-srv-top" class="btn-secondary-action btn-sm">
+          Batal
+        </button>
+        <button type="button" id="btn-save-srv-top" class="btn-primary-action btn-sm">
+          💾 ${isEdit ? 'Simpan Perubahan' : 'Simpan Survei'}
+        </button>
       </div>
     </div>
 
@@ -2514,14 +2528,21 @@ async function renderMaintenanceTab(container) {
   cachedActivities = resAct.activities || [];
 
   container.innerHTML = `
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
-      <div>
-        <h3 style="font-size: 15px; margin-bottom: 4px;">Pencatatan Perawatan & Penyulaman</h3>
-        <p style="color: var(--clr-text-muted); font-size: 12px;">Bibit pengganti penyulaman dicatat terpisah agar riwayat kelangsungan hidup kelompok awal tidak bias.</p>
+    <div class="zones-hero-card">
+      <div style="flex: 1; min-width: 280px;">
+        <h2 class="zones-hero-title">
+          <span class="zones-hero-icon">🛠️</span>
+          <span>Perawatan, Pemupukan &amp; Penyulaman</span>
+        </h2>
+        <p class="zones-hero-desc">
+          Pencatatan tindakan silvikultur (penyiangan, penyiraman, pemupukan) serta bibit pengganti penyulaman untuk menjaga kelangsungan hidup tegakan.
+        </p>
       </div>
-      <button id="btn-add-maintenance" class="btn-primary-action btn-sm">
-        ➕ Catat Tindakan Perawatan / Penyulaman
-      </button>
+      <div style="display: flex; gap: 8px; align-items: center; z-index: 2;">
+        <button id="btn-add-maintenance" class="btn-primary-action btn-sm" style="display: inline-flex; align-items: center; gap: 6px;">
+          <span>➕</span> Catat Tindakan Perawatan
+        </button>
+      </div>
     </div>
 
     <div class="admin-table-wrapper" style="overflow-x: auto; background: var(--clr-surface); border-radius: 8px; border: 1px solid var(--clr-border);">
@@ -2624,39 +2645,37 @@ async function renderMaintenanceFormView(log = null, container) {
   }
 
   container.innerHTML = `
-    <!-- Breadcrumb Navigasi -->
-    <div style="margin-bottom: 20px;">
-      <nav style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--clr-text-muted); margin-bottom: 8px;">
-        <a href="#admin/dashboard" style="color: var(--clr-text-muted); text-decoration: none;">Dashboard</a>
-        <span>&rsaquo;</span>
-        <span style="color: var(--clr-text-muted);">Data Penanaman</span>
-        <span>&rsaquo;</span>
-        <button type="button" id="breadcrumb-btn-mnt-list" style="background: none; border: none; color: var(--clr-text-muted); cursor: pointer; padding: 0; font-size: 12px; text-decoration: underline;">Perawatan dan Penyulaman</button>
-        <span>&rsaquo;</span>
-        <span style="color: #38bdf8; font-weight: 600;">${isEdit ? 'Edit' : 'Catat Baru'}</span>
-      </nav>
+    <!-- Hero Banner Card & Navigasi -->
+    <div class="zones-hero-card" style="margin-bottom: 20px;">
+      <div style="flex: 1; min-width: 280px;">
+        <nav style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--clr-text-muted); margin-bottom: 8px;">
+          <a href="#admin/dashboard" style="color: var(--clr-text-muted); text-decoration: none;">Dashboard</a>
+          <span>&rsaquo;</span>
+          <span style="color: var(--clr-text-muted);">Data Penanaman</span>
+          <span>&rsaquo;</span>
+          <button type="button" id="breadcrumb-btn-mnt-list" style="background: none; border: none; color: var(--clr-text-muted); cursor: pointer; padding: 0; font-size: 12px; text-decoration: underline;">Perawatan dan Penyulaman</button>
+          <span>&rsaquo;</span>
+          <span style="color: #38bdf8; font-weight: 600;">${isEdit ? 'Edit' : 'Catat Baru'}</span>
+        </nav>
+        <h2 class="zones-hero-title">
+          <span class="zones-hero-icon">${isEdit ? '✏️' : '🛠️'}</span>
+          <span>${isEdit ? `Edit Perawatan &amp; Penyulaman: ${escapeHtml(log.batch_code || log.id)}` : 'Catat Tindakan Perawatan / Penyulaman'}</span>
+        </h2>
+        <p class="zones-hero-desc">
+          ${isEdit ? 'Koreksi tindakan silvikultur, bibit penyulaman baru, dan tim pelaksana penanganan bibit.' : 'Catat tindakan silvikultur (penyiangan, penyiraman, pemupukan) atau penyulaman bibit baru pengganti.'}
+        </p>
+      </div>
 
-      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: gap: 12px;">
-        <div>
-          <h2 style="font-size: 20px; font-weight: 700; color: #fff; margin: 0; display: flex; align-items: center; gap: 8px;">
-            <span>${isEdit ? '✏️' : '➕'}</span> ${isEdit ? `Edit Perawatan & Penyulaman: ${escapeHtml(log.batch_code || log.id)}` : 'Catat Tindakan Perawatan / Penyulaman'}
-          </h2>
-          <p style="font-size: 13px; color: var(--clr-text-muted); margin: 4px 0 0;">
-            ${isEdit ? 'Koreksi tindakan silvikultur, bibit penyulaman baru, dan tim pelaksana penanganan bibit.' : 'Catat tindakan silvikultur (penyiangan, penyiraman, pemupukan) atau penyulaman bibit baru pengganti.'}
-          </p>
-        </div>
-
-        <div style="display: flex; align-items: center; gap: 10px;">
-          <button type="button" id="btn-back-to-mnt" class="btn-secondary-action btn-sm">
-            ← Kembali
-          </button>
-          <button type="button" id="btn-cancel-mnt-top" class="btn-secondary-action btn-sm">
-            Batal
-          </button>
-          <button type="button" id="btn-save-mnt-top" class="btn-primary-action btn-sm">
-            💾 ${isEdit ? 'Simpan Perubahan' : 'Simpan Tindakan'}
-          </button>
-        </div>
+      <div style="display: flex; align-items: center; gap: 10px; z-index: 2; flex-wrap: wrap;">
+        <button type="button" id="btn-back-to-mnt" class="btn-secondary-action btn-sm">
+          ← Kembali
+        </button>
+        <button type="button" id="btn-cancel-mnt-top" class="btn-secondary-action btn-sm">
+          Batal
+        </button>
+        <button type="button" id="btn-save-mnt-top" class="btn-primary-action btn-sm">
+          💾 ${isEdit ? 'Simpan Perubahan' : 'Simpan Tindakan'}
+        </button>
       </div>
     </div>
 

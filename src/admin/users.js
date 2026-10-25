@@ -18,19 +18,20 @@ export async function initUsersModule() {
 
 function renderUsersLayout(container) {
   container.innerHTML = `
-    <div class="admin-section-header" style="margin-bottom: 16px;">
-      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; width: 100%;">
-        <div>
-          <h2 style="display: flex; align-items: center; gap: 8px; margin: 0; font-size: 20px; font-weight: 700; color: #fff;">
-            <span style="font-size: 22px;">👥</span> Pengguna dan Hak Akses
-          </h2>
-          <p style="color: var(--clr-text-muted); font-size: 13px; margin-top: 4px;">
-            Atur pembagian peran: Administrator (seluruh kontrol), Petugas Penanaman (input kegiatan & survei), Editor Konten (panorama & publikasi).
-          </p>
-        </div>
-        <div>
-          <button id="btn-add-user" class="btn-primary-action btn-sm">➕ Tambah Pengguna</button>
-        </div>
+    <div class="zones-hero-card">
+      <div style="flex: 1; min-width: 280px;">
+        <h2 class="zones-hero-title">
+          <span class="zones-hero-icon">👥</span>
+          <span>Pengguna dan Hak Akses</span>
+        </h2>
+        <p class="zones-hero-desc">
+          Atur pembagian peran: Administrator (seluruh kontrol), Petugas Penanaman (input kegiatan &amp; survei), Editor Konten (panorama &amp; publikasi).
+        </p>
+      </div>
+      <div style="display: flex; gap: 8px; align-items: center; z-index: 2;">
+        <button id="btn-add-user" class="btn-primary-action btn-sm" style="display: inline-flex; align-items: center; gap: 6px;">
+          <span>➕</span> Tambah Pengguna
+        </button>
       </div>
     </div>
 

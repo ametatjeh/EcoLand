@@ -16,19 +16,20 @@ export async function initActivityLogsModule() {
 
 function renderActivityLogsLayout(container) {
   container.innerHTML = `
-    <div class="admin-section-header" style="margin-bottom: 16px;">
-      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; width: 100%;">
-        <div>
-          <h2 style="display: flex; align-items: center; gap: 8px; margin: 0; font-size: 20px; font-weight: 700; color: #fff;">
-            <span style="font-size: 22px;">📜</span> Log Aktivitas Sistem
-          </h2>
-          <p style="color: var(--clr-text-muted); font-size: 13px; margin-top: 4px;">
-            Rekaman jejak audit sistem: penambahan kawasan, pembaruan bibit, survei pemantauan, publikasi hotspot, dan autentikasi.
-          </p>
-        </div>
-        <div>
-          <button id="btn-refresh-logs" class="btn-secondary-action btn-sm">🔄 Segarkan Log</button>
-        </div>
+    <div class="zones-hero-card">
+      <div style="flex: 1; min-width: 280px;">
+        <h2 class="zones-hero-title">
+          <span class="zones-hero-icon">📜</span>
+          <span>Log Aktivitas Sistem</span>
+        </h2>
+        <p class="zones-hero-desc">
+          Rekaman jejak audit sistem: penambahan kawasan, pembaruan bibit, survei pemantauan, publikasi hotspot, dan autentikasi.
+        </p>
+      </div>
+      <div style="display: flex; gap: 8px; align-items: center; z-index: 2;">
+        <button id="btn-refresh-logs" class="btn-secondary-action btn-sm" style="display: inline-flex; align-items: center; gap: 6px;">
+          <span>🔄</span> Segarkan Log
+        </button>
       </div>
     </div>
 

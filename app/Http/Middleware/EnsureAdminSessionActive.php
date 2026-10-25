@@ -20,7 +20,20 @@ class EnsureAdminSessionActive
     {
         $user = $request->user() ?: Auth::user();
 
-        // Terapkan perlindungan hanya untuk pengguna administrator terautentikasi
+        // 1. Otorisasi Peran: Pastikan route admin hanya dapat diakses oleh pengguna dengan peran admin yang sah
+        if ($user && ($request->is('api/admin/*', 'admin/*'))) {
+            if (!method_exists($user, 'isAdmin') || !$user->isAdmin()) {
+                if ($request->expectsJson() || $request->is('api/*')) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Akses ditolak: Anda tidak memiliki izin administrator untuk mengakses resource ini.',
+                    ], 403);
+                }
+                abort(403, 'Akses ditolak: Anda tidak memiliki izin administrator.');
+            }
+        }
+
+        // Terapkan perlindungan sesi hanya untuk pengguna administrator terautentikasi
         if ($user && method_exists($user, 'isAdmin') && $user->isAdmin()) {
             $timeoutMinutes = (int) config('session.admin_idle_timeout', 30);
             $timeoutSeconds = $timeoutMinutes * 60;

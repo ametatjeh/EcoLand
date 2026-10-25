@@ -177,6 +177,9 @@ class GoogleAuthController extends Controller
             $user->save();
         }
 
+        // Catat waktu login terakhir pengguna
+        $user->forceFill(['last_login_at' => now()])->save();
+
         // Login ke Web Session
         Auth::login($user, true);
         $request->session()->regenerate();

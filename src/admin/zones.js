@@ -80,11 +80,14 @@ function renderZonesLayout(container) {
   container.innerHTML = `
     <!-- Top Hero Banner -->
     <div class="zones-hero-card">
-      <div>
+      <div style="flex: 1; min-width: 280px;">
         <h2 class="zones-hero-title">
           <span class="zones-hero-icon">🏞️</span>
           <span>Manajemen Kawasan / Lahan Penanaman</span>
         </h2>
+        <p class="zones-hero-desc">
+          Kelola data kawasan restorasi, pemetaan spasial polygon batas lahan, target bibit pohon, dan album dokumentasi foto.
+        </p>
       </div>
       <div style="display: flex; gap: 10px; align-items: center; z-index: 2;">
         <button id="btn-zone-open-gallery" class="zone-nav-tab" data-zone-tab="gallery" style="display: inline-flex; align-items: center; gap: 6px; padding: 9px 16px; font-weight: 600; cursor: pointer; border: 1px solid var(--clr-border); background: rgba(255, 255, 255, 0.05); border-radius: var(--radius-sm); color: var(--clr-text-muted);">

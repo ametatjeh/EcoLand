@@ -53,13 +53,14 @@ export async function initSettingsModule({ scenes = [], onSettingsUpdated } = {}
     .join('');
 
   container.innerHTML = `
-    <div class="settings-container" style="max-width: 880px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px;">
-      <div class="admin-section-header">
-        <div>
-          <h2 style="display: flex; align-items: center; gap: 8px; margin: 0; font-size: 20px; font-weight: 700; color: #fff;">
-            <span>⚙️</span> Pengaturan Sistem & Identitas Organisasi
+    <div class="settings-container" style="width: 100%; display: flex; flex-direction: column; gap: 24px;">
+      <div class="zones-hero-card">
+        <div style="flex: 1; min-width: 280px;">
+          <h2 class="zones-hero-title">
+            <span class="zones-hero-icon">⚙️</span>
+            <span>Pengaturan Sistem &amp; Identitas Organisasi</span>
           </h2>
-          <p style="color: var(--clr-text-muted); font-size: 13px; margin-top: 4px;">
+          <p class="zones-hero-desc">
             Konfigurasi identitas pengelola, judul proyek, parameter visual Marzipano, dan parameter aplikasi.
           </p>
         </div>

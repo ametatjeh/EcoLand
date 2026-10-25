@@ -288,8 +288,26 @@ export default defineConfig({
     virtualTourApiPlugin(),
   ],
 
-  // Tambahan untuk mengatur peringatan ukuran bundle
   build: {
-    chunkSizeWarningLimit: 3000, // Batas peringatan 1000 kB (1 MB)
+    chunkSizeWarningLimit: 1000,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          const normalized = id.replace(/\\/g, '/');
+          if (normalized.includes('/node_modules/marzipano/')) {
+            return 'marzipano';
+          }
+          if (normalized.includes('/node_modules/leaflet/')) {
+            return 'leaflet';
+          }
+          if (normalized.includes('/node_modules/qrcode/')) {
+            return 'qrcode';
+          }
+          if (normalized.includes('/src/admin/')) {
+            return 'admin-panel';
+          }
+        },
+      },
+    },
   },
 });

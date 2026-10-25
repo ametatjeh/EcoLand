@@ -1267,7 +1267,7 @@
   border: 1px solid var(--clr-border);
   border-radius: var(--radius-lg);
   padding: 24px;
-  max-width: 600px;
+  width: 100%;
 }
 .settings-card .form-group {
   margin-bottom: 18px;

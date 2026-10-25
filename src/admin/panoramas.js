@@ -60,12 +60,15 @@ export async function renderPanoramaManagement({
   };
 
   container.innerHTML = `
-    <div class="admin-section-header">
-      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; width: 100%;">
-        <div>
-          <h2>🌐 Manajemen Panorama (${scenes.length} Scene)</h2>
-          <p>Kelola seluruh panorama 360°, ubah nama tampilan, deskripsi, tautkan ke kawasan restorasi, dan atur sudut pandang awal.</p>
-        </div>
+    <div class="zones-hero-card">
+      <div style="flex: 1; min-width: 280px;">
+        <h2 class="zones-hero-title">
+          <span class="zones-hero-icon">🌐</span>
+          <span>Manajemen Panorama (${scenes.length} Scene)</span>
+        </h2>
+        <p class="zones-hero-desc">
+          Kelola seluruh panorama 360°, ubah nama tampilan, deskripsi, tautkan ke kawasan restorasi, dan atur sudut pandang awal.
+        </p>
       </div>
     </div>
 

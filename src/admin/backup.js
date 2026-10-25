@@ -12,6 +12,18 @@ export function initBackupModule({ scenes, getHotspots, onRestoreComplete }) {
   const validSceneIds = new Set(scenes.map((s) => s.id));
 
   container.innerHTML = `
+    <div class="zones-hero-card">
+      <div style="flex: 1; min-width: 280px;">
+        <h2 class="zones-hero-title">
+          <span class="zones-hero-icon">💾</span>
+          <span>Cadangan &amp; Pemulihan Basis Data</span>
+        </h2>
+        <p class="zones-hero-desc">
+          Ekspor cadangan konfigurasi hotspot dan metadata Marzipano dalam format JSON serta pemulihan aman dengan perlindungan penimpaan data.
+        </p>
+      </div>
+    </div>
+
     <div class="backup-grid">
       <!-- Card Ekspor Cadangan -->
       <div class="backup-card">

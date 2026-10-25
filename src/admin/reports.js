@@ -40,21 +40,20 @@ export async function switchReportSubTab(tabName) {
 
 function renderReportsLayout(container) {
   container.innerHTML = `
-    <div class="admin-section-header" style="margin-bottom: 16px;">
-      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; width: 100%;">
-        <div>
-          <h2 style="display: flex; align-items: center; gap: 8px; margin: 0; font-size: 20px; font-weight: 700; color: #fff;">
-            <span style="font-size: 22px;">📊</span> Laporan & Statistik Penanaman
-          </h2>
-          <p style="color: var(--clr-text-muted); font-size: 13px; margin-top: 4px;">
-            Rekapitulasi kuantitatif, analisis kelangsungan hidup (survival rate), laporan agregat per kawasan dan jenis pohon, serta ekspor berkas.
-          </p>
-        </div>
-        <div style="display: flex; gap: 8px;">
-          <a href="/api/admin/trees/reports/summary/csv" class="btn-primary-action btn-sm" style="text-decoration: none;" download>
-            📥 Unduh Semua Data (CSV)
-          </a>
-        </div>
+    <div class="zones-hero-card">
+      <div style="flex: 1; min-width: 280px;">
+        <h2 class="zones-hero-title">
+          <span class="zones-hero-icon">📊</span>
+          <span>Laporan &amp; Statistik Penanaman</span>
+        </h2>
+        <p class="zones-hero-desc">
+          Rekapitulasi kuantitatif, analisis kelangsungan hidup (survival rate), laporan agregat per kawasan dan jenis pohon, serta ekspor berkas.
+        </p>
+      </div>
+      <div style="display: flex; gap: 8px; align-items: center; z-index: 2;">
+        <a href="/api/admin/trees/reports/summary/csv" class="btn-primary-action btn-sm" style="display: inline-flex; align-items: center; gap: 6px; text-decoration: none;" download>
+          <span>📥</span> Unduh Semua Data (CSV)
+        </a>
       </div>
     </div>
 
