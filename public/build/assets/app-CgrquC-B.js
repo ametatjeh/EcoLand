@@ -6120,31 +6120,11 @@ File foto dan catatannya akan dihapus jika tidak digunakan di album/fitur lain.`
           <span>📸</span> Dokumentasi Visual &amp; Silvikultur Kawasan
         </div>
         <h1 class="hero-title" style="font-size: 34px; margin-bottom: 12px; font-weight: 800;">
-          Galeri Foto Kawasan Restorasi
+          Galeri / Album
         </h1>
-        <p class="hero-subtitle text-slate-300 text-sm max-w-2xl mx-auto leading-relaxed text-center" style="margin-bottom: 20px;">
+        <p class="hero-subtitle text-slate-300 text-sm max-w-2xl mx-auto leading-relaxed text-center" style="margin-bottom: 0;">
           Dokumentasi visual perkembangan kawasan pemulihan lahan &plusmn;2 hektare, pelaksanaan silvikultur, pertumbuhan tutupan tajuk pohon, dan pemantauan kelestarian berkala.
         </p>
-
-        <!-- Hero Quick Stats Bar -->
-        <div class="flex flex-wrap items-center justify-center gap-2.5 sm:gap-3 text-xs">
-          <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-300 shadow-sm">
-            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span id="gallery-stat-total" class="font-semibold">Memuat Album...</span>
-          </div>
-          <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-800/80 border border-slate-700/80 text-slate-300">
-            <span>🏞️</span>
-            <span id="gallery-stat-zones">Kawasan Konservasi</span>
-          </div>
-          <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-800/80 border border-slate-700/80 text-slate-300">
-            <span>🏷️</span>
-            <span id="gallery-stat-categories">Kategori Silvikultur</span>
-          </div>
-          <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-800/80 border border-slate-700/80 text-slate-300">
-            <span>⭐</span>
-            <span>Arsip Resmi Terverifikasi</span>
-          </div>
-        </div>
       </div>
 
       <!-- Filters & Search Toolbar -->
