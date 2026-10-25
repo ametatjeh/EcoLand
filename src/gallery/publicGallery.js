@@ -202,15 +202,9 @@ export async function initPublicGallery(containerId = 'public-gallery-container'
         </div>
       </div>
 
-      <!-- Album Detail Back Bar (hidden initially) -->
+      <!-- Album Detail Container (hidden initially) -->
       <div id="gallery-album-back-bar" class="hidden" style="margin-bottom: 20px;">
-        <button id="gallery-back-to-albums" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 hover:border-emerald-500/50 transition-all cursor-pointer text-sm font-semibold shadow-sm" title="Kembali ke daftar album">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M19 12H5M12 19l-7-7 7-7"/>
-          </svg>
-          <span>Kembali ke Semua Album</span>
-        </button>
-        <div id="gallery-album-detail-info" class="mt-4"></div>
+        <div id="gallery-album-detail-info"></div>
       </div>
 
       <!-- Grid Container -->
@@ -563,42 +557,29 @@ function showAlbumDetailHeader(album) {
             </div>
           </div>
 
-          <!-- Direct URL & Copy Button -->
-          <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 shrink-0">
-            <div class="hidden xl:flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-950/70 border border-slate-800 text-[11px] font-mono text-slate-400 select-all" title="URL Langsung Album">
-              <span class="text-emerald-400">🔗</span>
-              <span class="truncate max-w-[220px]">#galeri?album=${escapeHtml(albumSlug)}</span>
-            </div>
+          <!-- Back to All Albums Button -->
+          <div class="flex items-center gap-2.5 shrink-0">
             <button
-              id="btn-copy-album-link"
+              id="gallery-back-to-albums"
               type="button"
-              class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500 text-emerald-300 hover:text-slate-950 border border-emerald-500/30 hover:border-emerald-500 font-bold text-xs transition-all duration-200 cursor-pointer shadow-sm active:scale-95"
-              title="Salin tautan permanen album ini untuk dibagikan"
+              class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500 text-emerald-300 hover:text-slate-950 border border-emerald-500/30 hover:border-emerald-500 font-bold text-xs sm:text-sm transition-all duration-200 cursor-pointer shadow-sm active:scale-95"
+              title="Kembali ke daftar semua album galeri"
             >
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
-                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M19 12H5M12 19l-7-7 7-7"/>
               </svg>
-              <span id="btn-copy-album-text">Salin Tautan Album</span>
+              <span>Kembali ke Semua Album</span>
             </button>
           </div>
         </div>
       </div>
     `;
 
-    // Attach copy button listener
-    const copyBtn = document.getElementById('btn-copy-album-link');
-    const copyText = document.getElementById('btn-copy-album-text');
-    if (copyBtn) {
-      copyBtn.addEventListener('click', () => {
-        copyAlbumShareUrl(albumSlug, copyBtn);
-        if (copyText) {
-          const original = copyText.textContent;
-          copyText.textContent = '✓ Tautan Tersalin!';
-          setTimeout(() => {
-            copyText.textContent = original;
-          }, 2000);
-        }
+    // Attach back button listener
+    const backBtn = document.getElementById('gallery-back-to-albums');
+    if (backBtn) {
+      backBtn.addEventListener('click', () => {
+        navigateBackToAlbums(true);
       });
     }
   }

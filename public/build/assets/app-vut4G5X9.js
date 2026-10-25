@@ -6220,15 +6220,9 @@ File foto dan catatannya akan dihapus jika tidak digunakan di album/fitur lain.`
         </div>
       </div>
 
-      <!-- Album Detail Back Bar (hidden initially) -->
+      <!-- Album Detail Container (hidden initially) -->
       <div id="gallery-album-back-bar" class="hidden" style="margin-bottom: 20px;">
-        <button id="gallery-back-to-albums" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 hover:border-emerald-500/50 transition-all cursor-pointer text-sm font-semibold shadow-sm" title="Kembali ke daftar album">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M19 12H5M12 19l-7-7 7-7"/>
-          </svg>
-          <span>Kembali ke Semua Album</span>
-        </button>
-        <div id="gallery-album-detail-info" class="mt-4"></div>
+        <div id="gallery-album-detail-info"></div>
       </div>
 
       <!-- Grid Container -->
@@ -6364,28 +6358,23 @@ File foto dan catatannya akan dihapus jika tidak digunakan di album/fitur lain.`
             </div>
           </div>
 
-          <!-- Direct URL & Copy Button -->
-          <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 shrink-0">
-            <div class="hidden xl:flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-950/70 border border-slate-800 text-[11px] font-mono text-slate-400 select-all" title="URL Langsung Album">
-              <span class="text-emerald-400">🔗</span>
-              <span class="truncate max-w-[220px]">#galeri?album=${dm(i)}</span>
-            </div>
+          <!-- Back to All Albums Button -->
+          <div class="flex items-center gap-2.5 shrink-0">
             <button
-              id="btn-copy-album-link"
+              id="gallery-back-to-albums"
               type="button"
-              class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500 text-emerald-300 hover:text-slate-950 border border-emerald-500/30 hover:border-emerald-500 font-bold text-xs transition-all duration-200 cursor-pointer shadow-sm active:scale-95"
-              title="Salin tautan permanen album ini untuk dibagikan"
+              class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500 text-emerald-300 hover:text-slate-950 border border-emerald-500/30 hover:border-emerald-500 font-bold text-xs sm:text-sm transition-all duration-200 cursor-pointer shadow-sm active:scale-95"
+              title="Kembali ke daftar semua album galeri"
             >
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
-                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M19 12H5M12 19l-7-7 7-7"/>
               </svg>
-              <span id="btn-copy-album-text">Salin Tautan Album</span>
+              <span>Kembali ke Semua Album</span>
             </button>
           </div>
         </div>
       </div>
-    `;let a=document.getElementById(`btn-copy-album-link`),o=document.getElementById(`btn-copy-album-text`);a&&a.addEventListener(`click`,()=>{if(Gp(i,a),o){let e=o.textContent;o.textContent=`✓ Tautan Tersalin!`,setTimeout(()=>{o.textContent=e},2e3)}})}}function Gp(e,t=null){let n=`${window.location.origin+window.location.pathname.replace(/\/+$/,``)}/#galeri?album=${encodeURIComponent(e)}`,r=()=>{if(t){let e=t.innerHTML;t.innerHTML=`
+    `;let a=document.getElementById(`gallery-back-to-albums`);a&&a.addEventListener(`click`,()=>{Up(!0)})}}function Gp(e,t=null){let n=`${window.location.origin+window.location.pathname.replace(/\/+$/,``)}/#galeri?album=${encodeURIComponent(e)}`,r=()=>{if(t){let e=t.innerHTML;t.innerHTML=`
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="20 6 9 17 4 12"></polyline>
         </svg>
