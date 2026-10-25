@@ -91,10 +91,110 @@ class TreeSpecies extends Model
     }
 
     /**
-     * Format data publik yang aman (tanpa data sensitif internal)
+     * Format data publik yang aman (tanpa data sensitif internal), faktual, dan transparan
      */
     public function toPublicArray(): array
     {
+        // 1. Data kegiatan penanaman
+        $activityItems = $this->relationLoaded('activityItems')
+            ? $this->activityItems
+            : $this->activityItems()->with(['activity.plantingZone', 'activity.scene'])->get();
+
+        $hasPlanted = $activityItems->isNotEmpty();
+        $totalPlanted = $hasPlanted ? (int) $activityItems->sum('quantity') : null;
+
+        $plantings = $activityItems->map(function ($it) {
+            $act = $it->activity;
+            return [
+                'activity_id' => $act?->id,
+                'batch_code' => $act?->batch_code,
+                'activity_name' => $act?->name,
+                'activity_date' => $act?->activity_date?->format('Y-m-d'),
+                'quantity' => $it->quantity,
+                'unit' => $it->unit ?? 'batang',
+                'seed_source' => $it->seed_source,
+                'location_zone' => $act?->location_zone,
+                'zone_id' => $act?->planting_zone_id,
+                'zone_name' => $act?->plantingZone?->name,
+                'person_in_charge' => $act?->person_in_charge,
+                'organizer' => $act?->organizer,
+                'scene_id' => $act?->scene_id,
+                'scene_name' => $act?->scene?->name,
+            ];
+        })->values();
+
+        // 2. Data survei pemantauan faktual
+        $surveys = $this->relationLoaded('surveys')
+            ? $this->surveys
+            : $this->surveys()->orderBy('survey_date', 'desc')->get();
+
+        $latestSpeciesSurvey = $surveys->where('is_verified', true)->first() ?: $surveys->first();
+
+        $latestSurveyData = null;
+        if ($latestSpeciesSurvey) {
+            $initial = $totalPlanted ?: 0;
+            $rate = ($initial > 0) ? round(($latestSpeciesSurvey->alive_count / $initial) * 100, 1) : null;
+            $latestSurveyData = [
+                'scope' => 'spesies',
+                'scope_label' => 'Sensus Spesifik Spesies',
+                'survey_id' => $latestSpeciesSurvey->id,
+                'survey_date' => $latestSpeciesSurvey->survey_date?->format('Y-m-d'),
+                'alive_count' => $latestSpeciesSurvey->alive_count,
+                'dead_count' => $latestSpeciesSurvey->dead_count,
+                'missing_count' => $latestSpeciesSurvey->missing_count,
+                'uninspected_count' => $latestSpeciesSurvey->uninspected_count,
+                'health_condition' => $latestSpeciesSurvey->health_condition,
+                'survival_rate' => $rate,
+                'average_height_cm' => $latestSpeciesSurvey->average_height_cm,
+                'average_diameter_cm' => $latestSpeciesSurvey->average_diameter_cm,
+                'inspector_name' => $latestSpeciesSurvey->inspector_name,
+                'field_notes' => $latestSpeciesSurvey->field_notes,
+                'is_verified' => (bool) $latestSpeciesSurvey->is_verified,
+            ];
+        } else {
+            // Cek survei kelompok penanaman (batch-level) dari kegiatan yang diikuti
+            $relatedSurveys = $activityItems->map(fn($it) => $it->activity?->latest_survey)
+                ->filter()
+                ->sortByDesc('survey_date')
+                ->values();
+
+            $batchSurvey = $relatedSurveys->first();
+            if ($batchSurvey) {
+                $batchInitial = $batchSurvey->activity?->total_initial_seedlings ?: 0;
+                $batchRate = ($batchInitial > 0) ? round(($batchSurvey->alive_count / $batchInitial) * 100, 1) : null;
+                $latestSurveyData = [
+                    'scope' => 'batch',
+                    'scope_label' => 'Pemantauan Kelompok Batch',
+                    'batch_code' => $batchSurvey->activity?->batch_code,
+                    'activity_name' => $batchSurvey->activity?->name,
+                    'survey_id' => $batchSurvey->id,
+                    'survey_date' => $batchSurvey->survey_date?->format('Y-m-d'),
+                    'alive_count' => $batchSurvey->alive_count,
+                    'dead_count' => $batchSurvey->dead_count,
+                    'missing_count' => $batchSurvey->missing_count,
+                    'uninspected_count' => $batchSurvey->uninspected_count,
+                    'health_condition' => $batchSurvey->health_condition,
+                    'survival_rate' => $batchRate,
+                    'average_height_cm' => $batchSurvey->average_height_cm,
+                    'average_diameter_cm' => $batchSurvey->average_diameter_cm,
+                    'inspector_name' => $batchSurvey->inspector_name,
+                    'field_notes' => $batchSurvey->field_notes,
+                    'is_verified' => (bool) $batchSurvey->is_verified,
+                    'scope_note' => 'Catatan: Data survei tercatat pada tingkat kelompok penanaman (batch). Sensus spesifik per individu jenis pohon belum tersedia.',
+                ];
+            }
+        }
+
+        // 3. Titik panorama
+        $scenes = $activityItems
+            ->whereNotNull('activity.scene_id')
+            ->map(fn($it) => [
+                'activity_id' => $it->activity?->id,
+                'scene_id' => $it->activity?->scene_id,
+                'scene_name' => $it->activity?->scene?->name,
+                'zone' => $it->activity?->location_zone,
+            ])->unique('scene_id')->values();
+
         return [
             'id' => $this->id,
             'local_name' => $this->local_name,
@@ -112,18 +212,12 @@ class TreeSpecies extends Model
             'description' => $this->description,
             'photo_path' => $this->photo_path,
             'reference_source' => $this->reference_source,
-            'total_planted' => $this->total_planted_count,
-            'activities_count' => $this->plantingActivities()->count(),
-            'scenes' => $this->plantingActivities()
-                ->whereNotNull('scene_id')
-                ->with('scene')
-                ->get()
-                ->map(fn($a) => [
-                    'activity_id' => $a->id,
-                    'scene_id' => $a->scene_id,
-                    'scene_name' => $a->scene?->name,
-                    'zone' => $a->location_zone,
-                ])->unique('scene_id')->values(),
+            'has_planted_data' => $hasPlanted,
+            'total_planted' => $totalPlanted,
+            'activities_count' => $activityItems->count(),
+            'plantings' => $plantings,
+            'latest_survey' => $latestSurveyData,
+            'scenes' => $scenes,
         ];
     }
 }

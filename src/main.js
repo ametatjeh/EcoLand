@@ -104,6 +104,19 @@ function parseHash(fullHash) {
       const sub = routePart.slice(5).trim();
       if (sub) sceneParam = sub;
     }
+  } else if (route === 'katalog' || route.startsWith('katalog/') || route.startsWith('katalog-pohon/')) {
+    tab = 'katalog';
+    if (route.startsWith('katalog/')) {
+      const sub = routePart.slice(8).trim();
+      if (sub && !queryParams.has('species')) {
+        queryParams.set('species', sub);
+      }
+    } else if (route.startsWith('katalog-pohon/')) {
+      const sub = routePart.slice(14).trim();
+      if (sub && !queryParams.has('species')) {
+        queryParams.set('species', sub);
+      }
+    }
   } else if (route === 'monitoring-karbon') {
     tab = 'karbon';
   }
@@ -704,10 +717,12 @@ function switchTab(tabId) {
   } else if (tabId === 'galeri') {
     initPublicGallery('public-gallery-container');
   } else if (tabId === 'katalog') {
+    const { queryParams } = parseHash(window.location.hash);
+    const initialSpecies = queryParams ? queryParams.get('species') : null;
     initPublicTreeCatalog('public-tree-catalog-container', (sceneId) => {
       window.location.hash = `tour?scene=${encodeURIComponent(sceneId)}`;
       switchScene(sceneId);
-    });
+    }, initialSpecies);
   } else if (tabId === 'tree-qr') {
     initPublicTreeQr('public-tree-qr-container');
   } else if (tabId === 'karbon') {

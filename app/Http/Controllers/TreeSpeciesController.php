@@ -67,7 +67,10 @@ class TreeSpeciesController extends Controller
      */
     public function publicIndex()
     {
-        $species = TreeSpecies::active()->orderBy('common_name', 'asc')->get();
+        $species = TreeSpecies::active()
+            ->with(['activityItems.activity.plantingZone', 'activityItems.activity.scene', 'surveys'])
+            ->orderBy('common_name', 'asc')
+            ->get();
 
         return response()->json([
             'success' => true,
@@ -81,7 +84,9 @@ class TreeSpeciesController extends Controller
      */
     public function publicShow(string $id)
     {
-        $species = TreeSpecies::active()->find($id);
+        $species = TreeSpecies::active()
+            ->with(['activityItems.activity.plantingZone', 'activityItems.activity.scene', 'surveys'])
+            ->find($id);
 
         if (!$species) {
             return response()->json([

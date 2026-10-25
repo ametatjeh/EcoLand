@@ -1,159 +1,914 @@
 /**
- * Katalog Publik Spesies Pohon Kawasan ±2 Hektare
- * Menampilkan data terverifikasi master jenis pohon, jumlah bibit tertanam, dan link panorama.
+ * Katalog Jenis Pohon Kawasan Restorasi — Eco Land
+ * Dokumentasi resmi jenis pohon yang terdaftar dan ditanam dalam kegiatan restorasi kawasan.
+ * Menyajikan informasi setiap spesies, foto dokumentasi, nama ilmiah, jumlah bibit ditanam,
+ * serta kondisi kelangsungan hidup berdasarkan catatan penanaman dan hasil survei lapangan yang terverifikasi.
  */
 import { ApiService } from './services/api.js';
+import { formatDateDisplay } from './utils/date.js';
 
 let cachedPublicSpecies = [];
 let onJumpToSceneCallback = null;
+let currentContainerId = 'public-tree-catalog-container';
+let currentMode = 'list'; // 'list' | 'detail' | 'not-found'
+let currentSpeciesId = null;
 
-export async function initPublicTreeCatalog(containerId, onJumpToScene) {
-  const container = document.getElementById(containerId);
-  if (!container) return;
+let currentSearchTerm = '';
+let currentOriginFilter = 'all';
+let currentFamilyFilter = 'all';
 
+/**
+ * Inisialisasi modul katalog publik.
+ */
+export async function initPublicTreeCatalog(containerId = 'public-tree-catalog-container', onJumpToScene = null, initialSpeciesId = null) {
+  currentContainerId = containerId;
   onJumpToSceneCallback = onJumpToScene;
 
+  // Baca parameter spesifik dari hash jika ada
+  const hashParam = getSpeciesIdFromHash();
+  currentSpeciesId = initialSpeciesId || hashParam || null;
+
+  // Pasang listener hashchange satu kali untuk deep linking
+  if (!window._treeCatalogHashBound) {
+    window._treeCatalogHashBound = true;
+    window.addEventListener('hashchange', () => {
+      const hash = window.location.hash || '';
+      if (hash.startsWith('#katalog')) {
+        const sid = getSpeciesIdFromHash();
+        if (sid !== currentSpeciesId) {
+          currentSpeciesId = sid;
+          renderCatalogState();
+        }
+      }
+    });
+  }
+
+  await loadAndRenderCatalog();
+}
+
+/**
+ * Ekstraksi ID atau slug spesies dari URL hash
+ */
+function getSpeciesIdFromHash() {
+  const hash = window.location.hash || '';
+  if (!hash.startsWith('#katalog')) return null;
+
+  const clean = hash.replace(/^#\/?/, '').trim();
+  const [routePart, queryPart] = clean.split('?');
+  const params = new URLSearchParams(queryPart || '');
+
+  if (params.get('species')) {
+    return params.get('species').trim();
+  }
+
+  if (routePart && routePart.startsWith('katalog/')) {
+    const sub = routePart.slice(8).trim();
+    if (sub) return sub;
+  }
+
+  if (routePart && routePart.startsWith('katalog-pohon/')) {
+    const sub = routePart.slice(14).trim();
+    if (sub) return sub;
+  }
+
+  return null;
+}
+
+/**
+ * Muat data katalog dari API publik
+ */
+export async function loadAndRenderCatalog() {
+  const container = document.getElementById(currentContainerId);
+  if (!container) return;
+
+  // Render initial loading state
   container.innerHTML = `
-    <div class="hero-section" style="padding: 24px 28px; margin-bottom: 24px;">
-      <div class="hero-badge">🌳 Flora & Silvikultur Kawasan</div>
-      <h1 class="hero-title" style="font-size: 26px; margin: 10px 0;">
-        Katalog Jenis Pohon Kawasan Restorasi
-      </h1>
-      <p class="hero-subtitle" style="max-width: 800px; font-size: 14px; margin-bottom: 20px;">
-        Dokumentasi resmi seluruh spesies pohon yang terdaftar dan ditanam dalam kawasan pemulihan lahan ±2 hektare. Data kuantitas bibit dan kelangsungan hidup disajikan secara faktual berdasarkan catatan survei lapangan.
-      </p>
-
-      <!-- Filter & Search Toolbar -->
-      <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center; background: rgba(0,0,0,0.25); padding: 12px 16px; border-radius: var(--radius-md); border: 1px solid var(--clr-border);">
-        <div style="flex: 1; min-width: 220px;">
-          <input type="text" id="catalog-search" class="form-input form-input-sm" placeholder="🔍 Cari nama pohon, ilmiah, atau famili..." style="width: 100%;" />
-        </div>
-        <div style="display: flex; gap: 8px; align-items: center;">
-          <label style="font-size: 12px; color: var(--clr-text-muted);">Status Asal:</label>
-          <select id="catalog-filter-origin" class="form-select form-select-sm" style="width: auto;">
-            <option value="all">Semua Status</option>
-            <option value="lokal_asli">Jenis Lokal / Asli</option>
-            <option value="introduksi">Introduksi</option>
-          </select>
-        </div>
-      </div>
-    </div>
-
-    <!-- Species Grid Container -->
-    <div id="catalog-grid" class="points-grid" style="min-height: 250px;">
-      <div style="grid-column: 1 / -1; display: flex; justify-content: center; align-items: center; padding: 60px 0;">
-        <span class="loading-spinner"></span> Memuat katalog pohon...
-      </div>
-    </div>
-
-    <!-- Modal Detail Pohon Publik -->
-    <div id="catalog-detail-modal" class="modal-overlay hidden">
-      <div class="modal-card" style="max-width: 640px; max-height: 90vh; overflow-y: auto;">
-        <div class="modal-header">
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <span style="font-size: 26px;">🌿</span>
-            <div>
-              <h3 id="catmodal-title" style="margin: 0; font-size: 18px;">Detail Pohon</h3>
-              <p id="catmodal-subtitle" style="margin: 2px 0 0; font-size: 12px; font-style: italic; color: var(--clr-primary-light);"></p>
-            </div>
-          </div>
-          <button id="btn-close-catmodal" class="icon-btn" aria-label="Tutup">✕</button>
-        </div>
-        <div class="modal-body" id="catmodal-body">
-          <!-- Populated dynamically -->
-        </div>
-        <div class="modal-footer" style="display: flex; justify-content: flex-end;">
-          <button type="button" id="btn-catmodal-close-action" class="btn-secondary-action btn-sm">Tutup</button>
-        </div>
+    <div class="catalog-wrapper" style="max-width: 1240px; margin: 0 auto; padding: 28px 24px 54px; width: 100%;">
+      <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 340px; gap: 14px; color: var(--clr-text-muted);">
+        <span class="loading-spinner"></span>
+        <span style="font-size: 14px;">Memuat data katalog jenis pohon restorasi...</span>
       </div>
     </div>
   `;
 
-  setupCatalogEvents();
-  await loadAndRenderCatalog();
-}
-
-function setupCatalogEvents() {
-  const searchInput = document.getElementById('catalog-search');
-  const originFilter = document.getElementById('catalog-filter-origin');
-  const btnCloseModal = document.getElementById('btn-close-catmodal');
-  const btnCloseAction = document.getElementById('btn-catmodal-close-action');
-  const modal = document.getElementById('catalog-detail-modal');
-
-  searchInput?.addEventListener('input', () => filterAndRenderGrid());
-  originFilter?.addEventListener('change', () => filterAndRenderGrid());
-
-  const closeModal = () => modal?.classList.add('hidden');
-  btnCloseModal?.addEventListener('click', closeModal);
-  btnCloseAction?.addEventListener('click', closeModal);
-  modal?.addEventListener('click', (e) => {
-    if (e.target === modal) closeModal();
-  });
-}
-
-export async function loadAndRenderCatalog() {
-  const grid = document.getElementById('catalog-grid');
-  if (!grid) return;
-
   try {
     const res = await ApiService.getPublicTreeSpecies();
     cachedPublicSpecies = res.species || [];
-    filterAndRenderGrid();
+    renderCatalogState();
   } catch (err) {
-    grid.innerHTML = `
-      <div style="grid-column: 1 / -1; padding: 40px; text-align: center; background: rgba(239, 68, 68, 0.08); border-radius: var(--radius-md); border: 1px solid rgba(239, 68, 68, 0.2);">
-        <p style="color: var(--clr-danger); margin-bottom: 8px;">Gagal memuat data katalog pohon.</p>
-        <p style="font-size: 13px; color: var(--clr-text-muted);">${escapeHtml(err.message)}</p>
+    container.innerHTML = `
+      <div class="catalog-wrapper" style="max-width: 1240px; margin: 0 auto; padding: 28px 24px 54px; width: 100%;">
+        <div style="padding: 32px 24px; text-align: center; background: rgba(239, 68, 68, 0.08); border-radius: var(--radius-md); border: 1px solid rgba(239, 68, 68, 0.25);">
+          <span style="font-size: 36px; display: block; margin-bottom: 8px;">⚠️</span>
+          <h3 style="color: var(--clr-danger); font-size: 18px; margin-bottom: 6px;">Gagal Memuat Katalog Jenis Pohon</h3>
+          <p style="font-size: 13px; color: var(--clr-text-muted); max-width: 500px; margin: 0 auto 16px;">${escapeHtml(err.message || 'Terjadi gangguan saat menghubungi server basis data.')}</p>
+          <button id="btn-retry-catalog" class="btn-primary-action btn-sm">Coba Muat Ulang</button>
+        </div>
       </div>
     `;
+    document.getElementById('btn-retry-catalog')?.addEventListener('click', () => loadAndRenderCatalog());
   }
 }
 
-function filterAndRenderGrid() {
-  const grid = document.getElementById('catalog-grid');
+/**
+ * Mengarahkan render ke list atau detail berdasarkan state saat ini
+ */
+function renderCatalogState() {
+  const container = document.getElementById(currentContainerId);
+  if (!container) return;
+
+  if (currentSpeciesId) {
+    const species = cachedPublicSpecies.find((s) => String(s.id).toLowerCase() === String(currentSpeciesId).toLowerCase());
+    if (species) {
+      currentMode = 'detail';
+      renderSpeciesDetailView(container, species);
+    } else {
+      currentMode = 'not-found';
+      renderSpeciesNotFoundView(container, currentSpeciesId);
+    }
+  } else {
+    currentMode = 'list';
+    renderCatalogListView(container);
+  }
+}
+
+/**
+ * ─────────────────────────────────────────────────────────────
+ * TAMPILAN 1: DAFTAR KATALOG UTAMA (GRID & FILTER)
+ * ─────────────────────────────────────────────────────────────
+ */
+function renderCatalogListView(container) {
+  // Ambil daftar famili unik yang benar-benar tercatat di database
+  const availableFamilies = [...new Set(cachedPublicSpecies.map((s) => s.family).filter(Boolean))].sort();
+
+  container.innerHTML = `
+    <div class="catalog-wrapper" style="max-width: 1240px; margin: 0 auto; padding: 28px 24px 54px; width: 100%;">
+      <!-- Section Header Hero Banner -->
+      <div class="hero-section text-center relative overflow-hidden" style="padding: 32px 24px; margin-bottom: 28px; background: radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.14) 0%, rgba(10, 24, 20, 0.8) 75%); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 20px; box-shadow: 0 16px 36px -12px rgba(0, 0, 0, 0.6);">
+        <div class="hero-badge" style="display: inline-flex; align-items: center; gap: 6px; padding: 5px 14px; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 9999px; font-size: 12px; font-weight: 600; color: var(--clr-primary-light); margin-bottom: 12px;">
+          <span>🌳</span> Flora & Silvikultur Kawasan
+        </div>
+        <h1 class="hero-title" style="font-size: 30px; font-weight: 800; color: #ffffff; margin-bottom: 12px; line-height: 1.25;">
+          Katalog Jenis Pohon Kawasan Restorasi
+        </h1>
+        <p class="hero-subtitle" style="font-size: 14px; line-height: 1.65; color: #cbd5e1; max-width: 860px; margin: 0 auto 10px; text-align: center;">
+          Dokumentasi jenis pohon yang terdaftar dan ditanam dalam kegiatan restorasi kawasan. Katalog ini menyajikan informasi setiap spesies, dilengkapi foto dokumentasi, nama ilmiah, jumlah bibit yang ditanam, serta kondisi kelangsungan hidup berdasarkan catatan penanaman dan hasil survei lapangan yang terverifikasi.
+        </p>
+        <div style="font-size: 12px; color: var(--clr-primary-light); font-weight: 500; display: inline-flex; align-items: center; gap: 6px; background: rgba(0, 0, 0, 0.25); padding: 4px 12px; border-radius: 8px;">
+          <span>📋</span> Data bersumber langsung dari catatan penanaman dan survei lapangan yang tersedia.
+        </div>
+      </div>
+
+      <!-- Filters & Search Toolbar -->
+      <div class="gallery-filter-bar" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; background: rgba(11, 20, 16, 0.85); backdrop-filter: blur(20px); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 16px; padding: 14px 18px; margin-bottom: 28px; box-shadow: 0 16px 36px -12px rgba(0, 0, 0, 0.6);">
+        <!-- Search Box -->
+        <div class="gallery-search-box" style="position: relative; flex: 1 1 260px; min-width: 200px;">
+          <span class="gallery-search-icon" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #10b981; pointer-events: none; opacity: 0.9;">🔍</span>
+          <input
+            type="text"
+            id="catalog-search-input"
+            placeholder="Cari nama umum, nama ilmiah, lokal, famili..."
+            class="gallery-search-field"
+            value="${escapeHtml(currentSearchTerm)}"
+            style="width: 100%; height: 42px; background: rgba(6, 12, 10, 0.85); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 10px; padding: 0 36px 0 40px; font-size: 13.5px; color: #f8fafc; outline: none;"
+          />
+          <button id="catalog-search-clear" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #94a3b8; cursor: pointer; display: ${currentSearchTerm ? 'flex' : 'none'};" title="Hapus pencarian">✕</button>
+        </div>
+
+        <!-- Filter Controls -->
+        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+          <!-- Status Asal -->
+          <div style="display: flex; align-items: center; gap: 6px; background: rgba(6, 12, 10, 0.85); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 10px; padding: 0 12px; height: 42px;">
+            <label for="catalog-filter-origin" style="font-size: 12px; color: var(--clr-text-muted); white-space: nowrap;">Status:</label>
+            <select id="catalog-filter-origin" style="background: transparent; color: #f8fafc; border: none; outline: none; font-size: 13px; cursor: pointer;">
+              <option value="all" class="bg-slate-900 text-white" ${currentOriginFilter === 'all' ? 'selected' : ''}>Semua Status Asal</option>
+              <option value="lokal_asli" class="bg-slate-900 text-white" ${currentOriginFilter === 'lokal_asli' ? 'selected' : ''}>Jenis Asli / Lokal</option>
+              <option value="introduksi" class="bg-slate-900 text-white" ${currentOriginFilter === 'introduksi' ? 'selected' : ''}>Jenis Introduksi</option>
+            </select>
+          </div>
+
+          <!-- Famili -->
+          ${availableFamilies.length > 0 ? `
+            <div style="display: flex; align-items: center; gap: 6px; background: rgba(6, 12, 10, 0.85); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 10px; padding: 0 12px; height: 42px;">
+              <label for="catalog-filter-family" style="font-size: 12px; color: var(--clr-text-muted); white-space: nowrap;">Famili:</label>
+              <select id="catalog-filter-family" style="background: transparent; color: #f8fafc; border: none; outline: none; font-size: 13px; cursor: pointer;">
+                <option value="all" class="bg-slate-900 text-white" ${currentFamilyFilter === 'all' ? 'selected' : ''}>Semua Famili</option>
+                ${availableFamilies.map((fam) => `<option value="${escapeHtml(fam)}" class="bg-slate-900 text-white" ${currentFamilyFilter === fam ? 'selected' : ''}>${escapeHtml(fam)}</option>`).join('')}
+              </select>
+            </div>
+          ` : ''}
+
+          <!-- Counter & Reset -->
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span id="catalog-counter-badge" style="font-size: 12px; font-weight: 600; padding: 6px 12px; background: rgba(16, 185, 129, 0.12); color: var(--clr-primary-light); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 8px; white-space: nowrap;">
+              ${cachedPublicSpecies.length} Spesies
+            </span>
+            <button id="catalog-reset-filters" class="btn-text-btn btn-sm" style="display: ${isFilterActive() ? 'inline-flex' : 'none'}; font-size: 12px; color: #f87171; text-decoration: underline; background: none; border: none; cursor: pointer;">
+              Reset Filter
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Grid Kartu Spesies -->
+      <div id="catalog-species-grid" style="min-height: 280px;">
+        <!-- Populated via applyCatalogFilters -->
+      </div>
+    </div>
+  `;
+
+  bindCatalogListEvents();
+  applyCatalogFilters();
+}
+
+/**
+ * Event bindings untuk pencarian dan filter
+ */
+function bindCatalogListEvents() {
+  const searchInput = document.getElementById('catalog-search-input');
+  const clearBtn = document.getElementById('catalog-search-clear');
+  const originSelect = document.getElementById('catalog-filter-origin');
+  const familySelect = document.getElementById('catalog-filter-family');
+  const resetBtn = document.getElementById('catalog-reset-filters');
+
+  searchInput?.addEventListener('input', (e) => {
+    currentSearchTerm = e.target.value.toLowerCase().trim();
+    if (clearBtn) clearBtn.style.display = currentSearchTerm ? 'flex' : 'none';
+    applyCatalogFilters();
+  });
+
+  clearBtn?.addEventListener('click', () => {
+    if (searchInput) {
+      searchInput.value = '';
+      currentSearchTerm = '';
+      clearBtn.style.display = 'none';
+      searchInput.focus();
+      applyCatalogFilters();
+    }
+  });
+
+  originSelect?.addEventListener('change', (e) => {
+    currentOriginFilter = e.target.value;
+    applyCatalogFilters();
+  });
+
+  familySelect?.addEventListener('change', (e) => {
+    currentFamilyFilter = e.target.value;
+    applyCatalogFilters();
+  });
+
+  resetBtn?.addEventListener('click', () => {
+    currentSearchTerm = '';
+    currentOriginFilter = 'all';
+    currentFamilyFilter = 'all';
+    if (searchInput) searchInput.value = '';
+    if (clearBtn) clearBtn.style.display = 'none';
+    if (originSelect) originSelect.value = 'all';
+    if (familySelect) familySelect.value = 'all';
+    applyCatalogFilters();
+  });
+}
+
+function isFilterActive() {
+  return currentSearchTerm.length > 0 || currentOriginFilter !== 'all' || currentFamilyFilter !== 'all';
+}
+
+/**
+ * Saring data spesies dan render grid
+ */
+function applyCatalogFilters() {
+  const grid = document.getElementById('catalog-species-grid');
+  const counterBadge = document.getElementById('catalog-counter-badge');
+  const resetBtn = document.getElementById('catalog-reset-filters');
+
   if (!grid) return;
 
-  const searchQuery = document.getElementById('catalog-search')?.value.toLowerCase().trim() || '';
-  const originFilter = document.getElementById('catalog-filter-origin')?.value || 'all';
-
   const filtered = cachedPublicSpecies.filter((sp) => {
-    const matchSearch =
-      !searchQuery ||
-      (sp.common_name && sp.common_name.toLowerCase().includes(searchQuery)) ||
-      (sp.scientific_name && sp.scientific_name.toLowerCase().includes(searchQuery)) ||
-      (sp.local_name && sp.local_name.toLowerCase().includes(searchQuery)) ||
-      (sp.family && sp.family.toLowerCase().includes(searchQuery));
-
-    const matchOrigin = originFilter === 'all' || sp.origin_status === originFilter;
-    return matchSearch && matchOrigin;
+    // 1. Status asal filter
+    if (currentOriginFilter !== 'all' && sp.origin_status !== currentOriginFilter) {
+      return false;
+    }
+    // 2. Famili filter
+    if (currentFamilyFilter !== 'all' && sp.family !== currentFamilyFilter) {
+      return false;
+    }
+    // 3. Search text
+    if (currentSearchTerm) {
+      const matchCommon = (sp.common_name || '').toLowerCase().includes(currentSearchTerm);
+      const matchScientific = (sp.scientific_name || '').toLowerCase().includes(currentSearchTerm);
+      const matchLocal = (sp.local_name || '').toLowerCase().includes(currentSearchTerm);
+      const matchFamily = (sp.family || '').toLowerCase().includes(currentSearchTerm);
+      if (!matchCommon && !matchScientific && !matchLocal && !matchFamily) {
+        return false;
+      }
+    }
+    return true;
   });
+
+  if (counterBadge) {
+    counterBadge.textContent = `${filtered.length} dari ${cachedPublicSpecies.length} Spesies`;
+  }
+  if (resetBtn) {
+    resetBtn.style.display = isFilterActive() ? 'inline-flex' : 'none';
+  }
 
   if (filtered.length === 0) {
     grid.innerHTML = `
-      <div style="grid-column: 1 / -1; padding: 60px 20px; text-align: center; background: rgba(0,0,0,0.18); border-radius: var(--radius-md); border: 1px dashed var(--clr-border);">
-        <span style="font-size: 38px; display: block; margin-bottom: 12px;">🌱</span>
-        <h3 style="font-size: 16px; margin-bottom: 6px;">Belum Ada Spesies Pohon Tercatat</h3>
-        <p style="font-size: 13px; color: var(--clr-text-muted); max-width: 500px; margin: 0 auto;">
-          ${searchQuery || originFilter !== 'all' ? 'Tidak ada jenis pohon yang cocok dengan filter pencarian Anda.' : 'Data master pohon belum dimasukkan atau belum disetujui untuk publikasi oleh administrator.'}
+      <div style="padding: 60px 24px; text-align: center; background: rgba(11, 20, 16, 0.6); border: 1px dashed rgba(255, 255, 255, 0.15); border-radius: 16px;">
+        <span style="font-size: 42px; display: block; margin-bottom: 12px;">🌱</span>
+        <h3 style="font-size: 18px; font-weight: 700; color: #ffffff; margin-bottom: 6px;">Jenis pohon tidak ditemukan</h3>
+        <p style="font-size: 13.5px; color: var(--clr-text-muted); max-width: 480px; margin: 0 auto 18px; line-height: 1.5;">
+          ${isFilterActive() ? 'Tidak ada jenis pohon yang sesuai dengan kriteria pencarian dan filter Anda saat ini.' : 'Belum ada data master jenis pohon yang dipublikasikan dalam sistem.'}
         </p>
+        ${isFilterActive() ? `
+          <button id="btn-empty-reset" class="btn-secondary-action btn-sm">Tampilkan Semua Jenis Pohon</button>
+        ` : ''}
       </div>
     `;
+    document.getElementById('btn-empty-reset')?.addEventListener('click', () => {
+      currentSearchTerm = '';
+      currentOriginFilter = 'all';
+      currentFamilyFilter = 'all';
+      const searchInput = document.getElementById('catalog-search-input');
+      const originSelect = document.getElementById('catalog-filter-origin');
+      const familySelect = document.getElementById('catalog-filter-family');
+      if (searchInput) searchInput.value = '';
+      if (originSelect) originSelect.value = 'all';
+      if (familySelect) familySelect.value = 'all';
+      applyCatalogFilters();
+    });
     return;
   }
 
-  grid.innerHTML = filtered.map((sp) => renderSpeciesCard(sp)).join('');
+  grid.innerHTML = `
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px;">
+      ${filtered.map((sp) => renderSpeciesCard(sp)).join('')}
+    </div>
+  `;
 
-  // Attach card detail buttons
-  grid.querySelectorAll('.btn-view-species-detail').forEach((btn) => {
+  // Pasang event pada tombol Lihat Profil
+  grid.querySelectorAll('.btn-view-species-profile').forEach((btn) => {
     btn.addEventListener('click', () => {
-      const spId = parseInt(btn.getAttribute('data-id'));
-      const species = cachedPublicSpecies.find((s) => s.id === spId);
-      if (species) showSpeciesModal(species);
+      const spId = btn.getAttribute('data-id');
+      navigateToSpeciesDetail(spId);
     });
   });
+}
 
-  // Attach jump to scene buttons
-  grid.querySelectorAll('.btn-jump-scene').forEach((btn) => {
+/**
+ * Render satu kartu jenis pohon
+ */
+function renderSpeciesCard(sp) {
+  const originLabel = sp.origin_status_label || (sp.origin_status === 'lokal_asli' ? 'Jenis Asli / Lokal' : 'Jenis Introduksi');
+  const originBadgeClass = sp.origin_status === 'lokal_asli' ? 'pill-success' : 'pill-info';
+
+  // Periksa ketersediaan foto aktual
+  const hasPhoto = Boolean(sp.photo_path && sp.photo_path.trim());
+  let photoSrc = hasPhoto ? sp.photo_path.trim() : '';
+  if (photoSrc && !photoSrc.startsWith('http://') && !photoSrc.startsWith('https://') && !photoSrc.startsWith('/')) {
+    photoSrc = '/' + photoSrc;
+  }
+
+  // Jumlah bibit ditanam secara faktual
+  let plantedText = 'Data belum tersedia';
+  let plantedColor = 'var(--clr-text-muted)';
+  if (sp.has_planted_data && sp.total_planted !== null && sp.total_planted > 0) {
+    plantedText = `${formatNumber(sp.total_planted)} bibit ditanam`;
+    plantedColor = 'var(--clr-primary-light)';
+  } else if (sp.has_planted_data && sp.total_planted === 0) {
+    plantedText = '0 bibit tercatat';
+  }
+
+  // Kondisi tanaman berdasarkan survei lapangan
+  let surveyConditionText = 'Data belum tersedia';
+  let surveyBadgeClass = 'color: var(--clr-text-muted); background: rgba(255, 255, 255, 0.05);';
+  if (sp.latest_survey) {
+    const s = sp.latest_survey;
+    const health = s.health_condition ? capitalize(s.health_condition) : 'Terpantau';
+    if (s.survival_rate !== null) {
+      surveyConditionText = `Hidup: ${s.survival_rate}% (${health})`;
+      surveyBadgeClass = 'color: #6ee7b7; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3);';
+    } else {
+      surveyConditionText = `Kondisi: ${health}`;
+      surveyBadgeClass = 'color: #38bdf8; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.25);';
+    }
+  }
+
+  return `
+    <div class="point-card catalog-card group" style="display: flex; flex-direction: column; justify-content: space-between; background: rgba(15, 28, 22, 0.88); border: 1px solid rgba(16, 185, 129, 0.18); border-radius: 16px; overflow: hidden; box-shadow: 0 10px 24px -10px rgba(0, 0, 0, 0.5); transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;">
+      <div>
+        <!-- Bagian Foto Dokumentasi -->
+        <div style="position: relative; width: 100%; aspect-ratio: 16 / 10; overflow: hidden; background: #070d0a;">
+          ${hasPhoto ? `
+            <img
+              src="${photoSrc}"
+              alt="Dokumentasi ${escapeHtml(sp.common_name)} (${escapeHtml(sp.scientific_name)})"
+              loading="lazy"
+              style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease;"
+              onerror="this.parentElement.innerHTML = getNeutralPhotoPlaceholderHtml();"
+            />
+          ` : getNeutralPhotoPlaceholderHtml()}
+
+          <!-- Badge Status Asal (Overlay) -->
+          <div style="position: absolute; top: 12px; left: 12px; z-index: 2;">
+            <span class="admin-header-pill ${originBadgeClass}" style="font-size: 11px; padding: 3px 10px; border-radius: 9999px; font-weight: 600; box-shadow: 0 2px 8px rgba(0,0,0,0.5);">
+              ${escapeHtml(originLabel)}
+            </span>
+          </div>
+        </div>
+
+        <!-- Konten Informasi Pohon -->
+        <div style="padding: 18px 20px 14px;">
+          <!-- Nama Umum & Nama Ilmiah -->
+          <h2 style="font-size: 18px; font-weight: 700; color: #ffffff; margin-bottom: 4px; line-height: 1.3;">
+            ${escapeHtml(sp.common_name)}
+          </h2>
+
+          <div style="font-size: 13px; font-style: italic; color: var(--clr-primary-light); font-weight: 500; margin-bottom: 10px;">
+            ${escapeHtml(sp.scientific_name)}
+          </div>
+
+          <!-- Metadata Lokal & Famili -->
+          <div style="display: flex; flex-direction: column; gap: 4px; margin-bottom: 14px; font-size: 12.5px;">
+            <div style="color: var(--clr-text-muted);">
+              <span style="color: var(--clr-text-dim);">Nama Daerah:</span>
+              <strong style="color: #e2e8f0; font-weight: 500;">${escapeHtml(sp.local_name || 'Data belum tersedia')}</strong>
+            </div>
+            ${sp.family ? `
+              <div style="color: var(--clr-text-muted);">
+                <span style="color: var(--clr-text-dim);">Famili:</span>
+                <span style="color: #cbd5e1;">${escapeHtml(sp.family)}</span>
+              </div>
+            ` : ''}
+          </div>
+
+          <!-- Kuantitas Penanaman & Pemantauan (Faktual) -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 10px 12px; background: rgba(0, 0, 0, 0.3); border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.06); margin-bottom: 12px;">
+            <div>
+              <div style="font-size: 10.5px; color: var(--clr-text-dim); text-transform: uppercase; font-weight: 600; margin-bottom: 2px;">Bibit Ditanam</div>
+              <div style="font-size: 12.5px; font-weight: 700; color: ${plantedColor};">
+                ${plantedText}
+              </div>
+            </div>
+            <div>
+              <div style="font-size: 10.5px; color: var(--clr-text-dim); text-transform: uppercase; font-weight: 600; margin-bottom: 2px;">Kondisi Tanaman</div>
+              <div style="font-size: 11.5px; font-weight: 600; padding: 2px 6px; border-radius: 6px; display: inline-block; ${surveyBadgeClass}">
+                ${surveyConditionText}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer Tombol Aksi -->
+      <div style="padding: 12px 20px 16px; border-top: 1px solid rgba(255, 255, 255, 0.08); display: flex; justify-content: flex-end; align-items: center;">
+        <button
+          type="button"
+          class="btn-view-species-profile btn-secondary-action btn-sm"
+          data-id="${escapeHtml(sp.id)}"
+          style="width: 100%; display: flex; justify-content: center; align-items: center; gap: 6px; font-weight: 600; font-size: 13px; padding: 9px 16px; border-radius: 10px; background: rgba(16, 185, 129, 0.12); color: #ecfdf5; border: 1px solid rgba(16, 185, 129, 0.3); cursor: pointer; transition: all 0.2s ease;"
+        >
+          Lihat Profil Jenis Pohon <span>→</span>
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * Placeholder visual netral ketika foto tidak tersedia
+ */
+function getNeutralPhotoPlaceholderHtml() {
+  return `
+    <div style="width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: radial-gradient(circle, rgba(16, 185, 129, 0.08) 0%, rgba(6, 12, 10, 0.95) 100%); color: var(--clr-text-dim); padding: 16px;">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity: 0.6; margin-bottom: 6px; color: var(--clr-primary-light);">
+        <path d="M12 2a9 9 0 0 0-9 9c0 4.1 2.8 7.6 6.7 8.6L12 22l2.3-2.4C18.2 18.6 21 15.1 21 11a9 9 0 0 0-9-9z"></path>
+        <path d="M12 7v10"></path>
+        <path d="M8 11l4-4 4 4"></path>
+      </svg>
+      <span style="font-size: 12px; font-weight: 500; color: #94a3b8;">Foto belum tersedia</span>
+      <span style="font-size: 10.5px; color: #64748b; margin-top: 2px;">Menunggu verifikasi dokumentasi lapangan</span>
+    </div>
+  `;
+}
+
+/**
+ * Navigasi menuju halaman detail profil pohon
+ */
+function navigateToSpeciesDetail(speciesId) {
+  currentSpeciesId = speciesId;
+  window.location.hash = `#katalog?species=${encodeURIComponent(speciesId)}`;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  renderCatalogState();
+}
+
+/**
+ * Navigasi kembali ke daftar katalog utama
+ */
+function backToCatalogList() {
+  currentSpeciesId = null;
+  window.location.hash = '#katalog';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  renderCatalogState();
+}
+
+/**
+ * ─────────────────────────────────────────────────────────────
+ * TAMPILAN 2: HALAMAN DETAIL PROFIL JENIS POHON
+ * ─────────────────────────────────────────────────────────────
+ */
+function renderSpeciesDetailView(container, sp) {
+  const originLabel = sp.origin_status_label || (sp.origin_status === 'lokal_asli' ? 'Jenis Asli / Lokal' : 'Jenis Introduksi');
+  const originBadgeClass = sp.origin_status === 'lokal_asli' ? 'pill-success' : 'pill-info';
+
+  const hasPhoto = Boolean(sp.photo_path && sp.photo_path.trim());
+  let photoSrc = hasPhoto ? sp.photo_path.trim() : '';
+  if (photoSrc && !photoSrc.startsWith('http://') && !photoSrc.startsWith('https://') && !photoSrc.startsWith('/')) {
+    photoSrc = '/' + photoSrc;
+  }
+
+  // Ringkasan penanaman
+  const plantings = sp.plantings || [];
+  const hasPlanted = sp.has_planted_data && sp.total_planted !== null && sp.total_planted > 0;
+  const totalPlantedStr = hasPlanted ? `${formatNumber(sp.total_planted)} bibit (batang)` : 'Data belum tersedia';
+
+  // Ringkasan survei pemantauan
+  const survey = sp.latest_survey;
+
+  container.innerHTML = `
+    <div class="catalog-wrapper catalog-detail-page" style="max-width: 1140px; margin: 0 auto; padding: 24px 20px 60px; width: 100%;">
+      <!-- Breadcrumb & Tombol Kembali -->
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 24px; padding-bottom: 14px; border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
+        <nav aria-label="Breadcrumb" style="font-size: 13px; color: var(--clr-text-muted); display: flex; align-items: center; gap: 8px;">
+          <button id="btn-breadcrumb-back" class="btn-text-btn" style="color: var(--clr-primary-light); text-decoration: none; background: none; border: none; cursor: pointer; padding: 0; font-size: 13px; font-weight: 500;">
+            ← Katalog Jenis Pohon
+          </button>
+          <span style="color: var(--clr-text-dim);">/</span>
+          <span style="color: #f8fafc; font-weight: 600;">${escapeHtml(sp.common_name)}</span>
+        </nav>
+
+        <button
+          id="btn-back-to-catalog"
+          type="button"
+          class="btn-secondary-action btn-sm"
+          style="display: inline-flex; align-items: center; gap: 6px; font-weight: 600; font-size: 13px; padding: 7px 14px; border-radius: 8px; cursor: pointer;"
+        >
+          <span>←</span> Kembali ke Katalog Jenis Pohon
+        </button>
+      </div>
+
+      <!-- Header Hero Profil Spesies -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 28px; background: rgba(15, 28, 22, 0.85); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 20px; padding: 24px; margin-bottom: 28px; box-shadow: 0 16px 36px -12px rgba(0, 0, 0, 0.6);">
+        <!-- Kolom Kiri: Foto Dokumentasi -->
+        <div>
+          <div style="width: 100%; aspect-ratio: 4 / 3; border-radius: 14px; overflow: hidden; background: #070d0a; border: 1px solid rgba(255, 255, 255, 0.1); position: relative;">
+            ${hasPhoto ? `
+              <img
+                src="${photoSrc}"
+                alt="Foto Dokumentasi ${escapeHtml(sp.common_name)} (${escapeHtml(sp.scientific_name)})"
+                style="width: 100%; height: 100%; object-fit: cover;"
+                onerror="this.parentElement.innerHTML = getNeutralPhotoPlaceholderHtml();"
+              />
+            ` : getNeutralPhotoPlaceholderHtml()}
+
+            <div style="position: absolute; top: 12px; left: 12px;">
+              <span class="admin-header-pill ${originBadgeClass}" style="font-size: 11px; padding: 4px 12px; border-radius: 9999px; font-weight: 600; box-shadow: 0 2px 8px rgba(0,0,0,0.5);">
+                ${escapeHtml(originLabel)}
+              </span>
+            </div>
+          </div>
+
+          ${sp.reference_source ? `
+            <div style="margin-top: 10px; font-size: 11.5px; color: var(--clr-text-dim); line-height: 1.4; padding: 6px 10px; background: rgba(0,0,0,0.25); border-radius: 6px;">
+              📖 <strong>Sumber Referensi:</strong> ${escapeHtml(sp.reference_source)}
+            </div>
+          ` : ''}
+        </div>
+
+        <!-- Kolom Kanan: Identitas & Metrik Faktual -->
+        <div style="display: flex; flex-direction: column; justify-content: space-between;">
+          <div>
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+              <span style="font-size: 20px;">🌿</span>
+              <span style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--clr-primary-light); font-weight: 700;">
+                Profil Spesies Restorasi
+              </span>
+            </div>
+
+            <h1 style="font-size: 28px; font-weight: 800; color: #ffffff; margin-bottom: 4px; line-height: 1.2;">
+              ${escapeHtml(sp.common_name)}
+            </h1>
+
+            <div style="font-size: 16px; font-style: italic; color: var(--clr-primary-light); font-weight: 600; margin-bottom: 16px;">
+              ${escapeHtml(sp.scientific_name)} ${sp.family ? `<span style="font-style: normal; color: var(--clr-text-muted); font-size: 14px; font-weight: 400;">• Famili ${escapeHtml(sp.family)}</span>` : ''}
+            </div>
+
+            <!-- Tabel Identitas Ringkas -->
+            <div style="background: rgba(0, 0, 0, 0.28); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 14px 16px; margin-bottom: 18px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 13px;">
+              <div>
+                <span style="color: var(--clr-text-dim); display: block; font-size: 11px; text-transform: uppercase; font-weight: 600;">Nama Daerah / Lokal</span>
+                <strong style="color: #f1f5f9; font-weight: 600;">${escapeHtml(sp.local_name || 'Data belum tersedia')}</strong>
+              </div>
+              <div>
+                <span style="color: var(--clr-text-dim); display: block; font-size: 11px; text-transform: uppercase; font-weight: 600;">Klasifikasi Famili</span>
+                <span style="color: #e2e8f0;">${escapeHtml(sp.family || 'Data belum tersedia')}</span>
+              </div>
+              <div>
+                <span style="color: var(--clr-text-dim); display: block; font-size: 11px; text-transform: uppercase; font-weight: 600;">Status Asal Spesies</span>
+                <span style="color: #e2e8f0;">${escapeHtml(originLabel)}</span>
+              </div>
+              <div>
+                <span style="color: var(--clr-text-dim); display: block; font-size: 11px; text-transform: uppercase; font-weight: 600;">Status Publikasi</span>
+                <span style="color: #6ee7b7; font-weight: 600;">✓ Terverifikasi Aktif</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Statistik Ringkas (Faktual) -->
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px;">
+            <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 10px; padding: 10px 14px;">
+              <span style="font-size: 11px; color: var(--clr-text-muted); display: block; margin-bottom: 2px;">Total Bibit Ditanam</span>
+              <strong style="font-size: 15px; color: ${hasPlanted ? 'var(--clr-primary-light)' : 'var(--clr-text-muted)'};">
+                ${totalPlantedStr}
+              </strong>
+            </div>
+
+            <div style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 10px; padding: 10px 14px;">
+              <span style="font-size: 11px; color: var(--clr-text-muted); display: block; margin-bottom: 2px;">Kegiatan Penanaman</span>
+              <strong style="font-size: 15px; color: #38bdf8;">
+                ${plantings.length > 0 ? `${plantings.length} Kegiatan Tercatat` : 'Belum Ada'}
+              </strong>
+            </div>
+
+            <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 10px; padding: 10px 14px;">
+              <span style="font-size: 11px; color: var(--clr-text-muted); display: block; margin-bottom: 2px;">Status Pemantauan</span>
+              <strong style="font-size: 14px; color: ${survey ? '#fcd34d' : 'var(--clr-text-muted)'};">
+                ${survey ? (survey.survival_rate !== null ? `Hidup ${survey.survival_rate}%` : capitalize(survey.health_condition || 'Terpantau')) : 'Belum Ada Survei'}
+              </strong>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SEKSI 1: INFORMASI KEGIATAN PENANAMAN LAPANGAN -->
+      <div style="background: rgba(15, 28, 22, 0.7); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; padding: 22px; margin-bottom: 24px;">
+        <h2 style="font-size: 18px; font-weight: 700; color: #ffffff; margin-bottom: 6px; display: flex; align-items: center; gap: 8px;">
+          <span>🌱</span> Catatan Kegiatan Penanaman Lapangan
+        </h2>
+        <p style="font-size: 13px; color: var(--clr-text-muted); margin-bottom: 16px;">
+          Rekam jejak resmi penanaman bibit di areal kawasan restorasi yang tercatat dalam sistem administrasi.
+        </p>
+
+        ${plantings.length > 0 ? `
+          <div style="overflow-x: auto;">
+            <table class="data-table" style="width: 100%; font-size: 13px; border-collapse: collapse;">
+              <thead>
+                <tr style="color: var(--clr-text-dim); border-bottom: 1px solid rgba(255, 255, 255, 0.1); text-align: left; font-size: 11.5px; text-transform: uppercase;">
+                  <th style="padding: 10px 12px;">Tanggal Tanam</th>
+                  <th style="padding: 10px 12px;">Kelompok / Kegiatan</th>
+                  <th style="padding: 10px 12px;">Lokasi & Kawasan</th>
+                  <th style="padding: 10px 12px;">Jumlah Bibit</th>
+                  <th style="padding: 10px 12px;">Asal / Sumber Bibit</th>
+                  <th style="padding: 10px 12px;">Pelaksana</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${plantings.map((p) => `
+                  <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
+                    <td style="padding: 10px 12px; font-family: monospace; font-size: 12px; color: var(--clr-primary-light); white-space: nowrap;">
+                      ${formatDateDisplay(p.activity_date)}
+                    </td>
+                    <td style="padding: 10px 12px; font-weight: 600; color: #ffffff;">
+                      ${escapeHtml(p.activity_name || '-')}
+                      ${p.batch_code ? `<span style="display: block; font-size: 11px; font-family: monospace; color: var(--clr-text-dim); font-weight: 400;">Batch: ${escapeHtml(p.batch_code)}</span>` : ''}
+                    </td>
+                    <td style="padding: 10px 12px; color: #cbd5e1;">
+                      ${escapeHtml(p.location_zone || p.zone_name || '-')}
+                    </td>
+                    <td style="padding: 10px 12px; font-weight: 700; color: var(--clr-primary-light); white-space: nowrap;">
+                      ${formatNumber(p.quantity)} ${escapeHtml(p.unit || 'batang')}
+                    </td>
+                    <td style="padding: 10px 12px; color: var(--clr-text-muted); font-size: 12px;">
+                      ${escapeHtml(p.seed_source || 'Data belum tersedia')}
+                    </td>
+                    <td style="padding: 10px 12px; color: var(--clr-text-muted); font-size: 12px;">
+                      ${escapeHtml(p.organizer || p.person_in_charge || '-')}
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        ` : `
+          <div style="padding: 24px; text-align: center; background: rgba(0,0,0,0.2); border-radius: 10px; border: 1px dashed rgba(255,255,255,0.1); color: var(--clr-text-muted); font-size: 13px;">
+            Belum ada catatan kegiatan penanaman di lapangan untuk spesies ini.
+          </div>
+        `}
+      </div>
+
+      <!-- SEKSI 2: INFORMASI PEMANTAUAN & SENSUS LAPANGAN -->
+      <div style="background: rgba(15, 28, 22, 0.7); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; padding: 22px; margin-bottom: 24px;">
+        <h2 style="font-size: 18px; font-weight: 700; color: #ffffff; margin-bottom: 6px; display: flex; align-items: center; gap: 8px;">
+          <span>🔍</span> Catatan Pemantauan & Sensus Lapangan
+        </h2>
+        <p style="font-size: 13px; color: var(--clr-text-muted); margin-bottom: 16px;">
+          Hasil pemeriksaan kondisi fisik tanaman, sensus kelangsungan hidup, dan catatan lapangan dari pengendali ekosistem.
+        </p>
+
+        ${survey ? `
+          <!-- Kartu Sensus Lapangan -->
+          <div style="background: rgba(0, 0, 0, 0.35); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 12px; padding: 18px; margin-bottom: 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
+              <div>
+                <span style="font-size: 11px; text-transform: uppercase; font-weight: 700; color: var(--clr-primary-light); display: inline-flex; align-items: center; gap: 6px;">
+                  <span>📋</span> ${escapeHtml(survey.scope_label || 'Catatan Sensus')}
+                </span>
+                <div style="font-size: 13px; color: #f8fafc; font-weight: 600; margin-top: 2px;">
+                  Tanggal Survei: ${formatDateDisplay(survey.survey_date)}
+                </div>
+              </div>
+
+              ${survey.is_verified ? `
+                <span class="admin-header-pill pill-success" style="font-size: 11px; padding: 3px 10px; border-radius: 9999px;">
+                  ✓ Sensus Terverifikasi
+                </span>
+              ` : `
+                <span class="admin-header-pill pill-warning" style="font-size: 11px; padding: 3px 10px; border-radius: 9999px;">
+                  Dalam Proses Verifikasi
+                </span>
+              `}
+            </div>
+
+            <!-- Metrik Kondisi Fisik Sensus -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 14px;">
+              <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 8px; padding: 10px;">
+                <span style="font-size: 11px; color: var(--clr-text-muted); display: block;">Tanaman Hidup</span>
+                <strong style="font-size: 18px; color: #6ee7b7;">${formatNumber(survey.alive_count)}</strong>
+                <span style="font-size: 10.5px; color: var(--clr-text-dim); display: block;">batang terdata</span>
+              </div>
+
+              <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: 8px; padding: 10px;">
+                <span style="font-size: 11px; color: var(--clr-text-muted); display: block;">Tanaman Mati</span>
+                <strong style="font-size: 18px; color: #f87171;">${formatNumber(survey.dead_count)}</strong>
+                <span style="font-size: 10.5px; color: var(--clr-text-dim); display: block;">batang</span>
+              </div>
+
+              <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 8px; padding: 10px;">
+                <span style="font-size: 11px; color: var(--clr-text-muted); display: block;">Tidak Ditemukan</span>
+                <strong style="font-size: 18px; color: #fbbf24;">${formatNumber(survey.missing_count)}</strong>
+                <span style="font-size: 10.5px; color: var(--clr-text-dim); display: block;">hilang / belum terlacak</span>
+              </div>
+
+              <div style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 8px; padding: 10px;">
+                <span style="font-size: 11px; color: var(--clr-text-muted); display: block;">Kondisi Kesehatan</span>
+                <strong style="font-size: 16px; color: #38bdf8;">${capitalize(survey.health_condition || 'Baik')}</strong>
+                <span style="font-size: 10.5px; color: var(--clr-text-dim); display: block;">keseluruhan</span>
+              </div>
+            </div>
+
+            <!-- Penjelasan Metodologi & Transparansi Perhitungan -->
+            ${survey.survival_rate !== null ? `
+              <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 10px; padding: 12px 14px; margin-bottom: 12px; font-size: 12.5px; line-height: 1.5; color: #cbd5e1;">
+                <div style="font-weight: 700; color: #6ee7b7; margin-bottom: 4px;">
+                  📊 Tingkat Kelulusan Hidup (Survival Rate): ${survey.survival_rate}%
+                </div>
+                <div>
+                  <strong>Metode Perhitungan:</strong> Dihitung berdasarkan rumus baku silvikultur:
+                  <code style="background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px; color: #ecfdf5;">(Jumlah Tanaman Hidup ÷ Jumlah Bibit Awal Ditanam) × 100%</code>.
+                  Tanaman yang hilang atau belum ditemukan tidak diikutsertakan sebagai tanaman mati tanpa verifikasi lanjutan.
+                </div>
+              </div>
+            ` : ''}
+
+            ${survey.scope_note ? `
+              <div style="font-size: 12px; color: #94a3b8; background: rgba(0,0,0,0.25); padding: 8px 12px; border-radius: 8px; margin-bottom: 10px; line-height: 1.45;">
+                ℹ️ ${escapeHtml(survey.scope_note)}
+              </div>
+            ` : ''}
+
+            <!-- Petugas & Catatan Lapangan -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; font-size: 12.5px; color: var(--clr-text-muted); margin-top: 10px;">
+              <div>
+                <span style="color: var(--clr-text-dim); display: block; font-size: 11px;">Petugas Pemeriksa:</span>
+                <span style="color: #f1f5f9; font-weight: 500;">${escapeHtml(survey.inspector_name || 'Tim Lapangan IKHW')}</span>
+              </div>
+              ${survey.average_height_cm ? `
+                <div>
+                  <span style="color: var(--clr-text-dim); display: block; font-size: 11px;">Tinggi & Diameter Rata-rata:</span>
+                  <span style="color: #f1f5f9; font-weight: 500;">${survey.average_height_cm} cm ${survey.average_diameter_cm ? `• Ø ${survey.average_diameter_cm} cm` : ''}</span>
+                </div>
+              ` : ''}
+            </div>
+
+            ${survey.field_notes ? `
+              <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255, 255, 255, 0.06); font-size: 12.5px; color: #cbd5e1; line-height: 1.5;">
+                <strong style="color: var(--clr-primary-light);">Catatan Lapangan:</strong> ${escapeHtml(survey.field_notes)}
+              </div>
+            ` : ''}
+          </div>
+        ` : `
+          <div style="padding: 24px; text-align: center; background: rgba(0,0,0,0.2); border-radius: 10px; border: 1px dashed rgba(255,255,255,0.1); color: var(--clr-text-muted); font-size: 13px;">
+            Data survei lapangan belum tersedia untuk spesies ini. Sistem tidak membuat estimasi angka hidup tanpa sensus resmi terverifikasi.
+          </div>
+        `}
+      </div>
+
+      <!-- SEKSI 3: DESKRIPSI MORFOLOGI, PERAN EKOLOGIS & MANFAAT -->
+      <div style="background: rgba(15, 28, 22, 0.7); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; padding: 22px; margin-bottom: 24px;">
+        <h2 style="font-size: 18px; font-weight: 700; color: #ffffff; margin-bottom: 6px; display: flex; align-items: center; gap: 8px;">
+          <span>📖</span> Deskripsi Botani & Peran Silvikultur
+        </h2>
+        <p style="font-size: 13px; color: var(--clr-text-muted); margin-bottom: 18px;">
+          Karakteristik botani dan peranan penting spesies ini dalam pemulihan ekosistem kawasan.
+        </p>
+
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+          ${sp.description ? `
+            <div>
+              <h3 style="font-size: 14px; font-weight: 700; color: var(--clr-primary-light); margin-bottom: 4px;">
+                Morfologi & Karakter Spesies
+              </h3>
+              <p style="font-size: 13.5px; line-height: 1.6; color: #e2e8f0;">
+                ${escapeHtml(sp.description)}
+              </p>
+            </div>
+          ` : ''}
+
+          ${sp.ecological_function ? `
+            <div style="background: rgba(16, 185, 129, 0.06); border: 1px solid rgba(16, 185, 129, 0.18); border-radius: 12px; padding: 14px 16px;">
+              <h3 style="font-size: 14px; font-weight: 700; color: var(--clr-primary-light); margin-bottom: 4px;">
+                Peran & Fungsi Ekologis Kawasan
+              </h3>
+              <p style="font-size: 13.5px; line-height: 1.6; color: #ecfdf5;">
+                ${escapeHtml(sp.ecological_function)}
+              </p>
+            </div>
+          ` : ''}
+
+          ${sp.benefits ? `
+            <div>
+              <h3 style="font-size: 14px; font-weight: 700; color: var(--clr-primary-light); margin-bottom: 4px;">
+                Manfaat & Nilai Konservasi
+              </h3>
+              <p style="font-size: 13.5px; line-height: 1.6; color: #e2e8f0;">
+                ${escapeHtml(sp.benefits)}
+              </p>
+            </div>
+          ` : ''}
+
+          ${!sp.description && !sp.ecological_function && !sp.benefits ? `
+            <div style="font-size: 13px; color: var(--clr-text-muted); padding: 12px; background: rgba(0,0,0,0.2); border-radius: 8px;">
+              Data deskripsi botani dan fungsi ekologis belum tercatat untuk spesies ini.
+            </div>
+          ` : ''}
+        </div>
+      </div>
+
+      <!-- SEKSI 4: TAUTAN PANORAMA 360° (JIKA ADA) -->
+      ${sp.scenes && sp.scenes.length > 0 ? `
+        <div style="background: rgba(15, 28, 22, 0.7); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 16px; padding: 22px; margin-bottom: 28px;">
+          <h2 style="font-size: 18px; font-weight: 700; color: #ffffff; margin-bottom: 6px; display: flex; align-items: center; gap: 8px;">
+            <span>📍</span> Lokasi Penanaman pada Virtual Tour 360°
+          </h2>
+          <p style="font-size: 13px; color: var(--clr-text-muted); margin-bottom: 14px;">
+            Spesies pohon ini dapat dilihat secara interaktif pada titik-titik panorama 360° berikut:
+          </p>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            ${sp.scenes.map((sc) => `
+              <button
+                type="button"
+                class="btn-jump-scene-detail btn-secondary-action btn-sm"
+                data-scene-id="${escapeHtml(sc.scene_id)}"
+                style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; font-size: 13px; font-weight: 600; border-radius: 10px; cursor: pointer;"
+              >
+                <span>🌐</span> ${escapeHtml(sc.scene_name || sc.zone || sc.scene_id)}
+              </button>
+            `).join('')}
+          </div>
+        </div>
+      ` : ''}
+
+      <!-- Navigasi Bawah Halaman -->
+      <div style="display: flex; justify-content: center; padding-top: 10px;">
+        <button
+          id="btn-bottom-back-to-catalog"
+          type="button"
+          class="btn-secondary-action"
+          style="display: inline-flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14px; padding: 10px 24px; border-radius: 12px; cursor: pointer;"
+        >
+          <span>←</span> Kembali ke Katalog Jenis Pohon
+        </button>
+      </div>
+    </div>
+  `;
+
+  // Pasang listener navigasi kembali
+  document.getElementById('btn-breadcrumb-back')?.addEventListener('click', backToCatalogList);
+  document.getElementById('btn-back-to-catalog')?.addEventListener('click', backToCatalogList);
+  document.getElementById('btn-bottom-back-to-catalog')?.addEventListener('click', backToCatalogList);
+
+  // Pasang listener jump scene
+  container.querySelectorAll('.btn-jump-scene-detail').forEach((btn) => {
     btn.addEventListener('click', () => {
       const sceneId = btn.getAttribute('data-scene-id');
       if (onJumpToSceneCallback && sceneId) {
@@ -163,135 +918,62 @@ function filterAndRenderGrid() {
   });
 }
 
-function renderSpeciesCard(sp) {
-  const originBadgeClass = sp.origin_status === 'lokal_asli' ? 'pill-success' : 'pill-info';
-
-  const scenesLinks = (sp.scenes || []).map((sc) => `
-    <button class="btn-jump-scene btn-text-btn btn-sm" data-scene-id="${sc.scene_id}" style="font-size: 11px; padding: 2px 6px; background: rgba(16, 185, 129, 0.12); color: var(--clr-primary-light); border-radius: 4px;" title="Lihat di panorama: ${escapeHtml(sc.scene_name || sc.scene_id)}">
-      📍 ${escapeHtml(sc.zone || sc.scene_name || sc.scene_id)}
-    </button>
-  `).join('');
-
-  return `
-    <div class="point-card" style="display: flex; flex-direction: column; justify-content: space-between;">
-      <div>
-        <div class="point-card-top" style="margin-bottom: 8px;">
-          <span class="admin-header-pill ${originBadgeClass}" style="font-size: 11px;">
-            ${escapeHtml(sp.origin_status_label || sp.origin_status)}
-          </span>
-          <span style="font-size: 11px; color: var(--clr-primary-light); font-weight: 600;">
-            ${sp.total_planted > 0 ? `🌱 ${sp.total_planted} Bibit Ditanam` : '🌱 Belum Ditanam'}
-          </span>
-        </div>
-
-        <h3 class="point-title" style="margin-bottom: 2px; font-size: 16px;">
-          ${escapeHtml(sp.common_name)}
-        </h3>
-
-        ${sp.local_name ? `<div style="font-size: 12px; color: var(--clr-text-muted); margin-bottom: 2px;">Nama Daerah: <strong>${escapeHtml(sp.local_name)}</strong></div>` : ''}
-
-        ${sp.scientific_name ? `<div style="font-size: 12px; font-style: italic; color: var(--clr-text-dim); margin-bottom: 8px;">${escapeHtml(sp.scientific_name)} ${sp.family ? `• Famili ${escapeHtml(sp.family)}` : ''}</div>` : ''}
-
-        ${sp.ecological_function ? `
-          <div style="font-size: 12px; color: var(--clr-text); background: rgba(255,255,255,0.03); padding: 8px; border-radius: 6px; margin-bottom: 10px; line-height: 1.4;">
-            <strong style="color: var(--clr-primary-light);">Fungsi Ekologis:</strong><br/>
-            ${escapeHtml(sp.ecological_function)}
-          </div>
-        ` : ''}
-
-        ${sp.scenes && sp.scenes.length > 0 ? `
-          <div style="margin-bottom: 10px;">
-            <div style="font-size: 11px; color: var(--clr-text-dim); margin-bottom: 4px;">Titik Lokasi Panorama:</div>
-            <div style="display: flex; gap: 4px; flex-wrap: wrap;">
-              ${scenesLinks}
-            </div>
-          </div>
-        ` : ''}
-      </div>
-
-      <div style="border-top: 1px solid var(--clr-border); padding-top: 10px; margin-top: 12px; display: flex; justify-content: space-between; align-items: center;">
-        <span style="font-size: 11px; color: var(--clr-text-dim);">
-          ${sp.activities_count ? `${sp.activities_count} Kegiatan Tanam` : 'Master Spesies'}
-        </span>
-        <button class="btn-view-species-detail btn-secondary-action btn-sm" data-id="${sp.id}" style="font-size: 12px; padding: 5px 12px;">
-          Lihat Profil Lengkap →
-        </button>
-      </div>
-    </div>
-  `;
-}
-
-function showSpeciesModal(sp) {
-  const modal = document.getElementById('catalog-detail-modal');
-  const title = document.getElementById('catmodal-title');
-  const subtitle = document.getElementById('catmodal-subtitle');
-  const body = document.getElementById('catmodal-body');
-
-  if (!modal || !body) return;
-
-  title.textContent = sp.common_name;
-  subtitle.textContent = sp.scientific_name ? `${sp.scientific_name} ${sp.family ? `(${sp.family})` : ''}` : '';
-
-  body.innerHTML = `
-    <div style="display: flex; flex-direction: column; gap: 14px;">
-      ${sp.photo_path ? `
-        <div style="border-radius: var(--radius-md); overflow: hidden; max-height: 220px; background: #000; border: 1px solid var(--clr-border);">
-          <img src="${sp.photo_path}" alt="${escapeHtml(sp.common_name)}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.style.display='none'" />
-        </div>
-      ` : ''}
-
-      <div class="stats-grid" style="margin-bottom: 0;">
-        <div class="stat-card" style="padding: 10px;">
-          <span class="stat-label">Nama Lokal</span>
-          <span class="stat-value" style="font-size: 14px;">${escapeHtml(sp.local_name || '-')}</span>
-        </div>
-        <div class="stat-card" style="padding: 10px;">
-          <span class="stat-label">Status Asal</span>
-          <span class="stat-value" style="font-size: 14px;">${escapeHtml(sp.origin_status_label)}</span>
-        </div>
-        <div class="stat-card" style="padding: 10px;">
-          <span class="stat-label">Total Bibit Ditanam</span>
-          <span class="stat-value" style="font-size: 14px; color: var(--clr-primary-light);">${sp.total_planted > 0 ? `${sp.total_planted} Batang` : 'Belum Ada'}</span>
-        </div>
-      </div>
-
-      ${sp.description ? `
-        <div>
-          <h4 style="font-size: 13px; color: var(--clr-primary-light); margin-bottom: 4px;">Deskripsi Morfologi & Silvikultur</h4>
-          <p style="font-size: 13px; line-height: 1.5; color: var(--clr-text-muted);">${escapeHtml(sp.description)}</p>
-        </div>
-      ` : ''}
-
-      ${sp.ecological_function ? `
-        <div>
-          <h4 style="font-size: 13px; color: var(--clr-primary-light); margin-bottom: 4px;">Peran & Fungsi Ekologis</h4>
-          <p style="font-size: 13px; line-height: 1.5; color: var(--clr-text-muted);">${escapeHtml(sp.ecological_function)}</p>
-        </div>
-      ` : ''}
-
-      ${sp.benefits ? `
-        <div>
-          <h4 style="font-size: 13px; color: var(--clr-primary-light); margin-bottom: 4px;">Manfaat & Kegunaan</h4>
-          <p style="font-size: 13px; line-height: 1.5; color: var(--clr-text-muted);">${escapeHtml(sp.benefits)}</p>
-        </div>
-      ` : ''}
-
-      ${sp.reference_source ? `
-        <div style="background: rgba(0,0,0,0.2); padding: 8px 12px; border-radius: 6px; font-size: 12px; color: var(--clr-text-dim);">
-          📖 <strong>Sumber Referensi Identifikasi:</strong> ${escapeHtml(sp.reference_source)}
-        </div>
-      ` : ''}
+/**
+ * ─────────────────────────────────────────────────────────────
+ * TAMPILAN 3: STATE KETIKA SPESIES TIDAK DITEMUKAN (404)
+ * ─────────────────────────────────────────────────────────────
+ */
+function renderSpeciesNotFoundView(container, invalidId) {
+  container.innerHTML = `
+    <div class="catalog-wrapper" style="max-width: 800px; margin: 40px auto; padding: 40px 24px; text-align: center; background: rgba(15, 28, 22, 0.85); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 20px; box-shadow: 0 16px 36px -12px rgba(0,0,0,0.6);">
+      <span style="font-size: 48px; display: block; margin-bottom: 12px;">🔍</span>
+      <h2 style="font-size: 22px; font-weight: 800; color: #ffffff; margin-bottom: 8px;">
+        Jenis Pohon Tidak Ditemukan
+      </h2>
+      <p style="font-size: 14px; color: var(--clr-text-muted); line-height: 1.6; max-width: 520px; margin: 0 auto 20px;">
+        Spesies pohon dengan pengenal <code style="background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 6px; color: #f87171;">${escapeHtml(invalidId)}</code> tidak ditemukan dalam basis data atau belum disetujui untuk publikasi oleh administrator.
+      </p>
+      <button
+        id="btn-notfound-back"
+        type="button"
+        class="btn-primary-action"
+        style="display: inline-flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14px; padding: 10px 22px; border-radius: 10px; cursor: pointer;"
+      >
+        <span>←</span> Kembali ke Katalog Jenis Pohon
+      </button>
     </div>
   `;
 
-  modal.classList.remove('hidden');
+  document.getElementById('btn-notfound-back')?.addEventListener('click', backToCatalogList);
 }
 
-function escapeHtml(str) {
+/**
+ * Utilitas format angka ribuan (e.g. 1.000)
+ */
+function formatNumber(num) {
+  if (num === null || num === undefined) return '-';
+  const val = Number(num);
+  if (isNaN(val)) return String(num);
+  return val.toLocaleString('id-ID');
+}
+
+/**
+ * Utilitas kapitalisasi huruf pertama
+ */
+function capitalize(str) {
   if (!str) return '';
+  return String(str).charAt(0).toUpperCase() + String(str).slice(1);
+}
+
+/**
+ * Escape string HTML untuk keamanan
+ */
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
   return String(str)
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }

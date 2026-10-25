@@ -95,6 +95,20 @@ Route::get('/tour', fn () => redirect('/#tour'));
 Route::get('/info', fn () => redirect('/#info'));
 Route::get('/galeri', fn () => redirect('/#galeri'));
 Route::get('/katalog', fn () => redirect('/#katalog'));
+Route::get('/katalog-pohon/{slug}', function (string $slug) {
+    $species = \App\Models\TreeSpecies::active()->where('id', $slug)->first();
+    if (!$species) {
+        abort(404, 'Jenis pohon tidak ditemukan atau belum disetujui untuk publikasi.');
+    }
+    return redirect('/#katalog?species=' . urlencode($slug));
+})->name('katalog.species.detail');
+Route::get('/katalog/{slug}', function (string $slug) {
+    $species = \App\Models\TreeSpecies::active()->where('id', $slug)->first();
+    if (!$species) {
+        abort(404, 'Jenis pohon tidak ditemukan atau belum disetujui untuk publikasi.');
+    }
+    return redirect('/#katalog?species=' . urlencode($slug));
+});
 Route::get('/tree-qr', fn () => redirect('/#tree-qr'));
 Route::get('/karbon', fn () => redirect('/#karbon'));
 
