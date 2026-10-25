@@ -6426,20 +6426,14 @@ File foto dan catatannya akan dihapus jika tidak digunakan di album/fitur lain.`
                 `:``}
 
                 <!-- Metadata -->
-                <div style="display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; background: rgba(0, 0, 0, 0.3); border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.06); font-size: 12px;">
-                  <div style="display: flex; align-items: center; justify-content: space-between; gap: 7px; color: #cbd5e1;">
-                    <div style="display: flex; align-items: center; gap: 7px;">
-                      <span style="font-size: 13px; line-height: 1.2;">🏷️</span>
-                      <span style="font-weight: 500; line-height: 1.35; color: #6ee7b7;">${dm(e.category||`Dokumentasi`)}</span>
-                    </div>
-                  </div>
-                  ${r?`
+                ${r?`
+                  <div style="display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; background: rgba(0, 0, 0, 0.3); border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.06); font-size: 12px;">
                     <div style="display: flex; align-items: center; gap: 7px; color: var(--clr-text-dim);">
                       <span style="font-size: 13px; line-height: 1.2;">📅</span>
                       <span>Kegiatan: <strong style="color: #6ee7b7; font-weight: 600;">${r}</strong></span>
                     </div>
-                  `:``}
-                </div>
+                  </div>
+                `:``}
               </div>
             </div>
 
