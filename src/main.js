@@ -349,7 +349,7 @@ async function populateProjectIdentity() {
       }
       if (flat.app_logo) {
         document.querySelectorAll('.brand-logo-icon').forEach((box) => {
-          box.innerHTML = `<img src="${flat.app_logo}" alt="Logo" style="width: 100%; height: 100%; object-fit: contain; padding: 4px;" />`;
+          box.innerHTML = `<img src="${flat.app_logo}" alt="Logo" class="w-full h-full object-contain" />`;
         });
       }
     }

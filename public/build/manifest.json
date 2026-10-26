@@ -1,6 +1,6 @@
 {
-  "_admin-panel-BJwnYzHf.js": {
-    "file": "assets/admin-panel-BJwnYzHf.js",
+  "_admin-panel-ClXpGFW_.js": {
+    "file": "assets/admin-panel-ClXpGFW_.js",
     "name": "admin-panel",
     "imports": [
       "_rolldown-runtime-B0Z9INg1.js"
@@ -49,7 +49,7 @@
     "src": "node_modules/leaflet/dist/images/marker-icon.png"
   },
   "resources/css/app.css": {
-    "file": "assets/app-D0D8Pz3T.css",
+    "file": "assets/app-B9E2PU-y.css",
     "name": "app",
     "names": [
       "app.css"
@@ -58,18 +58,18 @@
     "isEntry": true
   },
   "resources/js/app.js": {
-    "file": "assets/app-BvrY08tK.js",
+    "file": "assets/app-BAZSP3HP.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true,
     "imports": [
       "_rolldown-runtime-B0Z9INg1.js",
-      "_admin-panel-BJwnYzHf.js",
+      "_admin-panel-ClXpGFW_.js",
       "_leaflet-BMvZM1tv.js",
       "_qrcode-D3IYU-fo.js"
     ],
     "css": [
-      "assets/app-DLFoved7.css"
+      "assets/app-Bidxlz-9.css"
     ]
   }
 }

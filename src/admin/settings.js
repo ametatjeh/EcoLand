@@ -77,11 +77,11 @@ export async function initSettingsModule({ scenes = [], onSettingsUpdated } = {}
         <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 24px;">
           <!-- Logo Preview Box -->
           <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
-            <div id="logo-preview-box" class="brand-logo-icon" style="width: 72px; height: 72px; border-radius: 14px; overflow: hidden; background: linear-gradient(135deg, #10b981 0%, #047857 100%); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 16px rgba(16, 185, 129, 0.35); border: 1px solid rgba(255, 255, 255, 0.2);">
+            <div id="logo-preview-box" class="brand-logo-icon" style="width: 72px; height: 72px; border-radius: 18px; overflow: hidden; background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(255, 255, 255, 0.05) 100%); display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 24px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.25); border: 1px solid rgba(59, 130, 246, 0.3); backdrop-filter: blur(12px); padding: 7px; box-sizing: border-box;">
               ${serverSettings.app_logo ? `
-                <img id="logo-preview-img" src="${escapeHtml(serverSettings.app_logo)}" alt="Logo Aplikasi" style="width: 100%; height: 100%; object-fit: contain; padding: 6px;" />
+                <img id="logo-preview-img" src="${escapeHtml(serverSettings.app_logo)}" alt="Logo Aplikasi" style="width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.35));" />
               ` : `
-                <svg id="logo-preview-svg" width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #fff;">
+                <svg id="logo-preview-svg" width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #60a5fa; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.35));">
                   <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
                 </svg>
               `}
@@ -441,7 +441,7 @@ export function updateDomAppLogo(logoUrl) {
   brandIcons.forEach((box) => {
     if (box.id === 'logo-preview-box') return; // Jangan ubah kotak preview di halaman settings jika tidak perlu
     if (logoUrl) {
-      box.innerHTML = `<img src="${escapeHtml(logoUrl)}" alt="Logo" style="width: 100%; height: 100%; object-fit: contain; padding: 4px;" />`;
+      box.innerHTML = `<img src="${escapeHtml(logoUrl)}" alt="Logo" class="w-full h-full object-contain" />`;
     } else {
       box.innerHTML = `
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
