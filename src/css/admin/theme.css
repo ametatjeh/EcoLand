@@ -1555,10 +1555,12 @@
 #view-admin.theme-dark #btn-empty-create-album,
 #view-admin.theme-dark #btn-submit-add-photos,
 #view-admin.theme-dark #btn-save-edit-photo,
+#view-admin.theme-dark #btn-submit-album-form,
 [data-admin-theme="dark"] #view-admin #btn-album-create-new,
 [data-admin-theme="dark"] #view-admin #btn-empty-create-album,
 [data-admin-theme="dark"] #view-admin #btn-submit-add-photos,
-[data-admin-theme="dark"] #view-admin #btn-save-edit-photo {
+[data-admin-theme="dark"] #view-admin #btn-save-edit-photo,
+[data-admin-theme="dark"] #view-admin #btn-submit-album-form {
   background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%) !important;
   color: #FFFFFF !important;
   border: 1px solid #3B82F6 !important;
@@ -1570,10 +1572,12 @@
 #view-admin.theme-dark #btn-empty-create-album:hover,
 #view-admin.theme-dark #btn-submit-add-photos:hover,
 #view-admin.theme-dark #btn-save-edit-photo:hover,
+#view-admin.theme-dark #btn-submit-album-form:hover,
 [data-admin-theme="dark"] #view-admin #btn-album-create-new:hover,
 [data-admin-theme="dark"] #view-admin #btn-empty-create-album:hover,
 [data-admin-theme="dark"] #view-admin #btn-submit-add-photos:hover,
-[data-admin-theme="dark"] #view-admin #btn-save-edit-photo:hover {
+[data-admin-theme="dark"] #view-admin #btn-save-edit-photo:hover,
+[data-admin-theme="dark"] #view-admin #btn-submit-album-form:hover {
   background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%) !important;
   box-shadow: 0 6px 20px rgba(37, 99, 235, 0.45) !important;
   transform: translateY(-1.5px) !important;
@@ -1581,7 +1585,9 @@
 }
 
 #view-admin.theme-dark #btn-album-create-new:active,
-[data-admin-theme="dark"] #view-admin #btn-album-create-new:active {
+#view-admin.theme-dark #btn-submit-album-form:active,
+[data-admin-theme="dark"] #view-admin #btn-album-create-new:active,
+[data-admin-theme="dark"] #view-admin #btn-submit-album-form:active {
   transform: translateY(0) scale(0.98) !important;
   box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3) !important;
 }
@@ -1590,10 +1596,12 @@
 #view-admin.theme-light #btn-empty-create-album,
 #view-admin.theme-light #btn-submit-add-photos,
 #view-admin.theme-light #btn-save-edit-photo,
+#view-admin.theme-light #btn-submit-album-form,
 [data-admin-theme="light"] #view-admin #btn-album-create-new,
 [data-admin-theme="light"] #view-admin #btn-empty-create-album,
 [data-admin-theme="light"] #view-admin #btn-submit-add-photos,
-[data-admin-theme="light"] #view-admin #btn-save-edit-photo {
+[data-admin-theme="light"] #view-admin #btn-save-edit-photo,
+[data-admin-theme="light"] #view-admin #btn-submit-album-form {
   background: #2563EB !important;
   color: #FFFFFF !important;
   border: 1px solid #1D4ED8 !important;
@@ -1605,17 +1613,21 @@
 #view-admin.theme-light #btn-empty-create-album:hover,
 #view-admin.theme-light #btn-submit-add-photos:hover,
 #view-admin.theme-light #btn-save-edit-photo:hover,
+#view-admin.theme-light #btn-submit-album-form:hover,
 [data-admin-theme="light"] #view-admin #btn-album-create-new:hover,
 [data-admin-theme="light"] #view-admin #btn-empty-create-album:hover,
 [data-admin-theme="light"] #view-admin #btn-submit-add-photos:hover,
-[data-admin-theme="light"] #view-admin #btn-save-edit-photo:hover {
+[data-admin-theme="light"] #view-admin #btn-save-edit-photo:hover,
+[data-admin-theme="light"] #view-admin #btn-submit-album-form:hover {
   background: #1D4ED8 !important;
   box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35) !important;
   transform: translateY(-1.5px) !important;
 }
 
 #view-admin.theme-light #btn-album-create-new:active,
-[data-admin-theme="light"] #view-admin #btn-album-create-new:active {
+#view-admin.theme-light #btn-submit-album-form:active,
+[data-admin-theme="light"] #view-admin #btn-album-create-new:active,
+[data-admin-theme="light"] #view-admin #btn-submit-album-form:active {
   transform: translateY(0) scale(0.98) !important;
   box-shadow: 0 1px 4px rgba(37, 99, 235, 0.2) !important;
 }

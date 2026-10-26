@@ -590,11 +590,17 @@
   background: var(--clr-surface);
   border: 1px solid var(--clr-border);
   border-radius: var(--radius-lg);
-  padding: 28px;
+  padding: 24px;
   width: 100%;
   max-width: 100%;
   margin: 0;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+@media (max-width: 640px) {
+  .zone-form-card {
+    padding: 16px;
+  }
 }
 
 .zone-form-section {
@@ -602,7 +608,13 @@
   border: 1px solid var(--clr-border-subtle);
   border-radius: var(--radius-md);
   padding: 20px;
-  margin-bottom: 24px;
+  margin-bottom: 0;
+}
+
+@media (max-width: 640px) {
+  .zone-form-section {
+    padding: 16px;
+  }
 }
 
 .zone-form-sec-title {

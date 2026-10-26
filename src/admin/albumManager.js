@@ -113,8 +113,8 @@ function renderAlbumLayout(container) {
             </div>
           </div>
           <div class="flex items-center gap-3 w-full sm:w-auto shrink-0 z-10">
-            <button id="btn-album-create-new" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm cursor-pointer transition-all duration-200">
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+            <button id="btn-album-create-new" class="btn-primary-action btn-sm" style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
               <span>+ Buat Album Baru</span>
             </button>
           </div>
@@ -732,15 +732,6 @@ async function renderAlbumForm(container) {
     }
   }
 
-  // Muat foto-foto yang tersedia di sistem untuk dipilih langsung saat buat/edit
-  let availableSystemPhotos = [];
-  try {
-    const photosRes = await ApiService.getAvailablePhotosForAlbum({ album_id: activeAlbumId || '' });
-    availableSystemPhotos = photosRes.photos || [];
-  } catch (err) {
-    console.warn('Gagal memuat foto tersedia:', err);
-  }
-
   // Set default selected photo IDs
   const initialSelectedIds = new Set(existingPhotos.map((p) => p.id));
   let formCoverPhotoId = albumData.cover_photo_id || (existingPhotos.length > 0 ? existingPhotos[0].id : null);
@@ -748,18 +739,10 @@ async function renderAlbumForm(container) {
   container.innerHTML = `
     <div class="zone-form-card space-y-6">
       <!-- Form Header -->
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-800/80 gap-3">
-        <div>
-          <h3 class="text-lg font-bold text-white tracking-tight">
-            ${isEdit ? `Sunting Album: ${escapeHtml(albumData.title)}` : 'Buat Album Kegiatan Galeri Baru'}
-          </h3>
-          <p class="text-xs text-slate-400 mt-0.5">
-            Lengkapi formulir di bawah ini untuk mengelompokkan dokumentasi foto kegiatan secara tematik di galeri publik.
-          </p>
-        </div>
-        <button id="btn-cancel-album-form" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer self-start sm:self-center">
-          ✕ Batal &amp; Kembali
-        </button>
+      <div class="pb-5 border-b border-slate-800/80">
+        <h3 class="text-base sm:text-lg font-bold text-white tracking-tight">
+          ${isEdit ? `Sunting Album: ${escapeHtml(albumData.title)}` : 'Buat Album Kegiatan Galeri Baru'}
+        </h3>
       </div>
 
       <form id="album-form" class="space-y-6">
@@ -770,10 +753,10 @@ async function renderAlbumForm(container) {
             <span>Identitas &amp; Klasifikasi Kegiatan</span>
           </div>
 
-          <div class="space-y-4">
+          <div class="space-y-4 pt-1">
             <!-- Nama Kegiatan / Judul Album -->
             <div>
-              <label class="block text-xs font-bold text-slate-200 mb-1.5">
+              <label class="block text-xs font-bold text-slate-200 mb-2">
                 Nama Kegiatan / Judul Album <span class="text-rose-400 font-bold">*</span>
               </label>
               <input
@@ -784,37 +767,34 @@ async function renderAlbumForm(container) {
                 class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition"
                 placeholder="Contoh: Kuliah Lapangan Mahasiswa Kehutanan USK 2026"
               />
-              <p class="text-[11px] text-slate-400 mt-1">Nama ringkas dan informatif mengenai kegiatan dokumentasi ini.</p>
             </div>
 
             <!-- Kategori Silvikultur & Kawasan -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label class="block text-xs font-bold text-slate-200 mb-1.5">
+                <label class="block text-xs font-bold text-slate-200 mb-2">
                   Kategori Dokumentasi <span class="text-rose-400 font-bold">*</span>
                 </label>
                 <select id="album-input-category" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:outline-none focus:border-blue-500 transition">
                   ${ALBUM_CATEGORIES.map((c) => `<option value="${c}" ${albumData.category === c ? 'selected' : ''}>${c}</option>`).join('')}
                 </select>
-                <p class="text-[11px] text-slate-400 mt-1">Klasifikasi topik untuk filter galeri publik.</p>
               </div>
 
               <div>
-                <label class="block text-xs font-bold text-slate-200 mb-1.5">
+                <label class="block text-xs font-bold text-slate-200 mb-2">
                   Kawasan Terkait
                 </label>
                 <select id="album-input-zone" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:outline-none focus:border-blue-500 transition">
                   <option value="">-- Semua Kawasan (Dokumentasi Umum) --</option>
                   ${cachedZones.map((z) => `<option value="${z.id}" ${albumData.planting_zone_id === z.id ? 'selected' : ''}>${z.name} (${z.zone_code})</option>`).join('')}
                 </select>
-                <p class="text-[11px] text-slate-400 mt-1">Pilih kawasan penanaman spesifik jika relevan.</p>
               </div>
             </div>
 
             <!-- Tanggal Pelaksanaan, Penyelenggara & Lokasi Plot -->
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <div class="flex items-center justify-between mb-1.5">
+                <div class="flex items-center justify-between mb-2 h-4">
                   <label class="block text-xs font-bold text-slate-200">Tanggal Pelaksanaan</label>
                   <button type="button" id="btn-set-today" class="text-[10px] text-blue-400 hover:underline">Hari Ini</button>
                 </div>
@@ -827,7 +807,9 @@ async function renderAlbumForm(container) {
               </div>
 
               <div>
-                <label class="block text-xs font-bold text-slate-200 mb-1.5">Penyelenggara / Mitra Pelaksana</label>
+                <div class="flex items-center mb-2 h-4">
+                  <label class="block text-xs font-bold text-slate-200">Penyelenggara / Mitra Pelaksana</label>
+                </div>
                 <input
                   type="text"
                   id="album-input-organizer"
@@ -838,7 +820,9 @@ async function renderAlbumForm(container) {
               </div>
 
               <div>
-                <label class="block text-xs font-bold text-slate-200 mb-1.5">Plot / Titik Lapangan</label>
+                <div class="flex items-center mb-2 h-4">
+                  <label class="block text-xs font-bold text-slate-200">Plot / Titik Lapangan</label>
+                </div>
                 <input
                   type="text"
                   id="album-input-location"
@@ -858,7 +842,7 @@ async function renderAlbumForm(container) {
             <span>Deskripsi &amp; Catatan Kegiatan</span>
           </div>
 
-          <div>
+          <div class="pt-1">
             <label class="block text-xs font-bold text-slate-200 mb-1.5">
               Deskripsi Lengkap / Ringkasan Dokumentasi
             </label>
@@ -868,56 +852,121 @@ async function renderAlbumForm(container) {
               class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs placeholder-slate-500 focus:outline-none focus:border-blue-500 leading-relaxed transition"
               placeholder="Jelaskan tujuan kegiatan silvikultur ini, peserta yang terlibat, kondisi cuaca di lapangan, jumlah pohon/bibit yang diobservasi, atau temuan spesifik saat monitoring..."
             >${escapeHtml(albumData.description || '')}</textarea>
-            <p class="text-[11px] text-slate-400 mt-1">Deskripsi ini akan ditampilkan kepada pengunjung galeri saat membuka album kegiatan.</p>
           </div>
         </div>
 
-        <!-- BAGIAN 3: PILIH FOTO DARI KOLEKSI KAWASAN SEKARANG -->
+        <!-- BAGIAN 3: UPLOAD FOTO & TENTUKAN SAMPUL -->
         <div class="zone-form-section">
           <div class="zone-form-sec-title">
             <span class="zone-form-sec-num">3</span>
-            <span>Pilih Foto dari Galeri Kawasan &amp; Tentukan Sampul</span>
+            <span>Upload Foto &amp; Tentukan Sampul</span>
           </div>
+          <p class="text-xs text-slate-400 mt-1 mb-4 leading-relaxed">
+            Unggah foto langsung dari perangkat Anda, lalu pilih satu foto sebagai sampul utama album.
+          </p>
 
-          <div class="space-y-3">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between text-xs text-slate-300 gap-2">
-              <p class="text-slate-400">
-                Pilih foto yang relevan untuk dimasukkan ke dalam album ini. Klik tombol <span class="text-amber-400 font-bold">⭐ Jadikan Sampul</span> untuk memilih cover album.
-              </p>
-              <span id="form-selected-photo-count" class="font-bold text-blue-400 shrink-0 bg-blue-500/10 px-3 py-1 rounded-lg border border-blue-500/30">
-                ${initialSelectedIds.size} Foto Terpilih
-              </span>
+          <div class="space-y-6 pt-1">
+            <!-- Upload Dropzone & Queue Form -->
+            <div class="bg-slate-950/60 border border-blue-500/25 rounded-2xl p-4 sm:p-5 space-y-4 mb-6">
+              <!-- Dropzone Area -->
+              <div>
+                <div id="form-upload-dropzone" class="upload-dropzone-box" style="cursor: pointer;">
+                  <input
+                    type="file"
+                    id="input-form-upload-files"
+                    multiple
+                    accept="image/jpeg,image/png,image/webp,image/jpg"
+                    class="hidden"
+                  />
+                  <div class="flex flex-col items-center justify-center pointer-events-none py-3">
+                    <svg class="w-9 h-9 text-blue-400/80 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                    <p class="text-xs font-bold text-white mb-1">
+                      Seret foto ke area ini, atau <span class="text-blue-400 underline">Klik untuk memilih foto</span>
+                    </p>
+                    <p class="text-[11px] text-slate-400">
+                      Format: JPG, PNG, WebP &bull; Maksimal 5 MB per foto &bull; Maksimal 20 foto sekaligus
+                    </p>
+                  </div>
+                </div>
+
+                <!-- Tombol Pilih Foto eksplisit -->
+                <div class="mt-3 flex flex-wrap items-center justify-between gap-2.5">
+                  <button
+                    type="button"
+                    id="btn-trigger-form-file-picker"
+                    class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs border border-slate-700 transition cursor-pointer inline-flex items-center gap-2"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    <span>Pilih Foto</span>
+                  </button>
+                  <span class="text-[11px] text-slate-400">
+                    Mendukung pemilihan banyak foto sekaligus dari komputer
+                  </span>
+                </div>
+
+                <!-- Upload Queue Previews Container -->
+                <div id="form-upload-preview-container" class="hidden">
+                  <div class="flex items-center justify-between mt-4 pb-2 border-b border-slate-800 text-xs">
+                    <span class="font-bold text-white" id="form-upload-preview-summary">0 foto dipilih</span>
+                    <button type="button" id="btn-clear-form-upload-queue" class="text-rose-400 hover:text-rose-300 text-[11px] font-semibold cursor-pointer">
+                      Bersihkan Antrean
+                    </button>
+                  </div>
+                  <div id="form-upload-previews-grid" class="upload-preview-grid mt-3">
+                    <!-- Dynamically rendered preview cards -->
+                  </div>
+
+                  ${isEdit ? `
+                    <!-- Upload Action Bar for Edit Mode -->
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 mt-3 border-t border-slate-800">
+                      <label class="inline-flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
+                        <input type="checkbox" id="chk-form-upload-cover" class="rounded bg-slate-900 border-slate-700 text-blue-600 focus:ring-0 w-4 h-4" />
+                        <span>Jadikan foto yang dipilih sebagai Sampul Album</span>
+                      </label>
+
+                      <button
+                        type="button"
+                        id="btn-form-upload-now"
+                        class="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs transition cursor-pointer shadow-lg shadow-blue-500/20 inline-flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                        <span id="btn-form-upload-now-text">Upload Foto ke Album</span>
+                      </button>
+                    </div>
+                  ` : `
+                    <div class="p-3 bg-blue-950/30 border border-blue-500/20 rounded-xl mt-3 flex items-center gap-2.5 text-xs text-blue-300">
+                      <span>💡</span>
+                      <span>Foto bertanda <strong class="text-amber-400">⭐ Sampul</strong> akan dijadikan foto sampul utama album. Semua foto terpilih akan diunggah otomatis saat Anda menyimpan album.</span>
+                    </div>
+                  `}
+                </div>
+              </div>
             </div>
 
-            ${availableSystemPhotos.length === 0 ? `
-              <div class="p-6 text-center bg-slate-900/60 rounded-xl border border-slate-800 text-xs text-slate-400">
-                <span>📸 Belum ada foto lain di sistem. Anda dapat membuat album ini terlebih dahulu dan mengunggah foto langsung setelah disimpan.</span>
+            ${isEdit ? `
+              <!-- Existing Album Photos Section -->
+              <div>
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between text-xs text-slate-300 gap-2 pb-2.5 border-b border-slate-800/60">
+                  <div>
+                    <h4 class="font-bold text-white text-xs uppercase tracking-wider flex items-center gap-2">
+                      <span>📸 Foto Album Saat Ini</span>
+                      <span id="album-existing-count-badge" class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                        ${existingPhotos.length} Foto
+                      </span>
+                    </h4>
+                  </div>
+                </div>
+
+                <div id="album-form-existing-photos-wrap">
+                  <!-- Rendered dynamically -->
+                </div>
               </div>
             ` : `
-              <div class="album-form-photo-grid">
-                ${availableSystemPhotos.map((photo) => {
-                  const isChecked = initialSelectedIds.has(photo.id);
-                  const isCover = formCoverPhotoId === photo.id;
-                  const photoUrl = photo.thumbnail_url || photo.file_url;
-                  return `
-                    <div class="album-form-photo-item ${isChecked ? 'selected' : ''} ${isCover ? 'is-cover' : ''}" data-photo-id="${photo.id}">
-                      ${isCover ? `<span class="album-form-cover-badge">⭐ Sampul</span>` : ''}
-                      <img src="${escapeHtml(photoUrl)}" class="w-full h-24 object-cover" />
-                      <div class="p-2 bg-slate-900/90 flex flex-col justify-between">
-                        <span class="text-[10px] text-slate-300 font-medium truncate">${escapeHtml(photo.title || 'Foto #' + photo.id)}</span>
-                        <div class="mt-1.5 flex items-center justify-between pt-1 border-t border-slate-800">
-                          <label class="inline-flex items-center gap-1 text-[10px] text-slate-300 cursor-pointer">
-                            <input type="checkbox" class="form-photo-chk w-3.5 h-3.5 rounded text-blue-600 bg-slate-800 border-slate-700" value="${photo.id}" ${isChecked ? 'checked' : ''}>
-                            <span>Pilih</span>
-                          </label>
-                          <button type="button" class="btn-make-cover text-[9px] font-bold text-amber-400 hover:text-amber-300 ${!isChecked ? 'opacity-30 pointer-events-none' : ''}" data-photo-id="${photo.id}">
-                            ⭐ Sampul
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  `;
-                }).join('')}
+              <!-- Create Mode Placeholder when no photos selected yet -->
+              <div id="create-mode-photo-info" class="p-5 text-center bg-slate-900/40 rounded-xl border border-slate-800 text-xs text-slate-400">
+                <span class="text-2xl block mb-1.5">🖼️</span>
+                <p class="font-medium text-slate-300">Belum ada foto yang dipilih</p>
+                <p class="text-[11px] text-slate-400 mt-0.5">Unggah foto kegiatan dari perangkat Anda di atas dan tentukan satu foto sebagai sampul album.</p>
               </div>
             `}
           </div>
@@ -930,7 +979,7 @@ async function renderAlbumForm(container) {
             <span>Pengaturan Status Publikasi &amp; Tampilan</span>
           </div>
 
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 items-center">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 items-start pt-1">
             <!-- Modern Toggle Switch Publikasi -->
             <div>
               <label class="block text-xs font-bold text-slate-200 mb-2">Status Publikasi Album</label>
@@ -943,16 +992,13 @@ async function renderAlbumForm(container) {
                   <span class="text-xs font-bold text-white block" id="toggle-label-published">
                     ${albumData.is_published ? 'Publik (Dapat Dilihat Umum)' : 'Draft (Hanya Pengelola)'}
                   </span>
-                  <span class="text-[11px] text-slate-400">
-                    ${albumData.is_published ? 'Album aktif dan tampil di halaman galeri publik.' : 'Disembunyikan dari publik hingga siap diterbitkan.'}
-                  </span>
                 </div>
               </div>
             </div>
 
             <!-- Urutan Prioritas Sort Order -->
             <div>
-              <label class="block text-xs font-bold text-slate-200 mb-1.5">
+              <label class="block text-xs font-bold text-slate-200 mb-2">
                 Urutan Prioritas Tampilan (Angka)
               </label>
               <input
@@ -969,13 +1015,14 @@ async function renderAlbumForm(container) {
         </div>
 
         <!-- FORM ACTION BUTTONS -->
-        <div class="pt-4 border-t border-slate-800 flex flex-col-reverse sm:flex-row items-center justify-between gap-3">
-          <button type="button" id="btn-cancel-album-action" class="w-full sm:w-auto px-5 py-2.5 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer">
-            ← Kembali ke Daftar Album
+        <div class="pt-5 border-t border-slate-800/90 flex flex-row items-center justify-end gap-2">
+          <button type="button" id="btn-cancel-album-action" class="btn-primary-action btn-sm bg-slate-600 hover:bg-slate-500 text-white" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer;">
+            ← Kembali
           </button>
           <div class="flex items-center gap-3 w-full sm:w-auto">
-            <button type="submit" id="btn-submit-album-form" class="w-full sm:w-auto px-7 py-3 rounded-xl text-xs font-bold bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white shadow-xl shadow-blue-500/25 transition-all duration-200 hover:scale-[1.02] cursor-pointer">
-              ${isEdit ? '💾 Simpan Perubahan Album' : '✨ Buat &amp; Publikasikan Album'}
+            <button type="submit" id="btn-submit-album-form" class="btn-primary-action btn-sm" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              <span>${isEdit ? 'Simpan Album' : 'Buat &amp; Publikasikan Album'}</span>
             </button>
           </div>
         </div>
@@ -1052,125 +1099,573 @@ async function renderAlbumForm(container) {
     markDirty();
   });
 
-  // Photo selection grid interactions
+  // Photo management state
   const currentSelectedPhotoIds = new Set(initialSelectedIds);
-  const countBadge = document.getElementById('form-selected-photo-count');
 
-  const updatePhotoGridUI = () => {
-    document.querySelectorAll('.album-form-photo-item').forEach((item) => {
-      const pid = parseInt(item.getAttribute('data-photo-id'), 10);
-      const isSelected = currentSelectedPhotoIds.has(pid);
-      const isCover = formCoverPhotoId === pid;
+  // ─── PHOTO MANAGEMENT & DIRECT UPLOAD (UNIFIED FOR CREATE & EDIT) ───
+  let formPendingFiles = [];
 
-      item.classList.toggle('selected', isSelected);
-      item.classList.toggle('is-cover', isCover);
+  const dropzone = document.getElementById('form-upload-dropzone');
+  const fileInput = document.getElementById('input-form-upload-files');
+  const btnTriggerPicker = document.getElementById('btn-trigger-form-file-picker');
+  const previewContainer = document.getElementById('form-upload-preview-container');
+  const previewsGrid = document.getElementById('form-upload-previews-grid');
+  const summaryText = document.getElementById('form-upload-preview-summary');
+  const clearBtn = document.getElementById('btn-clear-form-upload-queue');
+  const uploadNowBtn = document.getElementById('btn-form-upload-now');
+  const uploadNowText = document.getElementById('btn-form-upload-now-text');
+  const chkCover = document.getElementById('chk-form-upload-cover');
+  const createModeInfo = document.getElementById('create-mode-photo-info');
 
-      const chk = item.querySelector('.form-photo-chk');
-      if (chk) chk.checked = isSelected;
+  const renderExistingPhotosGrid = () => {
+    if (!isEdit) return;
+    const wrap = document.getElementById('album-form-existing-photos-wrap');
+    const countBadge = document.getElementById('album-existing-count-badge');
+    if (countBadge) {
+      countBadge.textContent = `${existingPhotos.length} Foto`;
+    }
+    if (!wrap) return;
 
-      const coverBtn = item.querySelector('.btn-make-cover');
-      if (coverBtn) {
-        coverBtn.classList.toggle('opacity-30', !isSelected);
-        coverBtn.classList.toggle('pointer-events-none', !isSelected);
-      }
+    if (existingPhotos.length === 0) {
+      wrap.innerHTML = `
+        <div class="p-8 text-center bg-slate-900/50 rounded-xl border border-slate-800 text-xs text-slate-400">
+          <span class="text-2xl block mb-2">🖼️</span>
+          <span>Belum ada foto dalam album ini</span>
+        </div>
+      `;
+      return;
+    }
 
-      // Cover badge
-      let badge = item.querySelector('.album-form-cover-badge');
-      if (isCover && !badge) {
-        badge = document.createElement('span');
-        badge.className = 'album-form-cover-badge';
-        badge.textContent = '⭐ Sampul';
-        item.prepend(badge);
-      } else if (!isCover && badge) {
-        badge.remove();
-      }
+    wrap.innerHTML = `
+      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3.5">
+        ${existingPhotos.map((photo, idx) => {
+          const isCover = formCoverPhotoId === photo.id;
+          const photoUrl = photo.thumbnail_url || photo.file_url;
+          return `
+            <div class="relative group rounded-xl overflow-hidden bg-slate-950 border ${isCover ? 'border-amber-400 ring-2 ring-amber-400/30' : 'border-slate-800'} transition-all flex flex-col justify-between" data-photo-id="${photo.id}">
+              <div>
+                <div class="relative w-full aspect-[16/10] overflow-hidden bg-slate-900">
+                  <img src="${escapeHtml(photoUrl)}" alt="${escapeHtml(photo.alt_text || photo.title || '')}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
+                  <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent pointer-events-none"></div>
+
+                  <div class="absolute top-1.5 inset-x-1.5 flex items-center justify-between pointer-events-none">
+                    <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-slate-950/80 text-slate-300 border border-white/10 backdrop-blur-sm">
+                      #${idx + 1}
+                    </span>
+                    ${isCover ? `
+                      <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-400 text-slate-950 shadow-md">
+                        ⭐ Sampul
+                      </span>
+                    ` : ''}
+                  </div>
+                </div>
+
+                <div class="p-2 space-y-0.5">
+                  <div class="font-bold text-white text-[11px] truncate" title="${escapeHtml(photo.title || 'Foto #' + (idx + 1))}">
+                    ${escapeHtml(photo.title || 'Foto #' + (idx + 1))}
+                  </div>
+                  <p class="text-[10px] text-slate-400 line-clamp-1" title="${escapeHtml(photo.caption || '')}">
+                    ${escapeHtml(photo.caption || 'Tanpa keterangan')}
+                  </p>
+                </div>
+              </div>
+
+              <div class="p-2 pt-1.5 border-t border-slate-800/80 bg-slate-900/60 flex items-center justify-between gap-1 text-[10px]">
+                ${!isCover ? `
+                  <button
+                    type="button"
+                    class="btn-form-set-cover px-2 py-1 rounded-lg bg-slate-800 hover:bg-amber-500/20 text-slate-300 hover:text-amber-300 border border-slate-700 transition cursor-pointer font-semibold"
+                    data-photo-id="${photo.id}"
+                    title="Jadikan Foto Sampul Album"
+                  >
+                    ⭐ Jadikan Sampul
+                  </button>
+                ` : `
+                  <span class="text-amber-400 font-bold text-[10px] px-1.5 py-0.5">
+                    ✓ Sampul Aktif
+                  </span>
+                `}
+                <button
+                  type="button"
+                  class="btn-form-remove-photo p-1 rounded-lg bg-slate-800 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 border border-slate-700 transition cursor-pointer"
+                  data-photo-id="${photo.id}"
+                  title="Keluarkan foto dari album ini"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+
+    // Attach Cover Set Handler for existing photos
+    wrap.querySelectorAll('.btn-form-set-cover').forEach((btn) => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const pid = parseInt(btn.getAttribute('data-photo-id'), 10);
+        try {
+          await ApiService.updateAlbum(activeAlbumId, { cover_photo_id: pid });
+          formCoverPhotoId = pid;
+          albumData.cover_photo_id = pid;
+          EcoToast.success('Foto Sampul Ditetapkan', 'Foto berhasil ditetapkan sebagai sampul utama album.');
+          renderExistingPhotosGrid();
+        } catch (err) {
+          EcoToast.error('Gagal Menetapkan Sampul', err.message);
+        }
+      });
     });
 
-    if (countBadge) {
-      countBadge.textContent = `${currentSelectedPhotoIds.size} Foto Terpilih`;
-    }
+    // Attach Remove Photo Handler
+    wrap.querySelectorAll('.btn-form-remove-photo').forEach((btn) => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const pid = btn.getAttribute('data-photo-id');
+        const confirmed = await EcoModal.confirm({
+          title: 'Keluarkan Foto dari Album?',
+          subtitle: 'Foto akan dilepas dari koleksi album ini.',
+          message: 'Foto asli di kawasan tetap aman dan tidak akan dihapus dari server. Lanjutkan?',
+          type: 'warning',
+          confirmText: 'Ya, Keluarkan',
+          cancelText: 'Batal',
+          icon: '🖼️',
+        });
+        if (confirmed) {
+          try {
+            await ApiService.removePhotoFromAlbum(activeAlbumId, pid);
+            const pidNum = parseInt(pid, 10);
+            existingPhotos = existingPhotos.filter((p) => p.id !== pidNum);
+            currentSelectedPhotoIds.delete(pidNum);
+            if (formCoverPhotoId === pidNum) {
+              formCoverPhotoId = existingPhotos.length > 0 ? existingPhotos[0].id : null;
+              albumData.cover_photo_id = formCoverPhotoId;
+            }
+            EcoToast.info('Foto Dikeluarkan', 'Foto telah dilepas dari album ini.');
+            renderExistingPhotosGrid();
+          } catch (err) {
+            EcoToast.error('Gagal Mengeluarkan Foto', err.message);
+          }
+        }
+      });
+    });
   };
 
-  document.querySelectorAll('.form-photo-chk').forEach((chk) => {
-    chk.addEventListener('change', (e) => {
-      const pid = parseInt(e.target.value, 10);
-      if (e.target.checked) {
-        currentSelectedPhotoIds.add(pid);
-        if (!formCoverPhotoId) formCoverPhotoId = pid;
+  if (isEdit) {
+    renderExistingPhotosGrid();
+  }
+
+  // ── Queue Previews Renderer ──
+  function renderFormQueuePreviews() {
+    if (!previewContainer || !previewsGrid) return;
+
+    if (formPendingFiles.length === 0) {
+      previewContainer.classList.add('hidden');
+      if (createModeInfo) createModeInfo.classList.remove('hidden');
+      if (uploadNowBtn) uploadNowBtn.disabled = true;
+      if (uploadNowText) uploadNowText.textContent = 'Upload Foto ke Album';
+      return;
+    }
+
+    previewContainer.classList.remove('hidden');
+    if (createModeInfo) createModeInfo.classList.add('hidden');
+
+    const validCount = formPendingFiles.filter((f) => f.isValid).length;
+    const invalidCount = formPendingFiles.length - validCount;
+
+    if (summaryText) {
+      summaryText.innerHTML = `
+        <span><strong>${formPendingFiles.length} berkas dipilih</strong> (${validCount} valid${invalidCount > 0 ? `, <span class="text-rose-400 font-bold">${invalidCount} tidak memenuhi syarat</span>` : ''})</span>
+      `;
+    }
+
+    previewsGrid.innerHTML = formPendingFiles.map((item) => {
+      return `
+        <div class="upload-preview-card ${item.isCover ? 'is-cover' : ''} ${!item.isValid ? 'is-invalid' : ''}" data-queue-id="${item.id}">
+          <button type="button" class="upload-preview-remove-btn" title="Hapus dari antrean" data-remove-id="${item.id}">✕</button>
+
+          <div class="upload-preview-thumb-wrap">
+            ${item.isValid ? `
+              <img src="${item.previewUrl}" alt="${escapeHtml(item.name)}" />
+            ` : `
+              <div class="w-full h-full flex flex-col items-center justify-center p-2 text-rose-400 bg-rose-950/40 text-center">
+                <span class="text-xl">⚠️</span>
+                <span class="text-[9px] mt-1 font-semibold leading-tight">${escapeHtml(item.errorMsg)}</span>
+              </div>
+            `}
+
+            ${item.isValid ? `
+              <button type="button" class="upload-preview-cover-btn ${item.isCover ? 'active' : ''}" data-set-cover-id="${item.id}" title="${item.isCover ? 'Foto ini adalah Sampul Utama' : 'Klik untuk jadikan Sampul Utama'}">
+                ${item.isCover ? '⭐ Sampul' : 'Jadikan Sampul'}
+              </button>
+            ` : ''}
+          </div>
+
+          <div class="upload-preview-info">
+            <span class="text-[11px] font-medium text-slate-200 truncate block" title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</span>
+            <div class="flex items-center justify-between mt-1 text-[10px] text-slate-400">
+              <span>${item.sizeFormatted}</span>
+              ${!item.isValid ? `<span class="text-rose-400 font-bold">Ditolak</span>` : `<span class="text-emerald-400 font-bold">Siap</span>`}
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    previewsGrid.querySelectorAll('.upload-preview-remove-btn').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const qid = btn.getAttribute('data-remove-id');
+        const target = formPendingFiles.find((f) => f.id === qid);
+        if (target && target.previewUrl) URL.revokeObjectURL(target.previewUrl);
+        formPendingFiles = formPendingFiles.filter((f) => f.id !== qid);
+
+        if (target && target.isCover) {
+          const firstValid = formPendingFiles.find((f) => f.isValid);
+          if (firstValid) firstValid.isCover = true;
+        }
+
+        renderFormQueuePreviews();
+        markDirty();
+      });
+    });
+
+    previewsGrid.querySelectorAll('.upload-preview-cover-btn').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const qid = btn.getAttribute('data-set-cover-id');
+        formPendingFiles.forEach((f) => {
+          f.isCover = f.id === qid;
+        });
+        renderFormQueuePreviews();
+        markDirty();
+      });
+    });
+
+    if (uploadNowBtn) {
+      uploadNowBtn.disabled = validCount === 0 || invalidCount > 0;
+    }
+    if (uploadNowText) {
+      if (invalidCount > 0) {
+        uploadNowText.textContent = `Hapus ${invalidCount} Berkas Bermasalah Terlebih Dahulu`;
       } else {
-        currentSelectedPhotoIds.delete(pid);
-        if (formCoverPhotoId === pid) {
-          formCoverPhotoId = currentSelectedPhotoIds.values().next().value || null;
+        uploadNowText.textContent = `Upload ${validCount} Foto ke Album`;
+      }
+    }
+  }
+
+  // ── Add Files to Form Queue ──
+  function addFilesToFormQueue(files) {
+    const MAX_SIZE = 5 * 1024 * 1024; // 5 MB
+    const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+
+    Array.from(files).forEach((file) => {
+      if (formPendingFiles.length >= 20) {
+        EcoToast.warning('Batas Maksimum', 'Maksimal 20 berkas sekaligus yang dapat dipilih.');
+        return;
+      }
+
+      let isValid = true;
+      let errorMsg = '';
+
+      if (!ALLOWED_TYPES.includes(file.type.toLowerCase())) {
+        isValid = false;
+        errorMsg = 'Format bukan JPG/PNG/WebP';
+      } else if (file.size > MAX_SIZE) {
+        isValid = false;
+        errorMsg = 'Ukuran > 5 MB';
+      }
+
+      const previewUrl = isValid ? URL.createObjectURL(file) : '';
+      const hasAnyCover = formPendingFiles.some((f) => f.isCover);
+      const shouldBeCover = (!hasAnyCover && isValid && (!isEdit || existingPhotos.length === 0));
+
+      formPendingFiles.push({
+        id: Math.random().toString(36).substring(2, 9),
+        file,
+        name: file.name,
+        size: file.size,
+        sizeFormatted: formatFileSize(file.size),
+        previewUrl,
+        isValid,
+        errorMsg,
+        isCover: shouldBeCover,
+      });
+    });
+
+    markDirty();
+    renderFormQueuePreviews();
+  }
+
+  // Attach picker & dropzone listeners
+  if (fileInput) {
+    if (dropzone) {
+      dropzone.addEventListener('click', () => fileInput.click());
+
+      ['dragenter', 'dragover'].forEach((eventName) => {
+        dropzone.addEventListener(eventName, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          dropzone.classList.add('dragover');
+        });
+      });
+
+      ['dragleave', 'drop'].forEach((eventName) => {
+        dropzone.addEventListener(eventName, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          dropzone.classList.remove('dragover');
+        });
+      });
+
+      dropzone.addEventListener('drop', (e) => {
+        const dt = e.dataTransfer;
+        if (dt && dt.files && dt.files.length > 0) {
+          addFilesToFormQueue(dt.files);
+        }
+      });
+    }
+
+    if (btnTriggerPicker) {
+      btnTriggerPicker.addEventListener('click', () => fileInput.click());
+    }
+
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files && fileInput.files.length > 0) {
+        addFilesToFormQueue(fileInput.files);
+        fileInput.value = '';
+      }
+    });
+
+    clearBtn?.addEventListener('click', () => {
+      formPendingFiles.forEach((f) => {
+        if (f.previewUrl) URL.revokeObjectURL(f.previewUrl);
+      });
+      formPendingFiles = [];
+      renderFormQueuePreviews();
+      markDirty();
+    });
+  }
+
+  // Direct Upload Action Handler (for Edit Mode)
+  uploadNowBtn?.addEventListener('click', async (e) => {
+    e.preventDefault();
+    const validFiles = formPendingFiles.filter((f) => f.isValid);
+    if (validFiles.length === 0) {
+      EcoToast.warning('Peringatan', 'Silakan pilih setidaknya satu file foto yang valid untuk diunggah.');
+      return;
+    }
+
+    const formData = new FormData();
+    const coverItem = validFiles.find((f) => f.isCover);
+    const orderedFiles = coverItem
+      ? [coverItem, ...validFiles.filter((f) => f.id !== coverItem.id)]
+      : validFiles;
+
+    orderedFiles.forEach((item) => {
+      formData.append('photos[]', item.file);
+    });
+
+    if (coverItem || chkCover?.checked) {
+      formData.append('is_cover', '1');
+    }
+
+    try {
+      uploadNowBtn.disabled = true;
+      uploadNowBtn.innerHTML = `
+        <span class="loading-spinner"></span>
+        <span>Mengunggah ${validFiles.length} foto...</span>
+      `;
+
+      const uploadRes = await ApiService.uploadPhotosToAlbum(activeAlbumId, formData);
+      EcoToast.success('Foto Berhasil Diunggah', `${validFiles.length} foto kegiatan berhasil ditambahkan ke album.`);
+
+      // Clean up previews
+      formPendingFiles.forEach((f) => {
+        if (f.previewUrl) URL.revokeObjectURL(f.previewUrl);
+      });
+      formPendingFiles = [];
+
+      // Refresh existing photos from server response
+      if (uploadRes.album && Array.isArray(uploadRes.album.photos)) {
+        existingPhotos = uploadRes.album.photos;
+        formCoverPhotoId = uploadRes.album.cover_photo_id || formCoverPhotoId;
+        albumData.cover_photo_id = formCoverPhotoId;
+        existingPhotos.forEach((p) => currentSelectedPhotoIds.add(p.id));
+      } else {
+        const freshDetail = await ApiService.getAdminAlbumDetail(activeAlbumId);
+        if (freshDetail.album) {
+          existingPhotos = freshDetail.album.photos || [];
+          formCoverPhotoId = freshDetail.album.cover_photo_id || formCoverPhotoId;
+          albumData.cover_photo_id = formCoverPhotoId;
+          existingPhotos.forEach((p) => currentSelectedPhotoIds.add(p.id));
         }
       }
-      markDirty();
-      updatePhotoGridUI();
-    });
-  });
 
-  document.querySelectorAll('.btn-make-cover').forEach((btn) => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const pid = parseInt(btn.getAttribute('data-photo-id'), 10);
-      if (currentSelectedPhotoIds.has(pid)) {
-        formCoverPhotoId = pid;
-        markDirty();
-        updatePhotoGridUI();
-      }
-    });
+      renderFormQueuePreviews();
+      renderExistingPhotosGrid();
+    } catch (err) {
+      EcoToast.error('Gagal Mengunggah Foto', err.message);
+      renderFormQueuePreviews();
+    }
   });
 
   // Submit Handler
   const form = document.getElementById('album-form');
-  form?.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const titleVal = document.getElementById('album-input-title').value.trim();
+  const submitBtn = document.getElementById('btn-submit-album-form');
+  let isSubmitting = false;
+
+  const handleAlbumFormSubmit = async (e) => {
+    if (e) e.preventDefault();
+    if (isSubmitting) return;
+
+    const titleInput = document.getElementById('album-input-title');
+    const titleVal = titleInput ? titleInput.value.trim() : '';
     if (!titleVal) {
       EcoToast.warning('Validasi Diperlukan', 'Nama Kegiatan / Judul Album wajib diisi.');
-      document.getElementById('album-input-title')?.focus();
+      titleInput?.focus();
+      return;
+    }
+
+    // Check if any invalid files in pending queue
+    const invalidFiles = formPendingFiles.filter((f) => !f.isValid);
+    if (invalidFiles.length > 0) {
+      EcoToast.warning('Berkas Bermasalah', `Terdapat ${invalidFiles.length} berkas yang tidak memenuhi syarat (maks. 5 MB, format JPG/PNG/WebP). Hapus berkas tersebut terlebih dahulu sebelum menyimpan.`);
       return;
     }
 
     const payload = {
       title: titleVal,
-      category: document.getElementById('album-input-category').value,
-      organizer: document.getElementById('album-input-organizer').value.trim() || null,
-      planting_zone_id: document.getElementById('album-input-zone').value || null,
-      location_name: document.getElementById('album-input-location').value.trim() || null,
-      activity_date: document.getElementById('album-input-date').value || null,
-      sort_order: parseInt(document.getElementById('album-input-order').value, 10) || 0,
-      description: document.getElementById('album-input-desc').value.trim() || null,
+      category: document.getElementById('album-input-category')?.value || 'Dokumentasi Silvikultur',
+      organizer: document.getElementById('album-input-organizer')?.value.trim() || null,
+      planting_zone_id: document.getElementById('album-input-zone')?.value || null,
+      location_name: document.getElementById('album-input-location')?.value.trim() || null,
+      activity_date: document.getElementById('album-input-date')?.value || null,
+      sort_order: parseInt(document.getElementById('album-input-order')?.value, 10) || 0,
+      description: document.getElementById('album-input-desc')?.value.trim() || null,
       is_published: chkPublished.checked,
       cover_photo_id: formCoverPhotoId || null,
-      photo_ids: Array.from(currentSelectedPhotoIds),
+      photo_ids: isEdit ? existingPhotos.map((p) => p.id) : [],
     };
 
-    const submitBtn = document.getElementById('btn-submit-album-form');
-    submitBtn.disabled = true;
-    submitBtn.innerHTML = `
-      <span class="loading-spinner"></span>
-      <span>${isEdit ? 'Menyimpan perubahan...' : 'Membuat album...'}</span>
-    `;
+    const originalBtnHTML = submitBtn ? submitBtn.innerHTML : '';
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = `
+        <span class="loading-spinner"></span>
+        <span>${isEdit ? 'Menyimpan...' : 'Membuat album...'}</span>
+      `;
+    }
+    isSubmitting = true;
 
     try {
       if (isEdit) {
+        // In Edit mode, if there are pending files, upload them first
+        const validFiles = formPendingFiles.filter((f) => f.isValid);
+        if (validFiles.length > 0) {
+          if (submitBtn) {
+            submitBtn.innerHTML = `
+              <span class="loading-spinner"></span>
+              <span>Mengunggah ${validFiles.length} foto baru...</span>
+            `;
+          }
+          const formData = new FormData();
+          const coverItem = validFiles.find((f) => f.isCover);
+          const orderedFiles = coverItem
+            ? [coverItem, ...validFiles.filter((f) => f.id !== coverItem.id)]
+            : validFiles;
+
+          orderedFiles.forEach((item) => {
+            formData.append('photos[]', item.file);
+          });
+          if (coverItem || chkCover?.checked) {
+            formData.append('is_cover', '1');
+          }
+
+          const uploadRes = await ApiService.uploadPhotosToAlbum(activeAlbumId, formData);
+          formPendingFiles.forEach((f) => {
+            if (f.previewUrl) URL.revokeObjectURL(f.previewUrl);
+          });
+          formPendingFiles = [];
+
+          if (uploadRes.album?.cover_photo_id) {
+            payload.cover_photo_id = uploadRes.album.cover_photo_id;
+          }
+        }
+
         await ApiService.updateAlbum(activeAlbumId, payload);
         EcoToast.success('Album Disimpan', `Perubahan album "${payload.title}" berhasil disimpan.`);
       } else {
+        // Create mode
         const createRes = await ApiService.createAlbum(payload);
-        EcoToast.success('Album Dibuat', `Album kegiatan "${payload.title}" berhasil ditambahkan.`);
-        if (createRes.album?.id) {
-          activeAlbumId = createRes.album.id;
+        const newAlbumId = createRes.album?.id;
+        if (!newAlbumId) {
+          throw new Error('Gagal mendapatkan ID album baru dari server.');
+        }
+
+        // If user queued photos to upload
+        const validFiles = formPendingFiles.filter((f) => f.isValid);
+        if (validFiles.length > 0) {
+          if (submitBtn) {
+            submitBtn.innerHTML = `
+              <span class="loading-spinner"></span>
+              <span>Mengunggah ${validFiles.length} foto ke album baru...</span>
+            `;
+          }
+
+          const formData = new FormData();
+          const coverItem = validFiles.find((f) => f.isCover);
+          const orderedFiles = coverItem
+            ? [coverItem, ...validFiles.filter((f) => f.id !== coverItem.id)]
+            : validFiles;
+
+          orderedFiles.forEach((item) => {
+            formData.append('photos[]', item.file);
+          });
+          formData.append('is_cover', '1');
+
+          try {
+            await ApiService.uploadPhotosToAlbum(newAlbumId, formData);
+            formPendingFiles.forEach((f) => {
+              if (f.previewUrl) URL.revokeObjectURL(f.previewUrl);
+            });
+            formPendingFiles = [];
+            EcoToast.success('Album & Foto Dibuat', `Album kegiatan "${payload.title}" berhasil dibuat beserta ${validFiles.length} foto.`);
+          } catch (uploadErr) {
+            // Album was created, but upload failed. Keep album, inform user, redirect to edit album view
+            activeAlbumId = newAlbumId;
+            isFormDirty = false;
+            EcoToast.error('Gagal Mengunggah Foto', `Album berhasil dibuat, tetapi berkas foto gagal diunggah: ${uploadErr.message}. Anda dapat mengunggah kembali dari halaman edit album.`);
+            await reloadAlbums();
+            switchAlbumSubView('edit', newAlbumId);
+            return;
+          }
+        } else {
+          EcoToast.success('Album Dibuat', `Album kegiatan "${payload.title}" berhasil ditambahkan.`);
         }
       }
+
       isFormDirty = false;
       await reloadAlbums();
       switchAlbumSubView('list');
     } catch (err) {
       EcoToast.error('Gagal Menyimpan Album', err.message);
-      submitBtn.disabled = false;
-      submitBtn.innerHTML = isEdit ? '💾 Simpan Perubahan Album' : '✨ Buat &amp; Publikasikan Album';
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnHTML;
+      }
+    } finally {
+      isSubmitting = false;
     }
+  };
+
+  form?.addEventListener('submit', handleAlbumFormSubmit);
+  submitBtn?.addEventListener('click', (e) => {
+    if (form && !form.checkValidity?.()) {
+      form.reportValidity?.();
+      return;
+    }
+    handleAlbumFormSubmit(e);
   });
 }
 
@@ -1201,30 +1696,29 @@ async function renderManagePhotosView(container) {
   const photos = album.photos || [];
 
   container.innerHTML = `
-    <div class="space-y-6">
-      <!-- Breadcrumb Nav -->
-      <nav class="flex items-center gap-2 text-xs text-slate-400">
-        <button id="btn-back-to-albums-list" class="hover:text-blue-400 transition cursor-pointer font-medium">
-          ← Kembali ke Semua Album
-        </button>
-        <span class="text-slate-600">/</span>
-        <span class="text-slate-300 font-medium truncate max-w-xs">${escapeHtml(album.title)}</span>
-        <span class="text-slate-600">/</span>
-        <span class="text-blue-400 font-semibold">Kelola Foto (${photos.length})</span>
-      </nav>
-
-      <!-- Top Info Card -->
-      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 shadow-lg">
-        <div>
-          <div class="flex flex-wrap items-center gap-2">
-            <h3 class="text-base font-bold text-white flex items-center gap-2">
-              <span>${escapeHtml(album.title)}</span>
+    <div class="zone-form-card space-y-6">
+      <!-- Top Header & Breadcrumb Bar -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-800/80 gap-3">
+        <div class="space-y-1">
+          <nav class="flex items-center gap-2 text-xs text-slate-400">
+            <button id="btn-back-to-albums-list" class="hover:text-blue-400 transition cursor-pointer font-medium flex items-center gap-1">
+              <span>←</span>
+              <span>Daftar Album</span>
+            </button>
+            <span class="text-slate-600">/</span>
+            <span class="text-slate-300 font-medium truncate max-w-[200px] sm:max-w-xs">${escapeHtml(album.title)}</span>
+            <span class="text-slate-600">/</span>
+            <span class="text-blue-400 font-semibold">Kelola Foto</span>
+          </nav>
+          <div class="flex flex-wrap items-center gap-2 pt-1">
+            <h3 class="text-lg font-bold text-white tracking-tight">
+              ${escapeHtml(album.title)}
             </h3>
             <span class="px-2.5 py-0.5 rounded text-[10px] font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/25">
               🏷️ ${escapeHtml(album.category || 'Dokumentasi')}
             </span>
             ${album.zone?.name ? `
-              <span class="px-2.5 py-0.5 rounded text-[10px] font-semibold bg-slate-800 text-slate-300 border border-slate-700">
+              <span class="px-2.5 py-0.5 rounded text-[10px] font-semibold bg-slate-800/90 text-slate-300 border border-slate-700/80">
                 🏞️ ${escapeHtml(album.zone.name)}
               </span>
             ` : ''}
@@ -1239,35 +1733,35 @@ async function renderManagePhotosView(container) {
               </span>
             `}
           </div>
-          <p class="text-xs text-slate-400 mt-1.5">
-            Total <strong>${photos.length} foto</strong> terkelompok dalam album ini. Anda dapat mengunggah foto langsung, menentukan foto sampul, menyunting keterangan/alt-text, atau mengatur urutan tampilan.
+          <p class="text-xs text-slate-400 mt-0.5">
+            Total <strong>${photos.length} foto</strong> terkelompok dalam album kegiatan ini. Anda dapat mengunggah foto baru, menentukan sampul, atau mengatur urutan.
           </p>
         </div>
 
-        <div class="flex flex-wrap items-center gap-2.5 shrink-0 w-full sm:w-auto">
-          <button class="btn-edit-album inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white font-bold text-xs border border-slate-700 transition cursor-pointer" data-id="${album.id}" title="Sunting rincian informasi album">
-            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+        <div class="flex flex-wrap items-center gap-2 shrink-0 self-start sm:self-center">
+          <button class="btn-edit-album inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-200 hover:text-white font-semibold text-xs border border-slate-700/80 transition cursor-pointer" data-id="${album.id}" title="Sunting rincian informasi album">
+            <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
             <span>Edit Album</span>
           </button>
-          <button id="btn-toggle-direct-upload" class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-lg shadow-blue-500/20 transition cursor-pointer">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <button id="btn-toggle-direct-upload" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-lg shadow-blue-500/20 transition cursor-pointer">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
             <span>+ Unggah Foto Baru</span>
           </button>
-          <button id="btn-open-photo-picker" class="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-blue-400 hover:text-blue-300 font-bold text-xs border border-blue-500/30 transition cursor-pointer" title="Pilih dari koleksi foto kawasan yang sudah ada">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          <button id="btn-open-photo-picker" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-blue-400 hover:text-blue-300 font-semibold text-xs border border-blue-500/30 transition cursor-pointer" title="Pilih dari koleksi foto kawasan yang sudah ada">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
             <span>Pilih dari Kawasan</span>
           </button>
         </div>
       </div>
 
       <!-- Direct Upload Section with Interactive Previews (Collapsible) -->
-      <div id="direct-upload-box" class="${isDirectUploadBoxOpen ? '' : 'hidden'} bg-slate-900 border border-blue-500/30 rounded-2xl p-6 shadow-xl space-y-4 transition-all">
-        <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+      <div id="direct-upload-box" class="${isDirectUploadBoxOpen ? '' : 'hidden'} bg-slate-950/70 border border-blue-500/30 rounded-2xl p-5 shadow-xl space-y-4 transition-all">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-800/80 gap-2">
           <div class="flex items-center gap-2">
-            <span class="text-blue-400 text-base">📤</span>
-            <h4 class="text-sm font-bold text-white">Unggah Berkas Foto Langsung ke Album Ini</h4>
+            <span class="text-blue-400 text-sm">📤</span>
+            <h4 class="text-xs font-bold text-white uppercase tracking-wider">Unggah Berkas Foto Langsung ke Album</h4>
           </div>
-          <span class="text-[11px] text-slate-400 font-mono">Format: JPG, JPEG, PNG, WebP (Maks 5 MB/foto)</span>
+          <span class="text-[11px] text-slate-400 font-mono">Format: JPG, JPEG, PNG, WebP (Maks 5 MB/foto, Maks 20 foto)</span>
         </div>
 
         <form id="form-direct-upload" class="space-y-4">
@@ -1281,16 +1775,16 @@ async function renderManagePhotosView(container) {
                 accept="image/jpeg,image/png,image/webp,image/jpg"
                 class="hidden"
               />
-              <div class="flex flex-col items-center justify-center pointer-events-none">
-                <svg class="w-10 h-10 text-blue-400/80 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
-                <p class="text-xs font-bold text-white mb-1">Tarik &amp; Lepaskan Berkas Foto ke Sini, atau <span class="text-blue-400 underline">Pilih Berkas</span></p>
+              <div class="flex flex-col items-center justify-center pointer-events-none py-2">
+                <svg class="w-9 h-9 text-blue-400/80 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                <p class="text-xs font-bold text-white mb-0.5">Tarik &amp; Lepaskan Berkas Foto ke Sini, atau <span class="text-blue-400 underline">Pilih Berkas</span></p>
                 <p class="text-[11px] text-slate-400">Pilih hingga 20 foto sekaligus dari komputer Anda.</p>
               </div>
             </div>
 
             <!-- Upload Queue Previews Container -->
             <div id="upload-preview-container" class="hidden">
-              <div class="flex items-center justify-between mt-4 pb-2 border-b border-slate-800 text-xs">
+              <div class="flex items-center justify-between mt-3 pb-2 border-b border-slate-800 text-xs">
                 <span class="font-bold text-white" id="upload-preview-summary">0 foto dipilih</span>
                 <button type="button" id="btn-clear-upload-queue" class="text-rose-400 hover:text-rose-300 text-[11px] font-semibold cursor-pointer">
                   Bersihkan Pilihan
@@ -1305,37 +1799,37 @@ async function renderManagePhotosView(container) {
           <!-- Metadata Options for Uploaded Photos -->
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
             <div>
-              <label class="block text-xs font-bold text-slate-200 mb-1">Keterangan / Caption Bawaan (Opsional)</label>
+              <label class="block text-xs font-bold text-slate-200 mb-1.5">Keterangan / Caption Bawaan (Opsional)</label>
               <input
                 type="text"
                 id="input-direct-upload-caption"
                 placeholder="Contoh: Dokumentasi tahapan awal penanaman bibit"
-                class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs placeholder-slate-500 focus:outline-none focus:border-blue-500"
+                class="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs placeholder-slate-500 focus:outline-none focus:border-blue-500"
               />
             </div>
             <div>
-              <label class="block text-xs font-bold text-slate-200 mb-1">Alt Text Aksesibilitas (Opsional)</label>
+              <label class="block text-xs font-bold text-slate-200 mb-1.5">Alt Text Aksesibilitas (Opsional)</label>
               <input
                 type="text"
                 id="input-direct-upload-alt"
                 placeholder="Deskripsi singkat foto untuk pembaca layar"
-                class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs placeholder-slate-500 focus:outline-none focus:border-blue-500"
+                class="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs placeholder-slate-500 focus:outline-none focus:border-blue-500"
               />
             </div>
           </div>
 
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-slate-800">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-slate-800/80">
             <label class="inline-flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
-              <input type="checkbox" id="chk-direct-upload-cover" class="rounded bg-slate-950 border-slate-700 text-blue-600 focus:ring-0 w-4 h-4" />
+              <input type="checkbox" id="chk-direct-upload-cover" class="rounded bg-slate-900 border-slate-700 text-blue-600 focus:ring-0 w-4 h-4" />
               <span>Jadikan foto pertama sebagai Foto Sampul Utama album</span>
             </label>
 
             <button
               type="submit"
               id="btn-submit-direct-upload"
-              class="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs transition cursor-pointer shadow-lg shadow-blue-500/20 inline-flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              class="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs transition cursor-pointer shadow-lg shadow-blue-500/20 inline-flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
               <span id="btn-submit-direct-upload-text">Mulai Unggah Foto</span>
             </button>
           </div>
@@ -1343,17 +1837,27 @@ async function renderManagePhotosView(container) {
       </div>
 
       <!-- Photos Grid Inside Album -->
-      <div id="album-photos-grid">
+      <div id="album-photos-grid" class="space-y-4">
+        <div class="flex items-center justify-between pb-2 border-b border-slate-800/60">
+          <h4 class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
+            <span>🖼️ Koleksi Foto Album</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/20 text-blue-400 border border-blue-500/30">
+              ${photos.length} Foto
+            </span>
+          </h4>
+          <span class="text-[11px] text-slate-400">Atur urutan dengan tombol ◀ / ▶ atau tetapkan foto sampul dengan ⭐</span>
+        </div>
+
         ${photos.length === 0 ? `
-          <div class="p-14 text-center bg-slate-900/60 border border-slate-800 rounded-2xl">
-            <span class="text-5xl block mb-3">🖼️</span>
+          <div class="p-12 text-center bg-slate-900/40 border border-slate-800 rounded-2xl">
+            <span class="text-4xl block mb-2.5">🖼️</span>
             <h4 class="text-sm font-bold text-white">Album Ini Belum Memiliki Foto</h4>
-            <p class="text-xs text-slate-400 mt-1.5 max-w-sm mx-auto leading-relaxed">
+            <p class="text-xs text-slate-400 mt-1 max-w-sm mx-auto leading-relaxed">
               Klik <strong>"+ Unggah Foto Baru"</strong> untuk mengunggah dari perangkat, atau <strong>"Pilih dari Kawasan"</strong> untuk menambahkan foto dokumentasi yang sudah ada di kawasan ini.
             </p>
           </div>
         ` : `
-          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3.5">
             ${photos.map((photo, idx) => {
               const isCover = album.cover_photo_id === photo.id;
               const photoUrl = photo.thumbnail_url || photo.file_url;
@@ -1366,12 +1870,12 @@ async function renderManagePhotosView(container) {
                       <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent pointer-events-none"></div>
 
                       <!-- Top Badges -->
-                      <div class="absolute top-2 inset-x-2 flex items-center justify-between pointer-events-none">
-                        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-950/80 text-slate-300 border border-white/10 backdrop-blur-sm">
+                      <div class="absolute top-1.5 inset-x-1.5 flex items-center justify-between pointer-events-none">
+                        <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-slate-950/80 text-slate-300 border border-white/10 backdrop-blur-sm">
                           #${idx + 1}
                         </span>
                         ${isCover ? `
-                          <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-400 text-slate-950 shadow-md">
+                          <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-400 text-slate-950 shadow-md">
                             ⭐ Sampul
                           </span>
                         ` : ''}
@@ -1379,15 +1883,15 @@ async function renderManagePhotosView(container) {
                     </div>
 
                     <!-- Photo Details -->
-                    <div class="p-3 space-y-1">
-                      <div class="font-bold text-white text-xs truncate" title="${escapeHtml(photo.title || 'Foto #' + (idx + 1))}">
+                    <div class="p-2 space-y-0.5">
+                      <div class="font-bold text-white text-[11px] truncate" title="${escapeHtml(photo.title || 'Foto #' + (idx + 1))}">
                         ${escapeHtml(photo.title || 'Foto #' + (idx + 1))}
                       </div>
-                      <p class="text-[11px] text-slate-400 line-clamp-2 leading-relaxed" title="${escapeHtml(photo.caption || '')}">
-                        ${escapeHtml(photo.caption || 'Belum ada keterangan khusus.')}
-                      </p>
+                      <p class="text-[10px] text-slate-400 line-clamp-1 leading-normal" title="${escapeHtml(photo.caption || '')}">
+                        ${escapeHtml(photo.caption || 'Tanpa keterangan')}
+
                       ${photo.alt_text ? `
-                        <div class="text-[10px] text-slate-500 truncate" title="Alt Text: ${escapeHtml(photo.alt_text)}">
+                        <div class="text-[9px] text-slate-500 truncate" title="Alt Text: ${escapeHtml(photo.alt_text)}">
                           Alt: ${escapeHtml(photo.alt_text)}
                         </div>
                       ` : ''}
@@ -1395,18 +1899,18 @@ async function renderManagePhotosView(container) {
                   </div>
 
                   <!-- Card Action Toolbar -->
-                  <div class="p-2.5 pt-2 border-t border-slate-800/80 bg-slate-900/60 flex items-center justify-between gap-1 text-[11px]">
-                    <div class="flex items-center gap-1">
+                  <div class="p-2 pt-1.5 border-t border-slate-800/80 bg-slate-900/60 flex items-center justify-between gap-1 text-[10px]">
+                    <div class="flex items-center gap-0.5">
                       <!-- Reorder Buttons -->
                       <button
-                        class="btn-move-photo-prev p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition cursor-pointer ${idx === 0 ? 'opacity-30 pointer-events-none' : ''}"
+                        class="btn-move-photo-prev p-1 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition cursor-pointer text-[10px] ${idx === 0 ? 'opacity-30 pointer-events-none' : ''}"
                         title="Pindahkan ke urutan sebelumnya"
                         data-index="${idx}"
                       >
                         ◀
                       </button>
                       <button
-                        class="btn-move-photo-next p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition cursor-pointer ${idx === photos.length - 1 ? 'opacity-30 pointer-events-none' : ''}"
+                        class="btn-move-photo-next p-1 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition cursor-pointer text-[10px] ${idx === photos.length - 1 ? 'opacity-30 pointer-events-none' : ''}"
                         title="Pindahkan ke urutan berikutnya"
                         data-index="${idx}"
                       >
@@ -1417,29 +1921,29 @@ async function renderManagePhotosView(container) {
                     <div class="flex items-center gap-1">
                       ${!isCover ? `
                         <button
-                          class="btn-set-as-cover p-1.5 rounded-lg bg-slate-800 hover:bg-amber-500/20 text-slate-400 hover:text-amber-300 border border-slate-700 transition cursor-pointer"
+                          class="btn-set-as-cover px-1.5 py-1 rounded-md bg-slate-800 hover:bg-amber-500/20 text-slate-400 hover:text-amber-300 border border-slate-700 transition cursor-pointer font-bold text-[10px]"
                           title="Jadikan Foto Sampul Utama"
                           data-photo-id="${photo.id}"
                         >
-                          ⭐
+                          ⭐ Sampul
                         </button>
                       ` : ''}
                       <button
-                        class="btn-edit-photo-meta p-1.5 rounded-lg bg-slate-800 hover:bg-blue-500/20 text-slate-400 hover:text-blue-300 border border-slate-700 transition cursor-pointer"
+                        class="btn-edit-photo-meta p-1 rounded-md bg-slate-800 hover:bg-blue-500/20 text-slate-400 hover:text-blue-300 border border-slate-700 transition cursor-pointer"
                         title="Sunting Keterangan / Alt Text"
                         data-photo-id="${photo.id}"
                       >
                         ✏️
                       </button>
                       <button
-                        class="btn-remove-from-album p-1.5 rounded-lg bg-slate-800 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 border border-slate-700 transition cursor-pointer"
+                        class="btn-remove-from-album p-1 rounded-md bg-slate-800 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 border border-slate-700 transition cursor-pointer"
                         title="Keluarkan dari album ini (foto tetap di kawasan)"
                         data-photo-id="${photo.id}"
                       >
                         ✕
                       </button>
                       <button
-                        class="btn-delete-photo-permanent p-1.5 rounded-lg bg-slate-800 hover:bg-rose-500 text-slate-400 hover:text-white border border-slate-700 transition cursor-pointer"
+                        class="btn-delete-photo-permanent p-1 rounded-md bg-slate-800 hover:bg-rose-500 text-slate-400 hover:text-white border border-slate-700 transition cursor-pointer"
                         title="Hapus foto ini secara permanen dari server"
                         data-photo-id="${photo.id}"
                       >
