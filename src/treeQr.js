@@ -118,9 +118,9 @@ export async function initPublicTreeQr(containerId = 'public-tree-qr-container')
           <canvas id="modal-qr-canvas" class="max-w-full block"></canvas>
         </div>
 
-        <!-- Tombol Close di Bawah Gambar QR Code -->
-        <button id="btn-close-qrmodal" class="w-full flex items-center justify-center gap-2 py-3 px-6 rounded-xl bg-slate-800/90 hover:bg-rose-600 text-slate-200 hover:text-white border border-slate-700/80 hover:border-rose-500 font-semibold text-sm tracking-wide transition-all duration-200 cursor-pointer text-center shadow-lg hover:shadow-rose-900/40 active:scale-95" style="margin-top: 24px;" aria-label="Tutup modal" title="Tutup">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="opacity-80"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        <!-- Tombol Close di Bawah Gambar QR Code (Effect & Style seperti Tombol Perbesar QRcode, lebar auto mengikuti text+padding) -->
+        <button id="btn-close-qrmodal" class="btn-view-species-profile inline-flex items-center justify-center gap-2 font-semibold text-sm cursor-pointer transition-all duration-200 active:scale-95" style="margin-top: 24px; padding: 9px 24px; border-radius: 12px; background: rgba(16, 185, 129, 0.14); color: #ecfdf5; border: 1px solid rgba(16, 185, 129, 0.35); box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4); width: auto;" aria-label="Tutup modal" title="Tutup">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="opacity-90"><path d="M18 6L6 18M6 6l12 12"/></svg>
           <span>Close</span>
         </button>
       </div>
