@@ -110,20 +110,19 @@ export async function initPublicTreeQr(containerId = 'public-tree-qr-container')
       </div>
     </div>
 
-    <!-- QR Detail / Scan Modal (Hanya QR Code & Tombol X Tutup) -->
+    <!-- QR Detail / Scan Modal (Hanya QR Code & Tombol Close di Bawah) -->
     <div id="qr-preview-modal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-4 sm:p-6" role="dialog" aria-modal="true">
       <div class="relative bg-slate-900 border-2 border-emerald-500/60 rounded-3xl flex flex-col items-center justify-center shadow-[0_25px_60px_rgba(0,0,0,0.9),0_0_35px_rgba(16,185,129,0.3)] max-w-sm w-auto" style="padding: 28px 32px 32px; box-sizing: border-box;">
-        <!-- Baris Header Tombol Tutup (X) dengan Jarak Renggang -->
-        <div class="w-full flex justify-end" style="margin-bottom: 20px;">
-          <button id="btn-close-qrmodal" class="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-slate-950/90 hover:bg-rose-600 text-slate-300 hover:text-white border-2 border-emerald-400/80 hover:border-rose-400 shadow-xl transition-all duration-200 cursor-pointer flex items-center justify-center hover:scale-110 active:scale-95" aria-label="Tutup modal" title="Tutup">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8"><path d="M18 6L6 18M6 6l12 12"/></svg>
-          </button>
-        </div>
-
-        <!-- Canvas Container QR Code dengan Padding Lebih Luas -->
+        <!-- Canvas Container QR Code -->
         <div class="bg-white rounded-2xl inline-flex items-center justify-center shadow-2xl border border-slate-200" style="padding: 22px; box-sizing: border-box;">
           <canvas id="modal-qr-canvas" class="max-w-full block"></canvas>
         </div>
+
+        <!-- Tombol Close di Bawah Gambar QR Code -->
+        <button id="btn-close-qrmodal" class="w-full flex items-center justify-center gap-2 py-3 px-6 rounded-xl bg-slate-800/90 hover:bg-rose-600 text-slate-200 hover:text-white border border-slate-700/80 hover:border-rose-500 font-semibold text-sm tracking-wide transition-all duration-200 cursor-pointer text-center shadow-lg hover:shadow-rose-900/40 active:scale-95" style="margin-top: 24px;" aria-label="Tutup modal" title="Tutup">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="opacity-80"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          <span>Close</span>
+        </button>
       </div>
     </div>
   `;
