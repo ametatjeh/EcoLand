@@ -20,6 +20,32 @@
     row-gap: 28px;
     column-gap: 16px;
   }
+
+  /* Khusus Tampilan Mobile: Box QR Code dibagi 2 kolom per baris */
+  .tree-qr-grid-inner {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    row-gap: 16px !important;
+    column-gap: 12px !important;
+  }
+
+  .tree-qr-grid-inner .treeqr-card {
+    border-radius: 12px !important;
+  }
+
+  .tree-qr-grid-inner .treeqr-card canvas {
+    width: 82px !important;
+    height: 82px !important;
+  }
+
+  .tree-qr-grid-inner .treeqr-card .btn-view-species-profile {
+    font-size: 11.5px !important;
+    padding: 7px 8px !important;
+    border-radius: 8px !important;
+  }
+
+  .tree-qr-grid-inner .treeqr-card > div:last-child {
+    padding: 8px 10px 10px !important;
+  }
 }
 
 .catalog-card {

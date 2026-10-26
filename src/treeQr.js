@@ -102,47 +102,25 @@ export async function initPublicTreeQr(containerId = 'public-tree-qr-container')
         </div>
       </div>
 
-      <!-- Grid Cards (Sama seperti grid Katalog Jenis Pohon) -->
-      <div id="tree-qr-grid" class="catalog-species-grid-inner w-full">
+      <!-- Grid Cards (Tree QR Grid - 2 Kolom pada Mobile) -->
+      <div id="tree-qr-grid" class="catalog-species-grid-inner tree-qr-grid-inner w-full">
         <div class="col-span-full py-16 text-center text-slate-400 flex items-center justify-center gap-2">
           <span class="animate-spin text-xl">⏳</span> Memuat data QR Code...
         </div>
       </div>
     </div>
 
-    <!-- QR Detail / Scan Modal -->
-    <div id="qr-preview-modal" class="fixed inset-0 z-50 bg-black/90 backdrop-blur-md hidden flex items-center justify-center p-4" role="dialog" aria-modal="true">
-      <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl relative text-center">
-        <button id="btn-close-qrmodal" class="absolute top-4 right-4 z-30 p-2.5 rounded-xl bg-slate-800 hover:bg-red-500/20 text-slate-300 hover:text-red-400 border border-slate-700 hover:border-red-500/40 transition cursor-pointer" aria-label="Tutup modal">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    <!-- QR Detail / Scan Modal (Hanya QR Code & Tombol X Tutup) -->
+    <div id="qr-preview-modal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-4 sm:p-6" role="dialog" aria-modal="true">
+      <div class="relative bg-slate-900 border-2 border-emerald-500/60 rounded-3xl p-6 sm:p-8 flex flex-col items-center justify-center shadow-[0_25px_60px_rgba(0,0,0,0.9),0_0_35px_rgba(16,185,129,0.3)]">
+        <!-- Tombol Tutup (X) dengan Jarak Nyaman di Sudut Kanan Atas -->
+        <button id="btn-close-qrmodal" class="absolute -top-5 -right-5 sm:-top-6 sm:-right-6 z-30 w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-slate-950 hover:bg-rose-600 text-slate-300 hover:text-white border-2 border-emerald-400/80 hover:border-rose-400 shadow-2xl transition-all duration-200 cursor-pointer flex items-center justify-center hover:scale-110" aria-label="Tutup modal" title="Tutup">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8"><path d="M18 6L6 18M6 6l12 12"/></svg>
         </button>
 
-        <span id="modal-qr-badge" class="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 mb-3">
-          QR Code
-        </span>
-        <h3 id="modal-qr-title" class="text-lg font-bold text-white mb-1">Nama Objek</h3>
-        <p id="modal-qr-sub" class="text-xs text-slate-400 italic mb-5">Subjudul Objek</p>
-
-        <!-- Canvas Container -->
-        <div class="bg-white p-4 rounded-2xl inline-block shadow-inner mb-4">
-          <canvas id="modal-qr-canvas" class="max-w-full"></canvas>
-        </div>
-
-        <p class="text-xs text-slate-400 mb-4 max-w-xs mx-auto leading-relaxed">
-          Pindai kode QR menggunakan kamera ponsel untuk langsung menuju laman profil publik.
-        </p>
-
-        <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-2.5 mb-5 text-[11px] font-mono text-emerald-400 truncate max-w-sm mx-auto" id="modal-qr-url">
-          https://...
-        </div>
-
-        <div class="flex items-center justify-center gap-3">
-          <button type="button" id="btn-download-qr" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-lg shadow-emerald-900/30">
-            <span>📥 Unduh QR</span>
-          </button>
-          <button type="button" id="btn-open-target-url" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer border border-slate-700">
-            <span>🌐 Buka Laman Profil</span>
-          </button>
+        <!-- Canvas Container QR Code -->
+        <div class="bg-white p-3.5 sm:p-4 rounded-2xl inline-flex items-center justify-center shadow-xl border border-slate-200">
+          <canvas id="modal-qr-canvas" class="max-w-full block"></canvas>
         </div>
       </div>
     </div>
@@ -339,77 +317,18 @@ function renderGrid() {
 
             <!-- QR Code Plate (White rounded plate with shadow, zooms slightly on card hover) -->
             <div class="relative p-2 sm:p-2.5 bg-white rounded-xl shadow-xl transition-transform duration-300 group-hover:scale-105 inline-flex items-center justify-center z-1">
-              <canvas id="qr-thumb-${idx}" style="display: block; width: 108px; height: 108px; max-width: 100%; border-radius: 4px;"></canvas>
-            </div>
-
-            <!-- Badge Kategori / Status (Overlay Top-Left seperti Katalog) -->
-            <div style="position: absolute; top: 12px; left: 12px; z-index: 2;">
-              <span style="font-size: 11px; padding: 4px 11px; border-radius: 9999px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; background: #000000; color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.25); box-shadow: 0 2px 8px rgba(0,0,0,0.6); display: inline-block;">
-                ${escapeHtml(item.badge)}
-              </span>
-            </div>
-
-            <!-- Badge ID (Overlay Top-Right) -->
-            <div style="position: absolute; top: 12px; right: 12px; z-index: 2;">
-              <span style="font-size: 11px; padding: 3px 9px; border-radius: 6px; font-family: monospace; font-weight: 600; background: rgba(0, 0, 0, 0.75); color: #94a3b8; border: 1px solid rgba(255, 255, 255, 0.15); backdrop-filter: blur(8px); display: inline-block;">
-                ID: ${escapeHtml(item.id)}
-              </span>
-            </div>
-          </div>
-
-          <!-- Konten Informasi Pohon / Objek -->
-          <div style="padding: 18px 20px 14px;">
-            <!-- Nama Umum & Nama Ilmiah -->
-            <h2 style="font-size: 18px; font-weight: 700; color: #ffffff; margin-bottom: 4px; line-height: 1.3;">
-              ${escapeHtml(item.commonName || item.title)}
-            </h2>
-
-            <div style="font-size: 13px; font-style: italic; color: var(--clr-primary-light); font-weight: 500; margin-bottom: 10px;">
-              ${escapeHtml(item.scientificName || item.subtitle || 'Identifikasi QR Lapangan')}
-            </div>
-
-            <!-- Metadata Lokal / Wilayah -->
-            <div style="display: flex; flex-direction: column; gap: 4px; margin-bottom: 14px; font-size: 12.5px;">
-              <div style="color: var(--clr-text-muted);">
-                <span style="color: var(--clr-text-dim);">${item.type === 'species' ? 'Status Asal:' : 'Kategori:'}</span>
-                <strong style="color: #e2e8f0; font-weight: 500;">${escapeHtml(item.origin || item.category || 'Lokal')}</strong>
-              </div>
-              ${item.type === 'zone' && item.areaSize ? `
-                <div style="color: var(--clr-text-muted);">
-                  <span style="color: var(--clr-text-dim);">Luas Lahan:</span>
-                  <span style="color: #cbd5e1;">${escapeHtml(item.areaSize)}</span>
-                </div>
-              ` : ''}
-            </div>
-
-            <!-- Kuantitas Penanaman / Target Scan (Sama persis box-nya seperti di Katalog) -->
-            <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: rgba(0, 0, 0, 0.3); border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.06); margin-bottom: 14px;">
-              <div style="font-size: 11px; color: var(--clr-text-dim); text-transform: uppercase; font-weight: 600;">
-                ${item.type === 'species' ? 'Bibit Ditanam' : 'Target Scan'}
-              </div>
-              <div style="font-size: 13px; font-weight: 700; color: var(--clr-primary-light);">
-                ${item.type === 'species' ? (item.totalPlanted > 0 ? `${item.totalPlanted} bibit ditanam` : 'Data belum tersedia') : 'Profil Kawasan'}
-              </div>
+              <canvas id="qr-thumb-${idx}" style="display: block; width: 116px; height: 116px; max-width: 100%; border-radius: 4px;"></canvas>
             </div>
           </div>
         </div>
 
-        <!-- Footer Tombol Aksi -->
-        <div style="padding: 12px 20px 16px; border-top: 1px solid rgba(255, 255, 255, 0.08); display: flex; gap: 10px; align-items: center;">
-          <a
-            href="${item.targetUrl}"
-            style="flex: 1; display: inline-flex; justify-content: center; align-items: center; gap: 6px; font-weight: 600; font-size: 13px; padding: 9px 12px; border-radius: 10px; background: rgba(255, 255, 255, 0.05); color: #cbd5e1; border: 1px solid rgba(255, 255, 255, 0.12); text-decoration: none; transition: all 0.2s ease;"
-            class="hover:bg-white/10 hover:text-white"
-          >
-            <span>Buka Info</span>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-          </a>
-
+        <!-- Footer Tombol Aksi (Hanya Perbesar QR) -->
+        <div style="padding: 12px 16px 14px; border-top: 1px solid rgba(255, 255, 255, 0.08); display: flex; justify-content: center; align-items: center;">
           <button
             type="button"
-            class="btn-open-qr-modal btn-view-species-profile"
+            class="btn-open-qr-modal btn-view-species-profile w-full"
             data-index="${idx}"
-            style="flex: 1.2; display: inline-flex; justify-content: center; align-items: center; gap: 6px; font-weight: 600; font-size: 13px; padding: 9px 12px; border-radius: 10px; background: rgba(16, 185, 129, 0.12); color: #ecfdf5; border: 1px solid rgba(16, 185, 129, 0.3); cursor: pointer; transition: all 0.2s ease;"
+            style="width: 100%; display: inline-flex; justify-content: center; align-items: center; gap: 6px; font-weight: 600; font-size: 13px; padding: 9px 12px; border-radius: 10px; background: rgba(16, 185, 129, 0.12); color: #ecfdf5; border: 1px solid rgba(16, 185, 129, 0.3); cursor: pointer; transition: all 0.2s ease;"
           >
             <span>Perbesar QR</span> <span>↗</span>
           </button>
@@ -447,44 +366,18 @@ function renderGrid() {
 
 function openQrModal(item) {
   const modal = document.getElementById('qr-preview-modal');
-  const badge = document.getElementById('modal-qr-badge');
-  const title = document.getElementById('modal-qr-title');
-  const sub = document.getElementById('modal-qr-sub');
-  const urlBox = document.getElementById('modal-qr-url');
   const canvas = document.getElementById('modal-qr-canvas');
-  const btnDownload = document.getElementById('btn-download-qr');
-  const btnOpenUrl = document.getElementById('btn-open-target-url');
 
   if (!modal || !canvas) return;
 
-  if (badge) badge.textContent = item.badge;
-  if (title) title.textContent = item.title;
-  if (sub) sub.textContent = item.subtitle;
-  if (urlBox) urlBox.textContent = item.targetUrl;
-
   QRCode.toCanvas(canvas, item.targetUrl, {
-    width: 220,
+    width: 260,
     margin: 2,
     color: {
-      dark: '#0f172a',
+      dark: '#0a1610',
       light: '#ffffff',
     },
   });
-
-  if (btnDownload) {
-    btnDownload.onclick = () => {
-      const link = document.createElement('a');
-      link.download = `QR-${item.id}.png`;
-      link.href = canvas.toDataURL('image/png');
-      link.click();
-    };
-  }
-
-  if (btnOpenUrl) {
-    btnOpenUrl.onclick = () => {
-      window.open(item.targetUrl, '_blank');
-    };
-  }
 
   modal.classList.remove('hidden');
 }
