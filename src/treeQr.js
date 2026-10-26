@@ -112,14 +112,16 @@ export async function initPublicTreeQr(containerId = 'public-tree-qr-container')
 
     <!-- QR Detail / Scan Modal (Hanya QR Code & Tombol X Tutup) -->
     <div id="qr-preview-modal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-4 sm:p-6" role="dialog" aria-modal="true">
-      <div class="relative bg-slate-900 border-2 border-emerald-500/60 rounded-3xl p-6 sm:p-8 flex flex-col items-center justify-center shadow-[0_25px_60px_rgba(0,0,0,0.9),0_0_35px_rgba(16,185,129,0.3)]">
-        <!-- Tombol Tutup (X) dengan Jarak Nyaman di Sudut Kanan Atas -->
-        <button id="btn-close-qrmodal" class="absolute -top-5 -right-5 sm:-top-6 sm:-right-6 z-30 w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-slate-950 hover:bg-rose-600 text-slate-300 hover:text-white border-2 border-emerald-400/80 hover:border-rose-400 shadow-2xl transition-all duration-200 cursor-pointer flex items-center justify-center hover:scale-110" aria-label="Tutup modal" title="Tutup">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8"><path d="M18 6L6 18M6 6l12 12"/></svg>
-        </button>
+      <div class="relative bg-slate-900 border-2 border-emerald-500/60 rounded-3xl p-6 sm:p-8 flex flex-col items-center justify-center shadow-[0_25px_60px_rgba(0,0,0,0.9),0_0_35px_rgba(16,185,129,0.3)] max-w-sm w-auto">
+        <!-- Baris Header Tombol Tutup (X) dengan Jarak Renggang -->
+        <div class="w-full flex justify-end mb-4">
+          <button id="btn-close-qrmodal" class="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-slate-950/90 hover:bg-rose-600 text-slate-300 hover:text-white border-2 border-emerald-400/80 hover:border-rose-400 shadow-xl transition-all duration-200 cursor-pointer flex items-center justify-center hover:scale-110 active:scale-95" aria-label="Tutup modal" title="Tutup">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
 
         <!-- Canvas Container QR Code -->
-        <div class="bg-white p-3.5 sm:p-4 rounded-2xl inline-flex items-center justify-center shadow-xl border border-slate-200">
+        <div class="bg-white p-3.5 sm:p-4 rounded-2xl inline-flex items-center justify-center shadow-2xl border border-slate-200">
           <canvas id="modal-qr-canvas" class="max-w-full block"></canvas>
         </div>
       </div>
