@@ -281,11 +281,22 @@
   color: #64748b;
 }
 
+.footer-center-manual {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 @media (max-width: 640px) {
   .footer-bottom-bar {
     flex-direction: column;
     text-align: center;
     gap: 10px;
+  }
+
+  /* Sembunyikan tombol Buku Panduan khusus pada tampilan mobile */
+  .footer-center-manual {
+    display: none !important;
   }
 }
 

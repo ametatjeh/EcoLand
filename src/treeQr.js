@@ -29,11 +29,11 @@ export async function initPublicTreeQr(containerId = 'public-tree-qr-container')
           Tree QR Code Kawasan Restorasi
         </h1>
         <p class="hero-subtitle text-slate-300 text-xs sm:text-sm w-full max-w-full mx-auto leading-relaxed text-center" style="text-align: center; margin: 0 auto 20px; padding-left: 24px; padding-right: 24px; max-width: 100%;">
-          Pindai QR code di lapangan untuk mengakses profil biologis jenis pohon, taksonomi, atau data blok penanaman kawasan secara langsung melalui sistem informasi publik.
+          Pindai QR code di lapangan untuk mengakses profil biologis jenis pohon, taksonomi, atau data blok penanaman kawasan
         </p>
 
-        <!-- Informational Banner: Kejujuran Data Lapangan -->
-        <div class="w-full max-w-full mx-auto bg-slate-900/90 border border-slate-800/90 rounded-2xl p-4 sm:p-5 text-left text-xs text-slate-300 flex items-start gap-3.5 shadow-xl backdrop-blur-sm" style="max-width: 100%;">
+        <!-- Informational Banner: Kejujuran Data Lapangan (Hidden on mobile) -->
+        <div class="hidden md:flex w-full max-w-full mx-auto bg-slate-900/90 border border-slate-800/90 rounded-2xl p-4 sm:p-5 text-left text-xs text-slate-300 items-start gap-3.5 shadow-xl backdrop-blur-sm" style="max-width: 100%;">
           <span class="text-xl shrink-0 mt-0.5">ℹ️</span>
           <div>
             <strong class="text-emerald-400 font-semibold block mb-0.5">Catatan Identifikasi Lapangan:</strong>
@@ -44,39 +44,66 @@ export async function initPublicTreeQr(containerId = 'public-tree-qr-container')
         </div>
       </div>
 
-      <!-- Filter Controls & Search Toolbar -->
-      <div class="treeqr-toolbar w-full backdrop-blur-xl border border-white/10 rounded-xl flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between" style="padding: 12px 16px; margin-bottom: 28px; background: rgba(0, 0, 0, 0.28); border: 1px solid var(--clr-border);">
-        <div class="flex items-center gap-2.5">
-          <label for="qr-filter-type" style="font-size: 12px; color: var(--clr-text-muted); font-weight: 600; white-space: nowrap;">
-            <span>🏷️</span> Filter Objek:
-          </label>
-          <select id="qr-filter-type" class="form-select form-select-sm" style="width: auto; min-width: 200px; padding: 7px 28px 7px 10px; font-size: 12px; background-color: #142018; border: 1px solid var(--clr-border); border-radius: 6px; color: #ffffff;">
-            <option value="all">Semua Objek</option>
-            <option value="species">🌳 Jenis Spesies Pohon</option>
-            <option value="zone">🏞️ Kelompok / Blok Kawasan</option>
-          </select>
+      <!-- Filters & Search Toolbar (Mengikuti gaya & struktur .gallery-filter-bar pada #galeri) -->
+      <div class="gallery-filter-bar treeqr-filter-bar">
+        <!-- 1. Search Box -->
+        <div class="gallery-search-box">
+          <span class="gallery-search-icon">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </span>
+          <input
+            type="text"
+            id="qr-search-input"
+            placeholder="Cari nama pohon, blok, ID..."
+            class="gallery-search-field"
+            autocomplete="off"
+            aria-label="Pencarian QR Code"
+          />
+          <button id="qr-search-clear" class="gallery-search-clear" style="display: none;" title="Hapus pencarian">✕</button>
         </div>
 
-        <div class="flex items-center gap-3 w-full md:w-auto flex-1 md:justify-end">
-          <!-- Live Search Input -->
-          <div style="flex: 1; max-width: 340px; min-width: 200px;">
-            <input
-              type="text"
-              id="qr-search-input"
-              class="form-input form-input-sm"
-              placeholder="🔍 Cari nama pohon, blok, famili..."
-              style="width: 100%; padding: 7px 12px; font-size: 12px; background-color: #142018; border: 1px solid var(--clr-border); border-radius: 6px; color: #ffffff;"
-            />
+        <!-- 2. Controls Group -->
+        <div class="gallery-filters-group">
+          <!-- Filter Objek Pill -->
+          <div class="gallery-filter-pill" title="Filter berdasarkan jenis objek QR Code">
+            <span class="gallery-pill-icon">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                <circle cx="7" cy="7" r="1.5"></circle>
+              </svg>
+            </span>
+            <span class="gallery-pill-label">Objek:</span>
+            <select id="qr-filter-type" class="gallery-pill-select" aria-label="Filter Objek QR">
+              <option value="all">Semua Objek</option>
+              <option value="species">🌳 Spesies Pohon</option>
+              <option value="zone">🏞️ Blok Kawasan</option>
+            </select>
+            <span class="gallery-pill-chevron">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </span>
           </div>
 
-          <div style="padding: 6px 12px; font-size: 11px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 6px; color: #34d399; font-family: monospace; font-weight: bold; white-space: nowrap; flex-shrink: 0;">
-            <span id="qr-items-count">Memuat...</span>
+          <!-- Counter Badge & Reset Button (Meta Group) -->
+          <div class="gallery-filters-meta">
+            <span class="gallery-count-badge" id="qr-items-count-badge" title="Total objek ditampilkan">
+              <span id="qr-items-count">0</span> <span id="qr-items-label">Objek</span>
+            </span>
+
+            <button id="qr-reset-btn" class="gallery-reset-btn" style="display: none;" title="Reset filter & pencarian">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+              Reset
+            </button>
           </div>
         </div>
       </div>
 
-      <!-- Grid Cards (Mobile: 2 cols, Tablet: 3 cols, Desktop: 4 cols) -->
-      <div id="tree-qr-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-5 w-full">
+      <!-- Grid Cards (Sama seperti grid Katalog Jenis Pohon) -->
+      <div id="tree-qr-grid" class="catalog-species-grid-inner w-full">
         <div class="col-span-full py-16 text-center text-slate-400 flex items-center justify-center gap-2">
           <span class="animate-spin text-xl">⏳</span> Memuat data QR Code...
         </div>
@@ -128,6 +155,10 @@ export async function initPublicTreeQr(containerId = 'public-tree-qr-container')
 
 function setupFilterEvents() {
   const filterSelect = document.getElementById('qr-filter-type');
+  const searchInput = document.getElementById('qr-search-input');
+  const searchClear = document.getElementById('qr-search-clear');
+  const resetBtn = document.getElementById('qr-reset-btn');
+
   if (filterSelect) {
     filterSelect.addEventListener('change', (e) => {
       currentCategory = e.target.value || 'all';
@@ -135,10 +166,32 @@ function setupFilterEvents() {
     });
   }
 
-  const searchInput = document.getElementById('qr-search-input');
   if (searchInput) {
     searchInput.addEventListener('input', (e) => {
       currentSearchTerm = (e.target.value || '').trim().toLowerCase();
+      if (searchClear) {
+        searchClear.style.display = searchInput.value ? 'flex' : 'none';
+      }
+      renderGrid();
+    });
+  }
+
+  if (searchClear) {
+    searchClear.addEventListener('click', () => {
+      if (searchInput) searchInput.value = '';
+      currentSearchTerm = '';
+      searchClear.style.display = 'none';
+      renderGrid();
+    });
+  }
+
+  if (resetBtn) {
+    resetBtn.addEventListener('click', () => {
+      if (searchInput) searchInput.value = '';
+      if (filterSelect) filterSelect.value = 'all';
+      if (searchClear) searchClear.style.display = 'none';
+      currentCategory = 'all';
+      currentSearchTerm = '';
       renderGrid();
     });
   }
@@ -248,8 +301,17 @@ function renderGrid() {
     });
   }
 
+  const resetBtn = document.getElementById('qr-reset-btn');
   if (countEl) {
-    countEl.textContent = `Menampilkan ${items.length} objek`;
+    countEl.textContent = `${items.length}`;
+  }
+  const labelEl = document.getElementById('qr-items-label');
+  if (labelEl) {
+    labelEl.textContent = 'Objek';
+  }
+  if (resetBtn) {
+    const isFiltered = currentCategory !== 'all' || currentSearchTerm.length > 0;
+    resetBtn.style.display = isFiltered ? 'inline-flex' : 'none';
   }
 
   if (items.length === 0) {
@@ -268,89 +330,88 @@ function renderGrid() {
   grid.innerHTML = items
     .map(
       (item, idx) => `
-      <div class="treeqr-card bg-slate-900/90 hover:bg-slate-900 border border-slate-800 hover:border-emerald-500/40 p-3 sm:p-4 lg:p-4.5 shadow-xl hover:shadow-2xl hover:shadow-emerald-950/20 transition-all duration-300 flex flex-col justify-between group relative overflow-hidden" style="border-radius: 0px !important;">
-        <!-- Top accent highlight line on hover -->
-        <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-
+      <div class="point-card catalog-card treeqr-card group" style="display: flex; flex-direction: column; justify-content: space-between; background: rgba(15, 28, 22, 0.88); border: 1px solid rgba(16, 185, 129, 0.18); border-radius: 16px; overflow: hidden; box-shadow: 0 10px 24px -10px rgba(0, 0, 0, 0.5); transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;">
         <div>
-          <!-- Header: Category Badge + ID + Titles (No Tree Image) -->
-          <div class="mb-2.5 sm:mb-3">
-            <div class="flex items-center justify-between gap-1.5 mb-1.5 sm:mb-2">
-              <span class="inline-flex items-center gap-1 text-[10px] sm:text-[11px] font-semibold px-2 py-0.5 ${
-                item.type === 'species'
-                  ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
-                  : 'bg-blue-500/15 text-blue-400 border border-blue-500/30'
-              }" style="border-radius: 0px !important;">
-                <span class="w-1.5 h-1.5 ${item.type === 'species' ? 'bg-emerald-400 animate-pulse' : 'bg-blue-400'}"></span>
-                ${item.badge}
+          <!-- Bagian Showcase QR (16:10 aspect ratio seperti pada Katalog) -->
+          <div style="position: relative; width: 100%; aspect-ratio: 16 / 10; overflow: hidden; background: #070d0a; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid rgba(16, 185, 129, 0.12);">
+            <!-- Subtle emerald radial background glow -->
+            <div style="position: absolute; inset: 0; background: radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.12) 0%, rgba(6, 12, 10, 0.95) 75%); pointer-events: none;"></div>
+
+            <!-- QR Code Plate (White rounded plate with shadow, zooms slightly on card hover) -->
+            <div class="relative p-2 sm:p-2.5 bg-white rounded-xl shadow-xl transition-transform duration-300 group-hover:scale-105 inline-flex items-center justify-center z-1">
+              <canvas id="qr-thumb-${idx}" style="display: block; width: 108px; height: 108px; max-width: 100%; border-radius: 4px;"></canvas>
+            </div>
+
+            <!-- Badge Kategori / Status (Overlay Top-Left seperti Katalog) -->
+            <div style="position: absolute; top: 12px; left: 12px; z-index: 2;">
+              <span style="font-size: 11px; padding: 4px 11px; border-radius: 9999px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; background: #000000; color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.25); box-shadow: 0 2px 8px rgba(0,0,0,0.6); display: inline-block;">
+                ${escapeHtml(item.badge)}
               </span>
-              <span class="text-[10px] sm:text-[11px] font-mono text-slate-400 bg-slate-950/70 border border-slate-800/80 px-1.5 sm:px-2 py-0.5 truncate max-w-[85px] sm:max-w-[120px]" style="border-radius: 0px !important;">ID: ${escapeHtml(item.id)}</span>
             </div>
 
-            <h3 class="text-xs sm:text-sm font-bold text-white group-hover:text-emerald-300 transition-colors truncate leading-snug" title="${escapeHtml(item.title)}">
-              ${item.type === 'species' && item.scientificName
-                ? `<span>${escapeHtml(item.commonName)}</span> <span class="text-slate-500 font-normal text-[11px] sm:text-xs">/</span> <span class="text-[11px] sm:text-xs font-normal italic text-slate-400">${escapeHtml(item.scientificName)}</span>`
-                : escapeHtml(item.title)
-              }
-            </h3>
-            ${item.subtitle ? `
-              <p class="text-[11px] sm:text-xs text-slate-400 italic truncate mt-0.5">
-                ${escapeHtml(item.subtitle)}
-              </p>
-            ` : ''}
+            <!-- Badge ID (Overlay Top-Right) -->
+            <div style="position: absolute; top: 12px; right: 12px; z-index: 2;">
+              <span style="font-size: 11px; padding: 3px 9px; border-radius: 6px; font-family: monospace; font-weight: 600; background: rgba(0, 0, 0, 0.75); color: #94a3b8; border: 1px solid rgba(255, 255, 255, 0.15); backdrop-filter: blur(8px); display: inline-block;">
+                ID: ${escapeHtml(item.id)}
+              </span>
+            </div>
           </div>
 
-          <!-- QR Code Centered Showcase (Strict 0 radius) -->
-          <div class="my-2.5 sm:my-3 p-2.5 sm:p-3.5 bg-slate-950/70 border border-white/5 group-hover:border-emerald-500/30 flex flex-col items-center justify-center text-center transition-all relative overflow-hidden" style="border-radius: 0px !important;">
-            <div class="absolute inset-0 bg-gradient-to-b from-emerald-500/5 to-transparent pointer-events-none"></div>
+          <!-- Konten Informasi Pohon / Objek -->
+          <div style="padding: 18px 20px 14px;">
+            <!-- Nama Umum & Nama Ilmiah -->
+            <h2 style="font-size: 18px; font-weight: 700; color: #ffffff; margin-bottom: 4px; line-height: 1.3;">
+              ${escapeHtml(item.commonName || item.title)}
+            </h2>
 
-            <div class="relative p-1.5 sm:p-2 bg-white shadow-lg transition-transform duration-300 group-hover:scale-105 inline-flex items-center justify-center" style="border-radius: 0px !important;">
-              <canvas id="qr-thumb-${idx}" class="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 block"></canvas>
+            <div style="font-size: 13px; font-style: italic; color: var(--clr-primary-light); font-weight: 500; margin-bottom: 10px;">
+              ${escapeHtml(item.scientificName || item.subtitle || 'Identifikasi QR Lapangan')}
             </div>
 
-            ${
-              item.type === 'species'
-                ? `
-              <div class="mt-2 sm:mt-2.5 text-[11px] sm:text-xs font-bold text-emerald-400 flex items-center justify-center gap-1 tracking-wide">
-                ${item.totalPlanted > 0 ? `🌱 ${item.totalPlanted} Bibit` : '🌱 Belum Ada'}
+            <!-- Metadata Lokal / Wilayah -->
+            <div style="display: flex; flex-direction: column; gap: 4px; margin-bottom: 14px; font-size: 12.5px;">
+              <div style="color: var(--clr-text-muted);">
+                <span style="color: var(--clr-text-dim);">${item.type === 'species' ? 'Status Asal:' : 'Kategori:'}</span>
+                <strong style="color: #e2e8f0; font-weight: 500;">${escapeHtml(item.origin || item.category || 'Lokal')}</strong>
               </div>
-            `
-                : ''
-            }
+              ${item.type === 'zone' && item.areaSize ? `
+                <div style="color: var(--clr-text-muted);">
+                  <span style="color: var(--clr-text-dim);">Luas Lahan:</span>
+                  <span style="color: #cbd5e1;">${escapeHtml(item.areaSize)}</span>
+                </div>
+              ` : ''}
+            </div>
+
+            <!-- Kuantitas Penanaman / Target Scan (Sama persis box-nya seperti di Katalog) -->
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: rgba(0, 0, 0, 0.3); border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.06); margin-bottom: 14px;">
+              <div style="font-size: 11px; color: var(--clr-text-dim); text-transform: uppercase; font-weight: 600;">
+                ${item.type === 'species' ? 'Bibit Ditanam' : 'Target Scan'}
+              </div>
+              <div style="font-size: 13px; font-weight: 700; color: var(--clr-primary-light);">
+                ${item.type === 'species' ? (item.totalPlanted > 0 ? `${item.totalPlanted} bibit ditanam` : 'Data belum tersedia') : 'Profil Kawasan'}
+              </div>
+            </div>
           </div>
-
-          <!-- Metrics Grid: Hanya untuk non-spesies (zone/blok) -->
-          ${
-            item.type === 'species'
-              ? ''
-              : `
-            <div class="grid grid-cols-2 gap-2 my-2.5 text-xs">
-              <div class="bg-slate-950/60 border border-slate-800/80 px-2.5 py-1.5 flex flex-col" style="border-radius: 0px !important;">
-                <span class="text-[9px] uppercase font-bold text-slate-500 tracking-wider">Luas</span>
-                <span class="text-xs font-bold text-blue-400 mt-0.5">
-                  📐 ${escapeHtml(item.areaSize || '0 Ha')}
-                </span>
-              </div>
-              <div class="bg-slate-950/60 border border-slate-800/80 px-2.5 py-1.5 flex flex-col" style="border-radius: 0px !important;">
-                <span class="text-[9px] uppercase font-bold text-slate-500 tracking-wider">Wilayah</span>
-                <span class="text-xs font-semibold text-slate-300 truncate mt-0.5">
-                  📍 ${escapeHtml(item.origin)}
-                </span>
-              </div>
-            </div>
-          `
-          }
         </div>
 
-        <!-- Footer Action Bar (Strict 0 radius) -->
-        <div class="mt-2.5 pt-2.5 sm:mt-3 sm:pt-3 border-t border-slate-800/80 flex items-center justify-between gap-1 sm:gap-2">
-          <a href="${item.targetUrl}" class="text-[11px] sm:text-xs font-medium text-slate-400 hover:text-emerald-400 transition-colors flex items-center gap-1">
+        <!-- Footer Tombol Aksi -->
+        <div style="padding: 12px 20px 16px; border-top: 1px solid rgba(255, 255, 255, 0.08); display: flex; gap: 10px; align-items: center;">
+          <a
+            href="${item.targetUrl}"
+            style="flex: 1; display: inline-flex; justify-content: center; align-items: center; gap: 6px; font-weight: 600; font-size: 13px; padding: 9px 12px; border-radius: 10px; background: rgba(255, 255, 255, 0.05); color: #cbd5e1; border: 1px solid rgba(255, 255, 255, 0.12); text-decoration: none; transition: all 0.2s ease;"
+            class="hover:bg-white/10 hover:text-white"
+          >
             <span>Buka Info</span>
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
           </a>
-          <button type="button" class="btn-open-qr-modal px-2.5 sm:px-3 py-1 sm:py-1.5 bg-emerald-600/90 hover:bg-emerald-500 text-white text-[11px] sm:text-xs font-semibold shadow-md shadow-emerald-950/50 hover:shadow-emerald-900/50 transition-all flex items-center gap-1 cursor-pointer" style="border-radius: 0px !important;" data-index="${idx}">
-            <span>Perbesar<span class="hidden sm:inline"> QR</span></span>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+
+          <button
+            type="button"
+            class="btn-open-qr-modal btn-view-species-profile"
+            data-index="${idx}"
+            style="flex: 1.2; display: inline-flex; justify-content: center; align-items: center; gap: 6px; font-weight: 600; font-size: 13px; padding: 9px 12px; border-radius: 10px; background: rgba(16, 185, 129, 0.12); color: #ecfdf5; border: 1px solid rgba(16, 185, 129, 0.3); cursor: pointer; transition: all 0.2s ease;"
+          >
+            <span>Perbesar QR</span> <span>↗</span>
           </button>
         </div>
       </div>

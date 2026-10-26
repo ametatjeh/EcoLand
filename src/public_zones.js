@@ -107,7 +107,7 @@ export function updatePublicTotalArea(summaryOrZones) {
     treeDescEl.textContent = 'Akumulasi seluruh kegiatan & lahan';
   }
   if (speciesCountEl) {
-    speciesCountEl.innerHTML = `<span class="stat-emoji" style="margin-right: 6px;">🌿</span>${totalSpecies}`;
+    speciesCountEl.innerHTML = `<span class="stat-emoji" style="margin-right: 6px;">🌿</span>${totalSpecies} Spesies`;
   }
 }
 

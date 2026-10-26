@@ -169,16 +169,19 @@ export async function initPublicGallery(containerId = 'public-gallery-container'
             </span>
           </div>
 
-          <!-- Counter Badge -->
-          <span class="gallery-count-badge" id="gallery-count-badge" title="Total yang ditampilkan">
-            <span id="gallery-count-num">0</span> <span id="gallery-count-label">Album</span>
-          </span>
+          <!-- Counter Badge & Reset Button (Meta Group) -->
+          <div class="gallery-filters-meta">
+            <!-- Counter Badge -->
+            <span class="gallery-count-badge" id="gallery-count-badge" title="Total yang ditampilkan">
+              <span id="gallery-count-num">0</span> <span id="gallery-count-label">Album</span>
+            </span>
 
-          <!-- Reset Filter Button -->
-          <button id="gallery-reset-btn" class="gallery-reset-btn" style="display: none;" title="Reset filter & pencarian">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
-            Reset
-          </button>
+            <!-- Reset Filter Button -->
+            <button id="gallery-reset-btn" class="gallery-reset-btn" style="display: none;" title="Reset filter & pencarian">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+              Reset
+            </button>
+          </div>
         </div>
       </div>
 
@@ -345,6 +348,19 @@ export async function initPublicGallery(containerId = 'public-gallery-container'
 
   // Setup Lightbox bindings
   setupLightboxListeners();
+
+  // Enhance touch and click targets on filter pills
+  container.querySelectorAll('.gallery-filter-pill').forEach((pill) => {
+    pill.addEventListener('click', (e) => {
+      const select = pill.querySelector('select');
+      if (select && e.target !== select) {
+        select.focus();
+        if (typeof select.showPicker === 'function') {
+          try { select.showPicker(); } catch (_) {}
+        }
+      }
+    });
+  });
 }
 
 // ─── Data Loading ────────────────────────────────────────────
@@ -506,39 +522,39 @@ function showAlbumDetailHeader(album) {
     const directUrl = `${cleanBase}/#galeri?album=${encodeURIComponent(albumSlug)}`;
 
     detailInfo.innerHTML = `
-      <div style="background: rgba(15, 28, 22, 0.9); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 16px; padding: 20px 24px; margin-bottom: 8px;">
+      <div class="gallery-album-header-card">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div class="flex-1 min-w-0">
-            <h2 style="font-size: 22px; font-weight: 800; color: #ffffff; margin-bottom: 6px; line-height: 1.3;">
+            <h2 class="gallery-album-header-title">
               📸 ${escapeHtml(album.title)}
             </h2>
-            ${album.description ? `<p style="font-size: 13px; color: #94a3b8; line-height: 1.6; margin-bottom: 10px;">${escapeHtml(album.description)}</p>` : ''}
-            <div class="flex flex-wrap items-center gap-2 text-xs">
+            ${album.description ? `<p class="gallery-album-header-desc">${escapeHtml(album.description)}</p>` : ''}
+            <div class="gallery-album-header-badges">
               ${zoneName ? `
-                <span style="padding: 4px 12px; border-radius: 9999px; font-weight: 500; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #cbd5e1;">
+                <span class="gallery-album-badge gallery-album-badge-zone">
                   🏞️ ${escapeHtml(zoneName)}
                 </span>
               ` : ''}
-              <span style="padding: 4px 12px; border-radius: 9999px; font-weight: 600; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); color: #6ee7b7;">
+              <span class="gallery-album-badge gallery-album-badge-category">
                 ${escapeHtml(album.category || 'Dokumentasi')}
               </span>
               ${actDate ? `
-                <span style="padding: 4px 12px; border-radius: 9999px; font-weight: 500; background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.2); color: #6ee7b7;">
+                <span class="gallery-album-badge gallery-album-badge-date">
                   📅 ${actDate}
                 </span>
               ` : ''}
-              <span style="padding: 4px 12px; border-radius: 9999px; font-weight: 600; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #e2e8f0;">
+              <span class="gallery-album-badge gallery-album-badge-count">
                 ${album.photos_count || album.photos?.length || 0} Foto
               </span>
             </div>
           </div>
 
           <!-- Back to All Albums Button -->
-          <div class="flex items-center gap-2.5 shrink-0">
+          <div class="gallery-album-header-actions flex items-center gap-2.5 shrink-0">
             <button
               id="gallery-back-to-albums"
               type="button"
-              class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500 text-emerald-300 hover:text-slate-950 border border-emerald-500/30 hover:border-emerald-500 font-bold text-xs sm:text-sm transition-all duration-200 cursor-pointer shadow-sm active:scale-95"
+              class="gallery-back-albums-btn"
               title="Kembali ke daftar semua album galeri"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -790,7 +806,7 @@ function renderAlbumGrid() {
   }
 
   gridContainer.innerHTML = `
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-7">
+    <div class="gallery-albums-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 sm:gap-x-7">
       ${filteredAlbums.map(album => {
         const coverUrl = resolveCoverUrl(album);
         const zoneName = album.zone ? album.zone.name : '';
@@ -816,8 +832,8 @@ function renderAlbumGrid() {
                   onerror="this.onerror=null; this.src='${FALLBACK_PHOTO_SVG}';"
                 />
 
-                <!-- Overlay gradient -->
-                <div style="position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 50%); pointer-events: none;"></div>
+                <!-- Overlay gradient for top & bottom badges -->
+                <div style="position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, transparent 35%, transparent 55%, rgba(0,0,0,0.75) 100%); pointer-events: none;"></div>
 
                 <!-- Top Badges -->
                 <div style="position: absolute; top: 12px; left: 12px; right: 12px; display: flex; align-items: center; justify-content: space-between; z-index: 2; pointer-events: none;">
@@ -829,10 +845,20 @@ function renderAlbumGrid() {
                   </span>
                 </div>
 
-                <!-- Bottom album icon overlay -->
+                <!-- Bottom-left: Activity Date Badge -->
+                ${actDate ? `
+                  <div style="position: absolute; bottom: 12px; left: 12px; z-index: 2; pointer-events: none;">
+                    <span style="font-size: 11px; padding: 4px 11px; border-radius: 9999px; font-weight: 600; background: rgba(9, 20, 15, 0.88); backdrop-filter: blur(8px); border: 1px solid rgba(16, 185, 129, 0.35); color: #6ee7b7; box-shadow: 0 2px 8px rgba(0,0,0,0.5); display: inline-flex; align-items: center; gap: 5px;">
+                      <span>📅</span>
+                      <span>${actDate}</span>
+                    </span>
+                  </div>
+                ` : ''}
+
+                <!-- Bottom-right: Album icon overlay -->
                 <div style="position: absolute; bottom: 12px; right: 12px; z-index: 2; pointer-events: none;">
-                  <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(16, 185, 129, 0.2); backdrop-filter: blur(8px); border: 1px solid rgba(16, 185, 129, 0.4); display: flex; align-items: center; justify-content: center;">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6ee7b7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <div style="width: 34px; height: 34px; border-radius: 10px; background: rgba(16, 185, 129, 0.2); backdrop-filter: blur(8px); border: 1px solid rgba(16, 185, 129, 0.4); display: flex; align-items: center; justify-content: center;">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#6ee7b7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                       <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
                       <circle cx="8.5" cy="8.5" r="1.5"/>
                       <polyline points="21 15 16 10 5 21"/>
@@ -847,19 +873,9 @@ function renderAlbumGrid() {
                   ${escapeHtml(album.title || 'Album Kegiatan')}
                 </h3>
                 ${album.description ? `
-                  <p style="font-size: 13px; color: var(--clr-text-muted); line-height: 1.6; margin-bottom: 14px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                  <p style="font-size: 13px; color: var(--clr-text-muted); line-height: 1.6; margin-bottom: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
                     ${escapeHtml(album.description)}
                   </p>
-                ` : ''}
-
-                <!-- Metadata -->
-                ${actDate ? `
-                  <div style="display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; background: rgba(0, 0, 0, 0.3); border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.06); font-size: 12px;">
-                    <div style="display: flex; align-items: center; gap: 7px; color: var(--clr-text-dim);">
-                      <span style="font-size: 13px; line-height: 1.2;">📅</span>
-                      <span>Kegiatan: <strong style="color: #6ee7b7; font-weight: 600;">${actDate}</strong></span>
-                    </div>
-                  </div>
                 ` : ''}
               </div>
             </div>

@@ -174,52 +174,81 @@ function renderCatalogListView(container) {
         </p>
       </div>
 
-      <!-- Filters & Search Toolbar -->
-      <div class="gallery-filter-bar" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; background: rgba(11, 20, 16, 0.85); backdrop-filter: blur(20px); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 16px; padding: 14px 18px; margin-bottom: 28px; box-shadow: 0 16px 36px -12px rgba(0, 0, 0, 0.6);">
-        <!-- Search Box -->
-        <div class="gallery-search-box" style="position: relative; flex: 1 1 260px; min-width: 200px;">
-          <span class="gallery-search-icon" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #10b981; pointer-events: none; opacity: 0.9;">🔍</span>
+      <!-- Filters & Search Toolbar (Mengikuti gaya & struktur .gallery-filter-bar pada #galeri) -->
+      <div class="gallery-filter-bar">
+        <!-- 1. Search Box -->
+        <div class="gallery-search-box">
+          <span class="gallery-search-icon">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </span>
           <input
             type="text"
             id="catalog-search-input"
-            placeholder="Cari nama umum, nama ilmiah, lokal, famili..."
+            placeholder="Cari nama umum, ilmiah, lokal, famili..."
             class="gallery-search-field"
             value="${escapeHtml(currentSearchTerm)}"
-            style="width: 100%; height: 42px; background: rgba(6, 12, 10, 0.85); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 10px; padding: 0 36px 0 40px; font-size: 13.5px; color: #f8fafc; outline: none;"
+            autocomplete="off"
+            aria-label="Pencarian jenis pohon"
           />
-          <button id="catalog-search-clear" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #94a3b8; cursor: pointer; display: ${currentSearchTerm ? 'flex' : 'none'};" title="Hapus pencarian">✕</button>
+          <button id="catalog-search-clear" class="gallery-search-clear" style="display: ${currentSearchTerm ? 'flex' : 'none'};" title="Hapus pencarian">✕</button>
         </div>
 
-        <!-- Filter Controls -->
-        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-          <!-- Status Asal -->
-          <div style="display: flex; align-items: center; gap: 6px; background: rgba(6, 12, 10, 0.85); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 10px; padding: 0 12px; height: 42px;">
-            <label for="catalog-filter-origin" style="font-size: 12px; color: var(--clr-text-muted); white-space: nowrap;">Status:</label>
-            <select id="catalog-filter-origin" style="background: transparent; color: #f8fafc; border: none; outline: none; font-size: 13px; cursor: pointer;">
-              <option value="all" class="bg-slate-900 text-white" ${currentOriginFilter === 'all' ? 'selected' : ''}>Semua Status Asal</option>
-              <option value="lokal_asli" class="bg-slate-900 text-white" ${currentOriginFilter === 'lokal_asli' ? 'selected' : ''}>Jenis Asli / Lokal</option>
-              <option value="introduksi" class="bg-slate-900 text-white" ${currentOriginFilter === 'introduksi' ? 'selected' : ''}>Jenis Introduksi</option>
+        <!-- 2. Controls Group -->
+        <div class="gallery-filters-group">
+          <!-- Status Asal Pill -->
+          <div class="gallery-filter-pill" title="Filter berdasarkan status asal pohon">
+            <span class="gallery-pill-icon">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+              </svg>
+            </span>
+            <span class="gallery-pill-label">Status:</span>
+            <select id="catalog-filter-origin" class="gallery-pill-select" aria-label="Filter Status Asal">
+              <option value="all" ${currentOriginFilter === 'all' ? 'selected' : ''}>Semua Status</option>
+              <option value="lokal_asli" ${currentOriginFilter === 'lokal_asli' ? 'selected' : ''}>Jenis Asli / Lokal</option>
+              <option value="introduksi" ${currentOriginFilter === 'introduksi' ? 'selected' : ''}>Jenis Introduksi</option>
             </select>
+            <span class="gallery-pill-chevron">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </span>
           </div>
 
-          <!-- Famili -->
+          <!-- Famili Pill -->
           ${availableFamilies.length > 0 ? `
-            <div style="display: flex; align-items: center; gap: 6px; background: rgba(6, 12, 10, 0.85); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 10px; padding: 0 12px; height: 42px;">
-              <label for="catalog-filter-family" style="font-size: 12px; color: var(--clr-text-muted); white-space: nowrap;">Famili:</label>
-              <select id="catalog-filter-family" style="background: transparent; color: #f8fafc; border: none; outline: none; font-size: 13px; cursor: pointer;">
-                <option value="all" class="bg-slate-900 text-white" ${currentFamilyFilter === 'all' ? 'selected' : ''}>Semua Famili</option>
-                ${availableFamilies.map((fam) => `<option value="${escapeHtml(fam)}" class="bg-slate-900 text-white" ${currentFamilyFilter === fam ? 'selected' : ''}>${escapeHtml(fam)}</option>`).join('')}
+            <div class="gallery-filter-pill" title="Filter berdasarkan famili botani">
+              <span class="gallery-pill-icon">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                  <circle cx="7" cy="7" r="1.5"></circle>
+                </svg>
+              </span>
+              <span class="gallery-pill-label">Famili:</span>
+              <select id="catalog-filter-family" class="gallery-pill-select" aria-label="Filter Famili">
+                <option value="all" ${currentFamilyFilter === 'all' ? 'selected' : ''}>Semua Famili</option>
+                ${availableFamilies.map((fam) => `<option value="${escapeHtml(fam)}" ${currentFamilyFilter === fam ? 'selected' : ''}>${escapeHtml(fam)}</option>`).join('')}
               </select>
+              <span class="gallery-pill-chevron">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </span>
             </div>
           ` : ''}
 
-          <!-- Counter & Reset -->
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <span id="catalog-counter-badge" style="font-size: 12px; font-weight: 600; padding: 6px 12px; background: rgba(16, 185, 129, 0.12); color: var(--clr-primary-light); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 8px; white-space: nowrap;">
+          <!-- Counter Badge & Reset Button (Meta Group) -->
+          <div class="gallery-filters-meta">
+            <span class="gallery-count-badge" id="catalog-counter-badge" title="Total spesies ditampilkan">
               ${cachedPublicSpecies.length} Spesies
             </span>
-            <button id="catalog-reset-filters" class="btn-text-btn btn-sm" style="display: ${isFilterActive() ? 'inline-flex' : 'none'}; font-size: 12px; color: #f87171; text-decoration: underline; background: none; border: none; cursor: pointer;">
-              Reset Filter
+
+            <button id="catalog-reset-filters" class="gallery-reset-btn" style="display: ${isFilterActive() ? 'inline-flex' : 'none'};" title="Reset filter & pencarian">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+              Reset
             </button>
           </div>
         </div>
@@ -356,7 +385,7 @@ function applyCatalogFilters() {
   }
 
   grid.innerHTML = `
-    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px;">
+    <div class="catalog-species-grid-inner">
       ${filtered.map((sp) => renderSpeciesCard(sp)).join('')}
     </div>
   `;

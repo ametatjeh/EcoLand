@@ -244,52 +244,81 @@ import{a as e}from"./rolldown-runtime-B0Z9INg1.js";import{a as t,c as n,d as r,f
         </p>
       </div>
 
-      <!-- Filters & Search Toolbar -->
-      <div class="gallery-filter-bar" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; background: rgba(11, 20, 16, 0.85); backdrop-filter: blur(20px); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 16px; padding: 14px 18px; margin-bottom: 28px; box-shadow: 0 16px 36px -12px rgba(0, 0, 0, 0.6);">
-        <!-- Search Box -->
-        <div class="gallery-search-box" style="position: relative; flex: 1 1 260px; min-width: 200px;">
-          <span class="gallery-search-icon" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #10b981; pointer-events: none; opacity: 0.9;">🔍</span>
+      <!-- Filters & Search Toolbar (Mengikuti gaya & struktur .gallery-filter-bar pada #galeri) -->
+      <div class="gallery-filter-bar">
+        <!-- 1. Search Box -->
+        <div class="gallery-search-box">
+          <span class="gallery-search-icon">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </span>
           <input
             type="text"
             id="catalog-search-input"
-            placeholder="Cari nama umum, nama ilmiah, lokal, famili..."
+            placeholder="Cari nama umum, ilmiah, lokal, famili..."
             class="gallery-search-field"
             value="${O(x)}"
-            style="width: 100%; height: 42px; background: rgba(6, 12, 10, 0.85); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 10px; padding: 0 36px 0 40px; font-size: 13.5px; color: #f8fafc; outline: none;"
+            autocomplete="off"
+            aria-label="Pencarian jenis pohon"
           />
-          <button id="catalog-search-clear" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #94a3b8; cursor: pointer; display: ${x?`flex`:`none`};" title="Hapus pencarian">✕</button>
+          <button id="catalog-search-clear" class="gallery-search-clear" style="display: ${x?`flex`:`none`};" title="Hapus pencarian">✕</button>
         </div>
 
-        <!-- Filter Controls -->
-        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-          <!-- Status Asal -->
-          <div style="display: flex; align-items: center; gap: 6px; background: rgba(6, 12, 10, 0.85); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 10px; padding: 0 12px; height: 42px;">
-            <label for="catalog-filter-origin" style="font-size: 12px; color: var(--clr-text-muted); white-space: nowrap;">Status:</label>
-            <select id="catalog-filter-origin" style="background: transparent; color: #f8fafc; border: none; outline: none; font-size: 13px; cursor: pointer;">
-              <option value="all" class="bg-slate-900 text-white" ${S===`all`?`selected`:``}>Semua Status Asal</option>
-              <option value="lokal_asli" class="bg-slate-900 text-white" ${S===`lokal_asli`?`selected`:``}>Jenis Asli / Lokal</option>
-              <option value="introduksi" class="bg-slate-900 text-white" ${S===`introduksi`?`selected`:``}>Jenis Introduksi</option>
+        <!-- 2. Controls Group -->
+        <div class="gallery-filters-group">
+          <!-- Status Asal Pill -->
+          <div class="gallery-filter-pill" title="Filter berdasarkan status asal pohon">
+            <span class="gallery-pill-icon">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+              </svg>
+            </span>
+            <span class="gallery-pill-label">Status:</span>
+            <select id="catalog-filter-origin" class="gallery-pill-select" aria-label="Filter Status Asal">
+              <option value="all" ${S===`all`?`selected`:``}>Semua Status</option>
+              <option value="lokal_asli" ${S===`lokal_asli`?`selected`:``}>Jenis Asli / Lokal</option>
+              <option value="introduksi" ${S===`introduksi`?`selected`:``}>Jenis Introduksi</option>
             </select>
+            <span class="gallery-pill-chevron">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </span>
           </div>
 
-          <!-- Famili -->
+          <!-- Famili Pill -->
           ${t.length>0?`
-            <div style="display: flex; align-items: center; gap: 6px; background: rgba(6, 12, 10, 0.85); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 10px; padding: 0 12px; height: 42px;">
-              <label for="catalog-filter-family" style="font-size: 12px; color: var(--clr-text-muted); white-space: nowrap;">Famili:</label>
-              <select id="catalog-filter-family" style="background: transparent; color: #f8fafc; border: none; outline: none; font-size: 13px; cursor: pointer;">
-                <option value="all" class="bg-slate-900 text-white" ${C===`all`?`selected`:``}>Semua Famili</option>
-                ${t.map(e=>`<option value="${O(e)}" class="bg-slate-900 text-white" ${C===e?`selected`:``}>${O(e)}</option>`).join(``)}
+            <div class="gallery-filter-pill" title="Filter berdasarkan famili botani">
+              <span class="gallery-pill-icon">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                  <circle cx="7" cy="7" r="1.5"></circle>
+                </svg>
+              </span>
+              <span class="gallery-pill-label">Famili:</span>
+              <select id="catalog-filter-family" class="gallery-pill-select" aria-label="Filter Famili">
+                <option value="all" ${C===`all`?`selected`:``}>Semua Famili</option>
+                ${t.map(e=>`<option value="${O(e)}" ${C===e?`selected`:``}>${O(e)}</option>`).join(``)}
               </select>
+              <span class="gallery-pill-chevron">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </span>
             </div>
           `:``}
 
-          <!-- Counter & Reset -->
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <span id="catalog-counter-badge" style="font-size: 12px; font-weight: 600; padding: 6px 12px; background: rgba(16, 185, 129, 0.12); color: var(--clr-primary-light); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 8px; white-space: nowrap;">
+          <!-- Counter Badge & Reset Button (Meta Group) -->
+          <div class="gallery-filters-meta">
+            <span class="gallery-count-badge" id="catalog-counter-badge" title="Total spesies ditampilkan">
               ${v.length} Spesies
             </span>
-            <button id="catalog-reset-filters" class="btn-text-btn btn-sm" style="display: ${Ge()?`inline-flex`:`none`}; font-size: 12px; color: #f87171; text-decoration: underline; background: none; border: none; cursor: pointer;">
-              Reset Filter
+
+            <button id="catalog-reset-filters" class="gallery-reset-btn" style="display: ${Ge()?`inline-flex`:`none`};" title="Reset filter & pencarian">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+              Reset
             </button>
           </div>
         </div>
@@ -312,7 +341,7 @@ import{a as e}from"./rolldown-runtime-B0Z9INg1.js";import{a as t,c as n,d as r,f
         `:``}
       </div>
     `,document.getElementById(`btn-empty-reset`)?.addEventListener(`click`,()=>{x=``,S=`all`,C=`all`;let e=document.getElementById(`catalog-search-input`),t=document.getElementById(`catalog-filter-origin`),n=document.getElementById(`catalog-filter-family`);e&&(e.value=``),t&&(t.value=`all`),n&&(n.value=`all`),E()})):(e.innerHTML=`
-    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px;">
+    <div class="catalog-species-grid-inner">
       ${r.map(e=>qe(e)).join(``)}
     </div>
   `,e.querySelectorAll(`.btn-view-species-profile`).forEach(e=>{e.addEventListener(`click`,()=>{Ye(e.getAttribute(`data-id`))})}))}function Ke(e){if(!e||typeof e!=`string`||(e=e.trim(),!e))return``;if(e.startsWith(`http://`)||e.startsWith(`https://`))return e;for(e=e.replace(/^.*?\/storage\/app\/public\//,``);e.startsWith(`/storage/storage/`);)e=e.replace(`/storage/storage/`,`/storage/`);for(;e.startsWith(`/public/storage/`);)e=e.replace(`/public/storage/`,`/storage/`);return e.startsWith(`/storage/`)?e:e.startsWith(`storage/`)?`/`+e:e.startsWith(`/`)?e.startsWith(`/demo/`)?`/storage`+e:e:`/storage/`+e}function qe(e){let t=e.origin_status_label||(e.origin_status===`lokal_asli`?`Jenis Asli / Lokal`:`Jenis Introduksi`);e.origin_status;let n=!!(e.photo_path&&e.photo_path.trim()),r=n?Ke(e.photo_path):``,i=`Data belum tersedia`,a=`var(--clr-text-muted)`;return e.has_planted_data&&e.total_planted!==null&&e.total_planted>0?(i=`${D(e.total_planted)} bibit ditanam`,a=`var(--clr-primary-light)`):e.has_planted_data&&e.total_planted===0&&(i=`0 bibit tercatat`),`
@@ -913,7 +942,7 @@ import{a as e}from"./rolldown-runtime-B0Z9INg1.js";import{a as t,c as n,d as r,f
         <span>←</span> Kembali ke Katalog Jenis Pohon
       </button>
     </div>
-  `,document.getElementById(`btn-notfound-back`)?.addEventListener(`click`,Xe)}function D(e){if(e==null)return`-`;let t=Number(e);return isNaN(t)?String(e):t.toLocaleString(`id-ID`)}function $e(e){return e?String(e).charAt(0).toUpperCase()+String(e).slice(1):``}function et(e,t,n=0){if(!Array.isArray(t)||t.length===0)return;Le=e,T=t,w=n>=0&&n<t.length?n:0;let r=document.getElementById(`catalog-species-lightbox-modal`);r&&(r.classList.remove(`hidden`),document.body.style.overflow=`hidden`),it(),at()}function tt(){let e=document.getElementById(`catalog-species-lightbox-modal`);e&&(e.classList.add(`hidden`),document.body.style.overflow=``),w=-1,T=[],Le=null}function nt(){T.length<=1||(w=(w+1)%T.length,it())}function rt(){T.length<=1||(w=(w-1+T.length)%T.length,it())}function it(){if(w<0||w>=T.length)return;let e=T[w],t=document.getElementById(`catalog-lightbox-img`),n=document.getElementById(`catalog-lightbox-spinner`),r=document.getElementById(`catalog-lightbox-counter`),i=document.getElementById(`catalog-lightbox-raw-btn`),a=document.getElementById(`btn-catalog-lightbox-prev`),o=document.getElementById(`btn-catalog-lightbox-next`),s=T.length>1;a&&(a.style.display=s?`flex`:`none`),o&&(o.style.display=s?`flex`:`none`),r&&(r.textContent=`${w+1} / ${T.length}`),i&&(i.href=e||`#`),t&&(n&&n.classList.remove(`hidden`),t.onload=()=>{n&&n.classList.add(`hidden`)},t.onerror=()=>{n&&n.classList.add(`hidden`)},t.src=e,t.alt=Le?`Foto Dokumentasi ${Le.common_name}`:`Foto Spesies`)}function at(){Re||(Re=!0,document.getElementById(`btn-close-catalog-lightbox`)?.addEventListener(`click`,e=>{e.stopPropagation(),tt()}),document.getElementById(`btn-catalog-lightbox-prev`)?.addEventListener(`click`,e=>{e.stopPropagation(),rt()}),document.getElementById(`btn-catalog-lightbox-next`)?.addEventListener(`click`,e=>{e.stopPropagation(),nt()}),document.getElementById(`catalog-lightbox-stage`)?.addEventListener(`click`,e=>{e.target.id===`catalog-lightbox-stage`&&tt()}),document.addEventListener(`keydown`,e=>{let t=document.getElementById(`catalog-species-lightbox-modal`);t&&!t.classList.contains(`hidden`)&&(e.key===`Escape`?(e.preventDefault(),tt()):e.key===`ArrowRight`?(e.preventDefault(),nt()):e.key===`ArrowLeft`&&(e.preventDefault(),rt()))}))}function O(e){return e==null?``:String(e).replace(/&/g,`&amp;`).replace(/</g,`&lt;`).replace(/>/g,`&gt;`).replace(/"/g,`&quot;`).replace(/'/g,`&#39;`)}var k=[],A=null;function ot(e){let t=Number(e)||0;return t===0?`0 Hektare`:`${t.toLocaleString(`id-ID`,{minimumFractionDigits:0,maximumFractionDigits:4})} Hektare`}function st(e){let t=Number(e)||0;return t===0?`0 m²`:`${Math.round(t).toLocaleString(`id-ID`)} m²`}function ct(e){let t=document.getElementById(`stat-luas-label`),n=document.getElementById(`stat-luas`),r=document.getElementById(`stat-luas-desc`),i=document.getElementById(`stat-zones-label`),a=document.getElementById(`stat-zones-count`),o=document.getElementById(`stat-zones-desc`),s=document.getElementById(`stat-trees-label`),c=document.getElementById(`stat-trees-count`),l=document.getElementById(`stat-trees-desc`),u=document.getElementById(`stat-species-label`),d=document.getElementById(`stat-species-count`),f=document.getElementById(`stat-species-desc`);t&&(t.textContent=`Total Luas Kawasan`),i&&(i.textContent=`Jumlah Kawasan/Lahan`),s&&(s.textContent=`Bibit Awal Ditanam`),u&&(u.textContent=`Total Jenis Pohon`),f&&(f.textContent=`Spesies terdata di master database`);let p=0,m=0,h=0,ee=0,te=6;e&&typeof e==`object`&&(`total_area_ha`in e?(p=Number(e.total_area_ha)||0,m=Number(e.total_area_m2)||p*1e4,h=Number(e.total_zones)||0,ee=Number(e.total_trees??e.total_seedlings)||0,`total_species`in e&&(te=Number(e.total_species)||6)):Array.isArray(e)&&(h=e.length,p=e.reduce((e,t)=>{let n=t.area_in_ha===void 0?t.area_unit===`m2`?Number(t.area_size)/1e4:Number(t.area_size):Number(t.area_in_ha);return e+(isNaN(n)?0:n)},0),m=p*1e4,ee=e.reduce((e,t)=>e+(Number(t.total_initial_seedlings)||0),0))),n&&(n.textContent=ot(p)),r&&(r.textContent=st(m)),a&&(a.textContent=`${h} Kawasan`),o&&(o.textContent=`Total kawasan/lahan dalam sistem.`),c&&(c.textContent=`${ee.toLocaleString(`id-ID`)} Batang`),l&&(l.textContent=`Akumulasi seluruh kegiatan & lahan`),d&&(d.innerHTML=`<span class="stat-emoji" style="margin-right: 6px;">🌿</span>${te}`)}async function lt(){try{let e=await l.getPublicZones();e&&e.summary?ct(e.summary):e&&e.zones&&ct(e.zones)}catch(e){console.debug(`Error refreshing public total area:`,e)}}async function ut(e,t){let n=document.getElementById(e);if(n){A=t;try{let e=await l.getPublicZones();k=e&&e.zones?e.zones:[],e&&e.summary?ct(e.summary):ct(k)}catch(e){console.warn(`Gagal memuat kawasan publik:`,e),k=[]}dt(n),ft()}}function dt(e){!k||k.length===0?e.innerHTML=`
+  `,document.getElementById(`btn-notfound-back`)?.addEventListener(`click`,Xe)}function D(e){if(e==null)return`-`;let t=Number(e);return isNaN(t)?String(e):t.toLocaleString(`id-ID`)}function $e(e){return e?String(e).charAt(0).toUpperCase()+String(e).slice(1):``}function et(e,t,n=0){if(!Array.isArray(t)||t.length===0)return;Le=e,T=t,w=n>=0&&n<t.length?n:0;let r=document.getElementById(`catalog-species-lightbox-modal`);r&&(r.classList.remove(`hidden`),document.body.style.overflow=`hidden`),it(),at()}function tt(){let e=document.getElementById(`catalog-species-lightbox-modal`);e&&(e.classList.add(`hidden`),document.body.style.overflow=``),w=-1,T=[],Le=null}function nt(){T.length<=1||(w=(w+1)%T.length,it())}function rt(){T.length<=1||(w=(w-1+T.length)%T.length,it())}function it(){if(w<0||w>=T.length)return;let e=T[w],t=document.getElementById(`catalog-lightbox-img`),n=document.getElementById(`catalog-lightbox-spinner`),r=document.getElementById(`catalog-lightbox-counter`),i=document.getElementById(`catalog-lightbox-raw-btn`),a=document.getElementById(`btn-catalog-lightbox-prev`),o=document.getElementById(`btn-catalog-lightbox-next`),s=T.length>1;a&&(a.style.display=s?`flex`:`none`),o&&(o.style.display=s?`flex`:`none`),r&&(r.textContent=`${w+1} / ${T.length}`),i&&(i.href=e||`#`),t&&(n&&n.classList.remove(`hidden`),t.onload=()=>{n&&n.classList.add(`hidden`)},t.onerror=()=>{n&&n.classList.add(`hidden`)},t.src=e,t.alt=Le?`Foto Dokumentasi ${Le.common_name}`:`Foto Spesies`)}function at(){Re||(Re=!0,document.getElementById(`btn-close-catalog-lightbox`)?.addEventListener(`click`,e=>{e.stopPropagation(),tt()}),document.getElementById(`btn-catalog-lightbox-prev`)?.addEventListener(`click`,e=>{e.stopPropagation(),rt()}),document.getElementById(`btn-catalog-lightbox-next`)?.addEventListener(`click`,e=>{e.stopPropagation(),nt()}),document.getElementById(`catalog-lightbox-stage`)?.addEventListener(`click`,e=>{e.target.id===`catalog-lightbox-stage`&&tt()}),document.addEventListener(`keydown`,e=>{let t=document.getElementById(`catalog-species-lightbox-modal`);t&&!t.classList.contains(`hidden`)&&(e.key===`Escape`?(e.preventDefault(),tt()):e.key===`ArrowRight`?(e.preventDefault(),nt()):e.key===`ArrowLeft`&&(e.preventDefault(),rt()))}))}function O(e){return e==null?``:String(e).replace(/&/g,`&amp;`).replace(/</g,`&lt;`).replace(/>/g,`&gt;`).replace(/"/g,`&quot;`).replace(/'/g,`&#39;`)}var k=[],A=null;function ot(e){let t=Number(e)||0;return t===0?`0 Hektare`:`${t.toLocaleString(`id-ID`,{minimumFractionDigits:0,maximumFractionDigits:4})} Hektare`}function st(e){let t=Number(e)||0;return t===0?`0 m²`:`${Math.round(t).toLocaleString(`id-ID`)} m²`}function ct(e){let t=document.getElementById(`stat-luas-label`),n=document.getElementById(`stat-luas`),r=document.getElementById(`stat-luas-desc`),i=document.getElementById(`stat-zones-label`),a=document.getElementById(`stat-zones-count`),o=document.getElementById(`stat-zones-desc`),s=document.getElementById(`stat-trees-label`),c=document.getElementById(`stat-trees-count`),l=document.getElementById(`stat-trees-desc`),u=document.getElementById(`stat-species-label`),d=document.getElementById(`stat-species-count`),f=document.getElementById(`stat-species-desc`);t&&(t.textContent=`Total Luas Kawasan`),i&&(i.textContent=`Jumlah Kawasan/Lahan`),s&&(s.textContent=`Bibit Awal Ditanam`),u&&(u.textContent=`Total Jenis Pohon`),f&&(f.textContent=`Spesies terdata di master database`);let p=0,m=0,h=0,ee=0,te=6;e&&typeof e==`object`&&(`total_area_ha`in e?(p=Number(e.total_area_ha)||0,m=Number(e.total_area_m2)||p*1e4,h=Number(e.total_zones)||0,ee=Number(e.total_trees??e.total_seedlings)||0,`total_species`in e&&(te=Number(e.total_species)||6)):Array.isArray(e)&&(h=e.length,p=e.reduce((e,t)=>{let n=t.area_in_ha===void 0?t.area_unit===`m2`?Number(t.area_size)/1e4:Number(t.area_size):Number(t.area_in_ha);return e+(isNaN(n)?0:n)},0),m=p*1e4,ee=e.reduce((e,t)=>e+(Number(t.total_initial_seedlings)||0),0))),n&&(n.textContent=ot(p)),r&&(r.textContent=st(m)),a&&(a.textContent=`${h} Kawasan`),o&&(o.textContent=`Total kawasan/lahan dalam sistem.`),c&&(c.textContent=`${ee.toLocaleString(`id-ID`)} Batang`),l&&(l.textContent=`Akumulasi seluruh kegiatan & lahan`),d&&(d.innerHTML=`<span class="stat-emoji" style="margin-right: 6px;">🌿</span>${te} Spesies`)}async function lt(){try{let e=await l.getPublicZones();e&&e.summary?ct(e.summary):e&&e.zones&&ct(e.zones)}catch(e){console.debug(`Error refreshing public total area:`,e)}}async function ut(e,t){let n=document.getElementById(e);if(n){A=t;try{let e=await l.getPublicZones();k=e&&e.zones?e.zones:[],e&&e.summary?ct(e.summary):ct(k)}catch(e){console.warn(`Gagal memuat kawasan publik:`,e),k=[]}dt(n),ft()}}function dt(e){!k||k.length===0?e.innerHTML=`
       <div style="grid-column: 1 / -1; text-align: center; padding: 40px 20px; background: rgba(255,255,255,0.02); border-radius: 12px; border: 1px dashed var(--clr-border, #24352b);">
         <span style="font-size: 32px; display: block; margin-bottom: 8px;">🌱</span>
         <h4 style="margin: 0 0 6px 0; color: var(--clr-text, #e2e8f0);">Belum Ada Kawasan yang Dipublikasikan</h4>
@@ -1179,16 +1208,19 @@ import{a as e}from"./rolldown-runtime-B0Z9INg1.js";import{a as t,c as n,d as r,f
             </span>
           </div>
 
-          <!-- Counter Badge -->
-          <span class="gallery-count-badge" id="gallery-count-badge" title="Total yang ditampilkan">
-            <span id="gallery-count-num">0</span> <span id="gallery-count-label">Album</span>
-          </span>
+          <!-- Counter Badge & Reset Button (Meta Group) -->
+          <div class="gallery-filters-meta">
+            <!-- Counter Badge -->
+            <span class="gallery-count-badge" id="gallery-count-badge" title="Total yang ditampilkan">
+              <span id="gallery-count-num">0</span> <span id="gallery-count-label">Album</span>
+            </span>
 
-          <!-- Reset Filter Button -->
-          <button id="gallery-reset-btn" class="gallery-reset-btn" style="display: none;" title="Reset filter & pencarian">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
-            Reset
-          </button>
+            <!-- Reset Filter Button -->
+            <button id="gallery-reset-btn" class="gallery-reset-btn" style="display: none;" title="Reset filter & pencarian">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+              Reset
+            </button>
+          </div>
         </div>
       </div>
 
@@ -1277,7 +1309,7 @@ import{a as e}from"./rolldown-runtime-B0Z9INg1.js";import{a as t,c as n,d as r,f
       </div>
 
     </div>
-  `;try{N=(await l.getPublicZones()).zones||[];let e=document.getElementById(`gallery-filter-zone`);e&&N.length>0&&(e.innerHTML=`<option value="all">Semua Kawasan</option>`,N.forEach(t=>{let n=document.createElement(`option`);n.value=t.id,n.textContent=t.name,n.title=`${t.name} (${t.zone_code})`,e.appendChild(n)}))}catch(e){console.warn(`Gagal memuat kawasan untuk filter galeri:`,e)}await bt(r);let i=document.getElementById(`gallery-filter-zone`),a=document.getElementById(`gallery-filter-category`),o=document.getElementById(`gallery-search-input`),s=document.getElementById(`gallery-search-clear`),c=document.getElementById(`gallery-reset-btn`),u=document.getElementById(`gallery-back-to-albums`);i&&i.addEventListener(`change`,e=>{P=e.target.value,H()}),a&&a.addEventListener(`change`,e=>{F=e.target.value,H()}),o&&o.addEventListener(`input`,e=>{I=e.target.value.toLowerCase().trim(),H()}),s&&s.addEventListener(`click`,()=>{o&&(o.value=``,I=``,o.focus(),H())}),c&&c.addEventListener(`click`,()=>{Dt()}),u&&u.addEventListener(`click`,()=>{V(!0)}),Mt()}async function bt(e=null){let t=document.getElementById(`gallery-grid-container`);if(t)try{if(M=(await l.getPublicAlbums()).albums||[],M.length>0){Tt(M),Ct(M);let t=e||vt();t?await xt(t,!1):(z=`albums`,H())}else z=`photos`,mt=(await l.getAllPublicPhotos()).photos||[],Et(mt),wt(mt,N),H()}catch(e){console.error(`Error loading gallery:`,e),t.innerHTML=`
+  `;try{N=(await l.getPublicZones()).zones||[];let e=document.getElementById(`gallery-filter-zone`);e&&N.length>0&&(e.innerHTML=`<option value="all">Semua Kawasan</option>`,N.forEach(t=>{let n=document.createElement(`option`);n.value=t.id,n.textContent=t.name,n.title=`${t.name} (${t.zone_code})`,e.appendChild(n)}))}catch(e){console.warn(`Gagal memuat kawasan untuk filter galeri:`,e)}await bt(r);let i=document.getElementById(`gallery-filter-zone`),a=document.getElementById(`gallery-filter-category`),o=document.getElementById(`gallery-search-input`),s=document.getElementById(`gallery-search-clear`),c=document.getElementById(`gallery-reset-btn`),u=document.getElementById(`gallery-back-to-albums`);i&&i.addEventListener(`change`,e=>{P=e.target.value,H()}),a&&a.addEventListener(`change`,e=>{F=e.target.value,H()}),o&&o.addEventListener(`input`,e=>{I=e.target.value.toLowerCase().trim(),H()}),s&&s.addEventListener(`click`,()=>{o&&(o.value=``,I=``,o.focus(),H())}),c&&c.addEventListener(`click`,()=>{Dt()}),u&&u.addEventListener(`click`,()=>{V(!0)}),Mt(),n.querySelectorAll(`.gallery-filter-pill`).forEach(e=>{e.addEventListener(`click`,t=>{let n=e.querySelector(`select`);if(n&&t.target!==n&&(n.focus(),typeof n.showPicker==`function`))try{n.showPicker()}catch{}})})}async function bt(e=null){let t=document.getElementById(`gallery-grid-container`);if(t)try{if(M=(await l.getPublicAlbums()).albums||[],M.length>0){Tt(M),Ct(M);let t=e||vt();t?await xt(t,!1):(z=`albums`,H())}else z=`photos`,mt=(await l.getAllPublicPhotos()).photos||[],Et(mt),wt(mt,N),H()}catch(e){console.error(`Error loading gallery:`,e),t.innerHTML=`
       <div class="bg-red-500/10 border border-red-500/20 text-red-400 rounded-2xl p-8 text-center text-sm">
         <p class="font-semibold mb-1">Gagal memuat data galeri</p>
         <p class="text-xs text-red-300">${U(e.message)}</p>
@@ -1299,39 +1331,39 @@ import{a as e}from"./rolldown-runtime-B0Z9INg1.js";import{a as t,c as n,d as r,f
         </button>
       </div>
     `;let a=document.getElementById(`btn-err-back-to-albums`);a&&a.addEventListener(`click`,()=>V(!0))}}}function V(e=!0){z=`albums`,B=null,e&&(window.location.hash.includes(`album=`)||window.location.hash.includes(`album/`))&&window.history.pushState(null,``,`#galeri`);let t=document.getElementById(`gallery-hero-banner`);t&&t.classList.remove(`hidden`);let n=document.querySelector(`.gallery-filter-bar`);n&&n.classList.remove(`hidden`);let r=document.getElementById(`gallery-album-back-bar`);r&&r.classList.add(`hidden`);let i=document.getElementById(`gallery-count-label`);i&&(i.textContent=`Album`),H()}function St(e){let t=document.getElementById(`gallery-album-back-bar`),n=document.getElementById(`gallery-album-detail-info`);if(t&&(t.classList.remove(`hidden`),n)){let t=e.zone?e.zone.name:``,r=e.activity_date?zt(e.activity_date):``,i=e.slug||e.id;`${window.location.origin+window.location.pathname.replace(/\/+$/,``)}${encodeURIComponent(i)}`,n.innerHTML=`
-      <div style="background: rgba(15, 28, 22, 0.9); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 16px; padding: 20px 24px; margin-bottom: 8px;">
+      <div class="gallery-album-header-card">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div class="flex-1 min-w-0">
-            <h2 style="font-size: 22px; font-weight: 800; color: #ffffff; margin-bottom: 6px; line-height: 1.3;">
+            <h2 class="gallery-album-header-title">
               📸 ${U(e.title)}
             </h2>
-            ${e.description?`<p style="font-size: 13px; color: #94a3b8; line-height: 1.6; margin-bottom: 10px;">${U(e.description)}</p>`:``}
-            <div class="flex flex-wrap items-center gap-2 text-xs">
+            ${e.description?`<p class="gallery-album-header-desc">${U(e.description)}</p>`:``}
+            <div class="gallery-album-header-badges">
               ${t?`
-                <span style="padding: 4px 12px; border-radius: 9999px; font-weight: 500; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #cbd5e1;">
+                <span class="gallery-album-badge gallery-album-badge-zone">
                   🏞️ ${U(t)}
                 </span>
               `:``}
-              <span style="padding: 4px 12px; border-radius: 9999px; font-weight: 600; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); color: #6ee7b7;">
+              <span class="gallery-album-badge gallery-album-badge-category">
                 ${U(e.category||`Dokumentasi`)}
               </span>
               ${r?`
-                <span style="padding: 4px 12px; border-radius: 9999px; font-weight: 500; background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.2); color: #6ee7b7;">
+                <span class="gallery-album-badge gallery-album-badge-date">
                   📅 ${r}
                 </span>
               `:``}
-              <span style="padding: 4px 12px; border-radius: 9999px; font-weight: 600; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #e2e8f0;">
+              <span class="gallery-album-badge gallery-album-badge-count">
                 ${e.photos_count||e.photos?.length||0} Foto
               </span>
             </div>
           </div>
 
           <!-- Back to All Albums Button -->
-          <div class="flex items-center gap-2.5 shrink-0">
+          <div class="gallery-album-header-actions flex items-center gap-2.5 shrink-0">
             <button
               id="gallery-back-to-albums"
               type="button"
-              class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500 text-emerald-300 hover:text-slate-950 border border-emerald-500/30 hover:border-emerald-500 font-bold text-xs sm:text-sm transition-all duration-200 cursor-pointer shadow-sm active:scale-95"
+              class="gallery-back-albums-btn"
               title="Kembali ke daftar semua album galeri"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -1357,7 +1389,7 @@ import{a as e}from"./rolldown-runtime-B0Z9INg1.js";import{a as t,c as n,d as r,f
         </button>
       </div>
     `;let t=document.getElementById(`gallery-empty-reset`);t&&t.addEventListener(`click`,Dt)}else e.innerHTML=`
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-7">
+    <div class="gallery-albums-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 sm:gap-x-7">
       ${ht.map(e=>{let t=kt(e),n=e.zone?e.zone.name:``,r=e.activity_date?zt(e.activity_date):``,i=e.photos_count??e.photo_count??0;return`
           <div
             class="gallery-album-card group"
@@ -1377,8 +1409,8 @@ import{a as e}from"./rolldown-runtime-B0Z9INg1.js";import{a as t,c as n,d as r,f
                   onerror="this.onerror=null; this.src='${_t}';"
                 />
 
-                <!-- Overlay gradient -->
-                <div style="position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 50%); pointer-events: none;"></div>
+                <!-- Overlay gradient for top & bottom badges -->
+                <div style="position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, transparent 35%, transparent 55%, rgba(0,0,0,0.75) 100%); pointer-events: none;"></div>
 
                 <!-- Top Badges -->
                 <div style="position: absolute; top: 12px; left: 12px; right: 12px; display: flex; align-items: center; justify-content: space-between; z-index: 2; pointer-events: none;">
@@ -1390,10 +1422,20 @@ import{a as e}from"./rolldown-runtime-B0Z9INg1.js";import{a as t,c as n,d as r,f
                   </span>
                 </div>
 
-                <!-- Bottom album icon overlay -->
+                <!-- Bottom-left: Activity Date Badge -->
+                ${r?`
+                  <div style="position: absolute; bottom: 12px; left: 12px; z-index: 2; pointer-events: none;">
+                    <span style="font-size: 11px; padding: 4px 11px; border-radius: 9999px; font-weight: 600; background: rgba(9, 20, 15, 0.88); backdrop-filter: blur(8px); border: 1px solid rgba(16, 185, 129, 0.35); color: #6ee7b7; box-shadow: 0 2px 8px rgba(0,0,0,0.5); display: inline-flex; align-items: center; gap: 5px;">
+                      <span>📅</span>
+                      <span>${r}</span>
+                    </span>
+                  </div>
+                `:``}
+
+                <!-- Bottom-right: Album icon overlay -->
                 <div style="position: absolute; bottom: 12px; right: 12px; z-index: 2; pointer-events: none;">
-                  <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(16, 185, 129, 0.2); backdrop-filter: blur(8px); border: 1px solid rgba(16, 185, 129, 0.4); display: flex; align-items: center; justify-content: center;">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6ee7b7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <div style="width: 34px; height: 34px; border-radius: 10px; background: rgba(16, 185, 129, 0.2); backdrop-filter: blur(8px); border: 1px solid rgba(16, 185, 129, 0.4); display: flex; align-items: center; justify-content: center;">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#6ee7b7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                       <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
                       <circle cx="8.5" cy="8.5" r="1.5"/>
                       <polyline points="21 15 16 10 5 21"/>
@@ -1408,19 +1450,9 @@ import{a as e}from"./rolldown-runtime-B0Z9INg1.js";import{a as t,c as n,d as r,f
                   ${U(e.title||`Album Kegiatan`)}
                 </h3>
                 ${e.description?`
-                  <p style="font-size: 13px; color: var(--clr-text-muted); line-height: 1.6; margin-bottom: 14px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                  <p style="font-size: 13px; color: var(--clr-text-muted); line-height: 1.6; margin-bottom: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
                     ${U(e.description)}
                   </p>
-                `:``}
-
-                <!-- Metadata -->
-                ${r?`
-                  <div style="display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; background: rgba(0, 0, 0, 0.3); border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.06); font-size: 12px;">
-                    <div style="display: flex; align-items: center; gap: 7px; color: var(--clr-text-dim);">
-                      <span style="font-size: 13px; line-height: 1.2;">📅</span>
-                      <span>Kegiatan: <strong style="color: #6ee7b7; font-weight: 600;">${r}</strong></span>
-                    </div>
-                  </div>
                 `:``}
               </div>
             </div>
@@ -1514,11 +1546,11 @@ import{a as e}from"./rolldown-runtime-B0Z9INg1.js";import{a as t,c as n,d as r,f
           Tree QR Code Kawasan Restorasi
         </h1>
         <p class="hero-subtitle text-slate-300 text-xs sm:text-sm w-full max-w-full mx-auto leading-relaxed text-center" style="text-align: center; margin: 0 auto 20px; padding-left: 24px; padding-right: 24px; max-width: 100%;">
-          Pindai QR code di lapangan untuk mengakses profil biologis jenis pohon, taksonomi, atau data blok penanaman kawasan secara langsung melalui sistem informasi publik.
+          Pindai QR code di lapangan untuk mengakses profil biologis jenis pohon, taksonomi, atau data blok penanaman kawasan
         </p>
 
-        <!-- Informational Banner: Kejujuran Data Lapangan -->
-        <div class="w-full max-w-full mx-auto bg-slate-900/90 border border-slate-800/90 rounded-2xl p-4 sm:p-5 text-left text-xs text-slate-300 flex items-start gap-3.5 shadow-xl backdrop-blur-sm" style="max-width: 100%;">
+        <!-- Informational Banner: Kejujuran Data Lapangan (Hidden on mobile) -->
+        <div class="hidden md:flex w-full max-w-full mx-auto bg-slate-900/90 border border-slate-800/90 rounded-2xl p-4 sm:p-5 text-left text-xs text-slate-300 items-start gap-3.5 shadow-xl backdrop-blur-sm" style="max-width: 100%;">
           <span class="text-xl shrink-0 mt-0.5">ℹ️</span>
           <div>
             <strong class="text-emerald-400 font-semibold block mb-0.5">Catatan Identifikasi Lapangan:</strong>
@@ -1529,39 +1561,66 @@ import{a as e}from"./rolldown-runtime-B0Z9INg1.js";import{a as t,c as n,d as r,f
         </div>
       </div>
 
-      <!-- Filter Controls & Search Toolbar -->
-      <div class="treeqr-toolbar w-full backdrop-blur-xl border border-white/10 rounded-xl flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between" style="padding: 12px 16px; margin-bottom: 28px; background: rgba(0, 0, 0, 0.28); border: 1px solid var(--clr-border);">
-        <div class="flex items-center gap-2.5">
-          <label for="qr-filter-type" style="font-size: 12px; color: var(--clr-text-muted); font-weight: 600; white-space: nowrap;">
-            <span>🏷️</span> Filter Objek:
-          </label>
-          <select id="qr-filter-type" class="form-select form-select-sm" style="width: auto; min-width: 200px; padding: 7px 28px 7px 10px; font-size: 12px; background-color: #142018; border: 1px solid var(--clr-border); border-radius: 6px; color: #ffffff;">
-            <option value="all">Semua Objek</option>
-            <option value="species">🌳 Jenis Spesies Pohon</option>
-            <option value="zone">🏞️ Kelompok / Blok Kawasan</option>
-          </select>
+      <!-- Filters & Search Toolbar (Mengikuti gaya & struktur .gallery-filter-bar pada #galeri) -->
+      <div class="gallery-filter-bar treeqr-filter-bar">
+        <!-- 1. Search Box -->
+        <div class="gallery-search-box">
+          <span class="gallery-search-icon">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </span>
+          <input
+            type="text"
+            id="qr-search-input"
+            placeholder="Cari nama pohon, blok, ID..."
+            class="gallery-search-field"
+            autocomplete="off"
+            aria-label="Pencarian QR Code"
+          />
+          <button id="qr-search-clear" class="gallery-search-clear" style="display: none;" title="Hapus pencarian">✕</button>
         </div>
 
-        <div class="flex items-center gap-3 w-full md:w-auto flex-1 md:justify-end">
-          <!-- Live Search Input -->
-          <div style="flex: 1; max-width: 340px; min-width: 200px;">
-            <input
-              type="text"
-              id="qr-search-input"
-              class="form-input form-input-sm"
-              placeholder="🔍 Cari nama pohon, blok, famili..."
-              style="width: 100%; padding: 7px 12px; font-size: 12px; background-color: #142018; border: 1px solid var(--clr-border); border-radius: 6px; color: #ffffff;"
-            />
+        <!-- 2. Controls Group -->
+        <div class="gallery-filters-group">
+          <!-- Filter Objek Pill -->
+          <div class="gallery-filter-pill" title="Filter berdasarkan jenis objek QR Code">
+            <span class="gallery-pill-icon">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                <circle cx="7" cy="7" r="1.5"></circle>
+              </svg>
+            </span>
+            <span class="gallery-pill-label">Objek:</span>
+            <select id="qr-filter-type" class="gallery-pill-select" aria-label="Filter Objek QR">
+              <option value="all">Semua Objek</option>
+              <option value="species">🌳 Spesies Pohon</option>
+              <option value="zone">🏞️ Blok Kawasan</option>
+            </select>
+            <span class="gallery-pill-chevron">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </span>
           </div>
 
-          <div style="padding: 6px 12px; font-size: 11px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 6px; color: #34d399; font-family: monospace; font-weight: bold; white-space: nowrap; flex-shrink: 0;">
-            <span id="qr-items-count">Memuat...</span>
+          <!-- Counter Badge & Reset Button (Meta Group) -->
+          <div class="gallery-filters-meta">
+            <span class="gallery-count-badge" id="qr-items-count-badge" title="Total objek ditampilkan">
+              <span id="qr-items-count">0</span> <span id="qr-items-label">Objek</span>
+            </span>
+
+            <button id="qr-reset-btn" class="gallery-reset-btn" style="display: none;" title="Reset filter & pencarian">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+              Reset
+            </button>
           </div>
         </div>
       </div>
 
-      <!-- Grid Cards (Mobile: 2 cols, Tablet: 3 cols, Desktop: 4 cols) -->
-      <div id="tree-qr-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-5 w-full">
+      <!-- Grid Cards (Sama seperti grid Katalog Jenis Pohon) -->
+      <div id="tree-qr-grid" class="catalog-species-grid-inner w-full">
         <div class="col-span-full py-16 text-center text-slate-400 flex items-center justify-center gap-2">
           <span class="animate-spin text-xl">⏳</span> Memuat data QR Code...
         </div>
@@ -1604,103 +1663,117 @@ import{a as e}from"./rolldown-runtime-B0Z9INg1.js";import{a as t,c as n,d as r,f
         </div>
       </div>
     </div>
-  `,Wt(),Gt(),await Kt())}function Wt(){let e=document.getElementById(`qr-filter-type`);e&&e.addEventListener(`change`,e=>{W=e.target.value||`all`,Jt()});let t=document.getElementById(`qr-search-input`);t&&t.addEventListener(`input`,e=>{G=(e.target.value||``).trim().toLowerCase(),Jt()})}function Gt(){let e=document.getElementById(`qr-preview-modal`),t=document.getElementById(`btn-close-qrmodal`),n=()=>e?.classList.add(`hidden`);t?.addEventListener(`click`,n),e?.addEventListener(`click`,t=>{t.target===e&&n()}),window.addEventListener(`keydown`,t=>{t.key===`Escape`&&e&&!e.classList.contains(`hidden`)&&n()})}async function Kt(){try{let[e,t]=await Promise.all([l.getPublicTreeSpecies().catch(()=>({species:[]})),l.getPublicZones().catch(()=>({zones:[]}))]);Vt=e.species||[],Ht=t.zones||[],Jt()}catch(e){console.error(`Gagal memuat data tree QR:`,e);let t=document.getElementById(`tree-qr-grid`);t&&(t.innerHTML=`
+  `,Wt(),Gt(),await Kt())}function Wt(){let e=document.getElementById(`qr-filter-type`),t=document.getElementById(`qr-search-input`),n=document.getElementById(`qr-search-clear`),r=document.getElementById(`qr-reset-btn`);e&&e.addEventListener(`change`,e=>{W=e.target.value||`all`,K()}),t&&t.addEventListener(`input`,e=>{G=(e.target.value||``).trim().toLowerCase(),n&&(n.style.display=t.value?`flex`:`none`),K()}),n&&n.addEventListener(`click`,()=>{t&&(t.value=``),G=``,n.style.display=`none`,K()}),r&&r.addEventListener(`click`,()=>{t&&(t.value=``),e&&(e.value=`all`),n&&(n.style.display=`none`),W=`all`,G=``,K()})}function Gt(){let e=document.getElementById(`qr-preview-modal`),t=document.getElementById(`btn-close-qrmodal`),n=()=>e?.classList.add(`hidden`);t?.addEventListener(`click`,n),e?.addEventListener(`click`,t=>{t.target===e&&n()}),window.addEventListener(`keydown`,t=>{t.key===`Escape`&&e&&!e.classList.contains(`hidden`)&&n()})}async function Kt(){try{let[e,t]=await Promise.all([l.getPublicTreeSpecies().catch(()=>({species:[]})),l.getPublicZones().catch(()=>({zones:[]}))]);Vt=e.species||[],Ht=t.zones||[],K()}catch(e){console.error(`Gagal memuat data tree QR:`,e);let t=document.getElementById(`tree-qr-grid`);t&&(t.innerHTML=`
         <div class="col-span-full bg-red-500/10 border border-red-500/20 text-red-400 rounded-2xl p-8 text-center text-sm">
           Gagal memuat katalog QR Code. Silakan muat ulang halaman.
         </div>
-      `)}}function qt(){let e=window.location;return`${e.protocol}//${e.host}`}function Jt(){let e=document.getElementById(`tree-qr-grid`),t=document.getElementById(`qr-items-count`);if(!e)return;let n=[];(W===`all`||W===`species`)&&Vt.forEach(e=>{let t=e.common_name||e.local_name||`Spesies Pohon`,r=e.scientific_name||``;n.push({type:`species`,id:e.id,badge:`Jenis Spesies`,badgeColor:`emerald`,title:r?`${t} / ${r}`:t,commonName:t,scientificName:r,subtitle:``,photo:e.photo_path||null,totalPlanted:e.total_planted||0,origin:e.origin_status_label||`Lokal / Asli`,targetUrl:`${qt()}/#katalog?species=${encodeURIComponent(e.id)}`})}),(W===`all`||W===`zone`)&&Ht.forEach(e=>{n.push({type:`zone`,id:e.id,badge:`Blok Kawasan`,badgeColor:`blue`,title:e.name,subtitle:`${e.zone_code||`Blok`} • ${e.category||`Silvikultur`}`,photo:null,areaSize:`${e.area_in_ha||e.area_size||0} Ha`,category:e.category||`Silvikultur`,origin:e.city||`Aceh Besar`,targetUrl:`${qt()}/#beranda`})}),G&&(n=n.filter(e=>{let t=(e.title||``).toLowerCase().includes(G),n=(e.subtitle||``).toLowerCase().includes(G),r=(e.id||``).toLowerCase().includes(G),i=(e.origin||``).toLowerCase().includes(G);return t||n||r||i})),t&&(t.textContent=`Menampilkan ${n.length} objek`),n.length===0?e.innerHTML=`
+      `)}}function qt(){let e=window.location;return`${e.protocol}//${e.host}`}function K(){let e=document.getElementById(`tree-qr-grid`),t=document.getElementById(`qr-items-count`);if(!e)return;let n=[];(W===`all`||W===`species`)&&Vt.forEach(e=>{let t=e.common_name||e.local_name||`Spesies Pohon`,r=e.scientific_name||``;n.push({type:`species`,id:e.id,badge:`Jenis Spesies`,badgeColor:`emerald`,title:r?`${t} / ${r}`:t,commonName:t,scientificName:r,subtitle:``,photo:e.photo_path||null,totalPlanted:e.total_planted||0,origin:e.origin_status_label||`Lokal / Asli`,targetUrl:`${qt()}/#katalog?species=${encodeURIComponent(e.id)}`})}),(W===`all`||W===`zone`)&&Ht.forEach(e=>{n.push({type:`zone`,id:e.id,badge:`Blok Kawasan`,badgeColor:`blue`,title:e.name,subtitle:`${e.zone_code||`Blok`} • ${e.category||`Silvikultur`}`,photo:null,areaSize:`${e.area_in_ha||e.area_size||0} Ha`,category:e.category||`Silvikultur`,origin:e.city||`Aceh Besar`,targetUrl:`${qt()}/#beranda`})}),G&&(n=n.filter(e=>{let t=(e.title||``).toLowerCase().includes(G),n=(e.subtitle||``).toLowerCase().includes(G),r=(e.id||``).toLowerCase().includes(G),i=(e.origin||``).toLowerCase().includes(G);return t||n||r||i}));let r=document.getElementById(`qr-reset-btn`);t&&(t.textContent=`${n.length}`);let i=document.getElementById(`qr-items-label`);if(i&&(i.textContent=`Objek`),r){let e=W!==`all`||G.length>0;r.style.display=e?`inline-flex`:`none`}n.length===0?e.innerHTML=`
       <div class="col-span-full bg-slate-900/50 border border-slate-800 rounded-2xl p-12 text-center text-slate-400">
         <div class="text-3xl mb-2">🔍</div>
         <p class="font-bold text-white text-sm mb-1">Tidak Ada Objek Ditemukan</p>
         <p class="text-xs text-slate-400">
-          ${G?`Tidak ada hasil untuk kata kunci "${K(G)}".`:`Belum ada objek terdaftar untuk kategori ini.`}
+          ${G?`Tidak ada hasil untuk kata kunci "${q(G)}".`:`Belum ada objek terdaftar untuk kategori ini.`}
         </p>
       </div>
     `:(e.innerHTML=n.map((e,t)=>`
-      <div class="treeqr-card bg-slate-900/90 hover:bg-slate-900 border border-slate-800 hover:border-emerald-500/40 p-3 sm:p-4 lg:p-4.5 shadow-xl hover:shadow-2xl hover:shadow-emerald-950/20 transition-all duration-300 flex flex-col justify-between group relative overflow-hidden" style="border-radius: 0px !important;">
-        <!-- Top accent highlight line on hover -->
-        <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-
+      <div class="point-card catalog-card treeqr-card group" style="display: flex; flex-direction: column; justify-content: space-between; background: rgba(15, 28, 22, 0.88); border: 1px solid rgba(16, 185, 129, 0.18); border-radius: 16px; overflow: hidden; box-shadow: 0 10px 24px -10px rgba(0, 0, 0, 0.5); transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;">
         <div>
-          <!-- Header: Category Badge + ID + Titles (No Tree Image) -->
-          <div class="mb-2.5 sm:mb-3">
-            <div class="flex items-center justify-between gap-1.5 mb-1.5 sm:mb-2">
-              <span class="inline-flex items-center gap-1 text-[10px] sm:text-[11px] font-semibold px-2 py-0.5 ${e.type===`species`?`bg-emerald-500/15 text-emerald-400 border border-emerald-500/30`:`bg-blue-500/15 text-blue-400 border border-blue-500/30`}" style="border-radius: 0px !important;">
-                <span class="w-1.5 h-1.5 ${e.type===`species`?`bg-emerald-400 animate-pulse`:`bg-blue-400`}"></span>
-                ${e.badge}
+          <!-- Bagian Showcase QR (16:10 aspect ratio seperti pada Katalog) -->
+          <div style="position: relative; width: 100%; aspect-ratio: 16 / 10; overflow: hidden; background: #070d0a; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid rgba(16, 185, 129, 0.12);">
+            <!-- Subtle emerald radial background glow -->
+            <div style="position: absolute; inset: 0; background: radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.12) 0%, rgba(6, 12, 10, 0.95) 75%); pointer-events: none;"></div>
+
+            <!-- QR Code Plate (White rounded plate with shadow, zooms slightly on card hover) -->
+            <div class="relative p-2 sm:p-2.5 bg-white rounded-xl shadow-xl transition-transform duration-300 group-hover:scale-105 inline-flex items-center justify-center z-1">
+              <canvas id="qr-thumb-${t}" style="display: block; width: 108px; height: 108px; max-width: 100%; border-radius: 4px;"></canvas>
+            </div>
+
+            <!-- Badge Kategori / Status (Overlay Top-Left seperti Katalog) -->
+            <div style="position: absolute; top: 12px; left: 12px; z-index: 2;">
+              <span style="font-size: 11px; padding: 4px 11px; border-radius: 9999px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; background: #000000; color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.25); box-shadow: 0 2px 8px rgba(0,0,0,0.6); display: inline-block;">
+                ${q(e.badge)}
               </span>
-              <span class="text-[10px] sm:text-[11px] font-mono text-slate-400 bg-slate-950/70 border border-slate-800/80 px-1.5 sm:px-2 py-0.5 truncate max-w-[85px] sm:max-w-[120px]" style="border-radius: 0px !important;">ID: ${K(e.id)}</span>
             </div>
 
-            <h3 class="text-xs sm:text-sm font-bold text-white group-hover:text-emerald-300 transition-colors truncate leading-snug" title="${K(e.title)}">
-              ${e.type===`species`&&e.scientificName?`<span>${K(e.commonName)}</span> <span class="text-slate-500 font-normal text-[11px] sm:text-xs">/</span> <span class="text-[11px] sm:text-xs font-normal italic text-slate-400">${K(e.scientificName)}</span>`:K(e.title)}
-            </h3>
-            ${e.subtitle?`
-              <p class="text-[11px] sm:text-xs text-slate-400 italic truncate mt-0.5">
-                ${K(e.subtitle)}
-              </p>
-            `:``}
+            <!-- Badge ID (Overlay Top-Right) -->
+            <div style="position: absolute; top: 12px; right: 12px; z-index: 2;">
+              <span style="font-size: 11px; padding: 3px 9px; border-radius: 6px; font-family: monospace; font-weight: 600; background: rgba(0, 0, 0, 0.75); color: #94a3b8; border: 1px solid rgba(255, 255, 255, 0.15); backdrop-filter: blur(8px); display: inline-block;">
+                ID: ${q(e.id)}
+              </span>
+            </div>
           </div>
 
-          <!-- QR Code Centered Showcase (Strict 0 radius) -->
-          <div class="my-2.5 sm:my-3 p-2.5 sm:p-3.5 bg-slate-950/70 border border-white/5 group-hover:border-emerald-500/30 flex flex-col items-center justify-center text-center transition-all relative overflow-hidden" style="border-radius: 0px !important;">
-            <div class="absolute inset-0 bg-gradient-to-b from-emerald-500/5 to-transparent pointer-events-none"></div>
+          <!-- Konten Informasi Pohon / Objek -->
+          <div style="padding: 18px 20px 14px;">
+            <!-- Nama Umum & Nama Ilmiah -->
+            <h2 style="font-size: 18px; font-weight: 700; color: #ffffff; margin-bottom: 4px; line-height: 1.3;">
+              ${q(e.commonName||e.title)}
+            </h2>
 
-            <div class="relative p-1.5 sm:p-2 bg-white shadow-lg transition-transform duration-300 group-hover:scale-105 inline-flex items-center justify-center" style="border-radius: 0px !important;">
-              <canvas id="qr-thumb-${t}" class="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 block"></canvas>
+            <div style="font-size: 13px; font-style: italic; color: var(--clr-primary-light); font-weight: 500; margin-bottom: 10px;">
+              ${q(e.scientificName||e.subtitle||`Identifikasi QR Lapangan`)}
             </div>
 
-            ${e.type===`species`?`
-              <div class="mt-2 sm:mt-2.5 text-[11px] sm:text-xs font-bold text-emerald-400 flex items-center justify-center gap-1 tracking-wide">
-                ${e.totalPlanted>0?`🌱 ${e.totalPlanted} Bibit`:`🌱 Belum Ada`}
+            <!-- Metadata Lokal / Wilayah -->
+            <div style="display: flex; flex-direction: column; gap: 4px; margin-bottom: 14px; font-size: 12.5px;">
+              <div style="color: var(--clr-text-muted);">
+                <span style="color: var(--clr-text-dim);">${e.type===`species`?`Status Asal:`:`Kategori:`}</span>
+                <strong style="color: #e2e8f0; font-weight: 500;">${q(e.origin||e.category||`Lokal`)}</strong>
               </div>
-            `:``}
+              ${e.type===`zone`&&e.areaSize?`
+                <div style="color: var(--clr-text-muted);">
+                  <span style="color: var(--clr-text-dim);">Luas Lahan:</span>
+                  <span style="color: #cbd5e1;">${q(e.areaSize)}</span>
+                </div>
+              `:``}
+            </div>
+
+            <!-- Kuantitas Penanaman / Target Scan (Sama persis box-nya seperti di Katalog) -->
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: rgba(0, 0, 0, 0.3); border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.06); margin-bottom: 14px;">
+              <div style="font-size: 11px; color: var(--clr-text-dim); text-transform: uppercase; font-weight: 600;">
+                ${e.type===`species`?`Bibit Ditanam`:`Target Scan`}
+              </div>
+              <div style="font-size: 13px; font-weight: 700; color: var(--clr-primary-light);">
+                ${e.type===`species`?e.totalPlanted>0?`${e.totalPlanted} bibit ditanam`:`Data belum tersedia`:`Profil Kawasan`}
+              </div>
+            </div>
           </div>
-
-          <!-- Metrics Grid: Hanya untuk non-spesies (zone/blok) -->
-          ${e.type===`species`?``:`
-            <div class="grid grid-cols-2 gap-2 my-2.5 text-xs">
-              <div class="bg-slate-950/60 border border-slate-800/80 px-2.5 py-1.5 flex flex-col" style="border-radius: 0px !important;">
-                <span class="text-[9px] uppercase font-bold text-slate-500 tracking-wider">Luas</span>
-                <span class="text-xs font-bold text-blue-400 mt-0.5">
-                  📐 ${K(e.areaSize||`0 Ha`)}
-                </span>
-              </div>
-              <div class="bg-slate-950/60 border border-slate-800/80 px-2.5 py-1.5 flex flex-col" style="border-radius: 0px !important;">
-                <span class="text-[9px] uppercase font-bold text-slate-500 tracking-wider">Wilayah</span>
-                <span class="text-xs font-semibold text-slate-300 truncate mt-0.5">
-                  📍 ${K(e.origin)}
-                </span>
-              </div>
-            </div>
-          `}
         </div>
 
-        <!-- Footer Action Bar (Strict 0 radius) -->
-        <div class="mt-2.5 pt-2.5 sm:mt-3 sm:pt-3 border-t border-slate-800/80 flex items-center justify-between gap-1 sm:gap-2">
-          <a href="${e.targetUrl}" class="text-[11px] sm:text-xs font-medium text-slate-400 hover:text-emerald-400 transition-colors flex items-center gap-1">
+        <!-- Footer Tombol Aksi -->
+        <div style="padding: 12px 20px 16px; border-top: 1px solid rgba(255, 255, 255, 0.08); display: flex; gap: 10px; align-items: center;">
+          <a
+            href="${e.targetUrl}"
+            style="flex: 1; display: inline-flex; justify-content: center; align-items: center; gap: 6px; font-weight: 600; font-size: 13px; padding: 9px 12px; border-radius: 10px; background: rgba(255, 255, 255, 0.05); color: #cbd5e1; border: 1px solid rgba(255, 255, 255, 0.12); text-decoration: none; transition: all 0.2s ease;"
+            class="hover:bg-white/10 hover:text-white"
+          >
             <span>Buka Info</span>
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
           </a>
-          <button type="button" class="btn-open-qr-modal px-2.5 sm:px-3 py-1 sm:py-1.5 bg-emerald-600/90 hover:bg-emerald-500 text-white text-[11px] sm:text-xs font-semibold shadow-md shadow-emerald-950/50 hover:shadow-emerald-900/50 transition-all flex items-center gap-1 cursor-pointer" style="border-radius: 0px !important;" data-index="${t}">
-            <span>Perbesar<span class="hidden sm:inline"> QR</span></span>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+
+          <button
+            type="button"
+            class="btn-open-qr-modal btn-view-species-profile"
+            data-index="${t}"
+            style="flex: 1.2; display: inline-flex; justify-content: center; align-items: center; gap: 6px; font-weight: 600; font-size: 13px; padding: 9px 12px; border-radius: 10px; background: rgba(16, 185, 129, 0.12); color: #ecfdf5; border: 1px solid rgba(16, 185, 129, 0.3); cursor: pointer; transition: all 0.2s ease;"
+          >
+            <span>Perbesar QR</span> <span>↗</span>
           </button>
         </div>
       </div>
-    `).join(``),n.forEach((e,t)=>{let n=document.getElementById(`qr-thumb-${t}`);n&&Bt.toCanvas(n,e.targetUrl,{width:140,margin:1,color:{dark:`#0a1610`,light:`#ffffff`}}).catch(e=>console.warn(`QR render error:`,e))}),e.querySelectorAll(`.btn-open-qr-modal`).forEach(e=>{e.addEventListener(`click`,()=>{let t=parseInt(e.getAttribute(`data-index`),10);!isNaN(t)&&n[t]&&Yt(n[t])})}))}function Yt(e){let t=document.getElementById(`qr-preview-modal`),n=document.getElementById(`modal-qr-badge`),r=document.getElementById(`modal-qr-title`),i=document.getElementById(`modal-qr-sub`),a=document.getElementById(`modal-qr-url`),o=document.getElementById(`modal-qr-canvas`),s=document.getElementById(`btn-download-qr`),c=document.getElementById(`btn-open-target-url`);t&&o&&(n&&(n.textContent=e.badge),r&&(r.textContent=e.title),i&&(i.textContent=e.subtitle),a&&(a.textContent=e.targetUrl),Bt.toCanvas(o,e.targetUrl,{width:220,margin:2,color:{dark:`#0f172a`,light:`#ffffff`}}),s&&(s.onclick=()=>{let t=document.createElement(`a`);t.download=`QR-${e.id}.png`,t.href=o.toDataURL(`image/png`),t.click()}),c&&(c.onclick=()=>{window.open(e.targetUrl,`_blank`)}),t.classList.remove(`hidden`))}function K(e){return e?String(e).replace(/&/g,`&amp;`).replace(/</g,`&lt;`).replace(/>/g,`&gt;`).replace(/"/g,`&quot;`):``}var Xt=null,Zt=`all`,q=``;async function Qt(e=`public-carbon-container`){let t=document.getElementById(e);if(t){t.innerHTML=`
+    `).join(``),n.forEach((e,t)=>{let n=document.getElementById(`qr-thumb-${t}`);n&&Bt.toCanvas(n,e.targetUrl,{width:140,margin:1,color:{dark:`#0a1610`,light:`#ffffff`}}).catch(e=>console.warn(`QR render error:`,e))}),e.querySelectorAll(`.btn-open-qr-modal`).forEach(e=>{e.addEventListener(`click`,()=>{let t=parseInt(e.getAttribute(`data-index`),10);!isNaN(t)&&n[t]&&Jt(n[t])})}))}function Jt(e){let t=document.getElementById(`qr-preview-modal`),n=document.getElementById(`modal-qr-badge`),r=document.getElementById(`modal-qr-title`),i=document.getElementById(`modal-qr-sub`),a=document.getElementById(`modal-qr-url`),o=document.getElementById(`modal-qr-canvas`),s=document.getElementById(`btn-download-qr`),c=document.getElementById(`btn-open-target-url`);t&&o&&(n&&(n.textContent=e.badge),r&&(r.textContent=e.title),i&&(i.textContent=e.subtitle),a&&(a.textContent=e.targetUrl),Bt.toCanvas(o,e.targetUrl,{width:220,margin:2,color:{dark:`#0f172a`,light:`#ffffff`}}),s&&(s.onclick=()=>{let t=document.createElement(`a`);t.download=`QR-${e.id}.png`,t.href=o.toDataURL(`image/png`),t.click()}),c&&(c.onclick=()=>{window.open(e.targetUrl,`_blank`)}),t.classList.remove(`hidden`))}function q(e){return e?String(e).replace(/&/g,`&amp;`).replace(/</g,`&lt;`).replace(/>/g,`&gt;`).replace(/"/g,`&quot;`):``}var Yt=null,Xt=`all`,J=``;async function Zt(e=`public-carbon-container`){let t=document.getElementById(e);if(t){t.innerHTML=`
     <div class="carbon-loading-state">
       <div class="carbon-spinner"></div>
       <p>Memuat data monitoring karbon kawasan...</p>
     </div>
-  `;try{let e=await fetch(`/api/carbon/public-summary`);if(!e.ok)throw Error(`HTTP Error: ${e.status}`);let n=await e.json();if(!n.success)throw Error(n.message||`Gagal memuat data`);Xt=n,$t(t,n)}catch(n){console.error(`Error loading carbon data:`,n),t.innerHTML=`
+  `;try{let e=await fetch(`/api/carbon/public-summary`);if(!e.ok)throw Error(`HTTP Error: ${e.status}`);let n=await e.json();if(!n.success)throw Error(n.message||`Gagal memuat data`);Yt=n,Qt(t,n)}catch(n){console.error(`Error loading carbon data:`,n),t.innerHTML=`
       <div class="carbon-error-state">
         <span class="carbon-error-icon">⚠️</span>
         <h3>Gagal Memuat Data Monitoring Karbon</h3>
-        <p>${J(n.message||`Terjadi kesalahan saat memuat data dari server.`)}</p>
+        <p>${Y(n.message||`Terjadi kesalahan saat memuat data dari server.`)}</p>
         <button class="btn-carbon-retry" id="btn-retry-carbon">Coba Lagi</button>
       </div>
-    `;let r=document.getElementById(`btn-retry-carbon`);r&&r.addEventListener(`click`,()=>Qt(e))}}}function $t(e,t){let n=t.indicators||{};t.metadata;let r=t.charts||{},i=t.zones_table||[],a=r.species_composition||[],o=q?a.filter(e=>e.name.toLowerCase().includes(q.toLowerCase())||e.scientific_name&&e.scientific_name.toLowerCase().includes(q.toLowerCase())):a;e.innerHTML=`
+    `;let r=document.getElementById(`btn-retry-carbon`);r&&r.addEventListener(`click`,()=>Zt(e))}}}function Qt(e,t){let n=t.indicators||{};t.metadata;let r=t.charts||{},i=t.zones_table||[],a=r.species_composition||[],o=J?a.filter(e=>e.name.toLowerCase().includes(J.toLowerCase())||e.scientific_name&&e.scientific_name.toLowerCase().includes(J.toLowerCase())):a;e.innerHTML=`
     <div class="carbon-wrapper">
       <!-- 1. Hero Section -->
       <div class="carbon-hero">
@@ -1741,11 +1814,11 @@ import{a as e}from"./rolldown-runtime-B0Z9INg1.js";import{a as t,c as n,d as r,f
           <label for="carbon-zone-filter" class="filter-label">Filter Kawasan:</label>
           <select id="carbon-zone-filter" class="carbon-select">
             <option value="all">Semua Kawasan (${n.total_zones||1} Kawasan)</option>
-            ${(i||[]).map(e=>`<option value="${e.id}" ${Zt===e.id?`selected`:``}>${J(e.name)} (${e.area_ha} Ha)</option>`).join(``)}
+            ${(i||[]).map(e=>`<option value="${e.id}" ${Xt===e.id?`selected`:``}>${Y(e.name)} (${e.area_ha} Ha)</option>`).join(``)}
           </select>
         </div>
         <div class="filter-right">
-          <span class="filter-note">Terakhir diperbarui: <strong>${J(n.latest_survey_date||`01 Jan 2026`)}</strong></span>
+          <span class="filter-note">Terakhir diperbarui: <strong>${Y(n.latest_survey_date||`01 Jan 2026`)}</strong></span>
         </div>
       </div>
 
@@ -1773,7 +1846,7 @@ import{a as e}from"./rolldown-runtime-B0Z9INg1.js";import{a as t,c as n,d as r,f
           <div class="kpi-value">${n.total_trees_planted?.toLocaleString()||0} <span class="kpi-unit">Batang</span></div>
           <div class="kpi-sub">
             <span>Bibit Awal Kelompok BATCH-2026-001</span>
-            <span class="kpi-source">• Penanaman: ${J(n.planting_date||`2026-10-01`)}</span>
+            <span class="kpi-source">• Penanaman: ${Y(n.planting_date||`2026-10-01`)}</span>
           </div>
         </div>
 
@@ -1835,14 +1908,14 @@ import{a as e}from"./rolldown-runtime-B0Z9INg1.js";import{a as t,c as n,d as r,f
               ${(r.planting_progress||[]).map(e=>`
                 <div class="bar-item-wrap">
                   <div class="bar-info-row">
-                    <span class="bar-label"><strong>${J(e.batch_code)}</strong> (${J(e.period_label||e.activity_date)})</span>
+                    <span class="bar-label"><strong>${Y(e.batch_code)}</strong> (${Y(e.period_label||e.activity_date)})</span>
                     <span class="bar-val">${e.trees_planted?.toLocaleString()} batang</span>
                   </div>
                   <div class="bar-track">
                     <div class="bar-fill green-fill" style="width: 100%;"></div>
                   </div>
                   <div class="bar-foot">
-                    <span>Lokasi: ${J(e.zone_name)}</span>
+                    <span>Lokasi: ${Y(e.zone_name)}</span>
                     <span class="pill-verified">Tercatat Lapangan</span>
                   </div>
                 </div>
@@ -1925,7 +1998,7 @@ import{a as e}from"./rolldown-runtime-B0Z9INg1.js";import{a as t,c as n,d as r,f
               <div class="empty-trend-icon">⏳</div>
               <h4 class="empty-trend-title">Grafik Tren Memerlukan Pengukuran Berkala</h4>
               <p class="empty-trend-desc">
-                Saat ini sistem baru mencatat <strong>1 periode survei lapangan baseline</strong> (Survei: ${J(n.latest_survey_date||`01 Jan 2026`)}).
+                Saat ini sistem baru mencatat <strong>1 periode survei lapangan baseline</strong> (Survei: ${Y(n.latest_survey_date||`01 Jan 2026`)}).
               </p>
               <div class="empty-trend-steps">
                 <div class="trend-step completed">
@@ -1960,7 +2033,7 @@ import{a as e}from"./rolldown-runtime-B0Z9INg1.js";import{a as t,c as n,d as r,f
                 id="carbon-species-search"
                 class="species-search-input"
                 placeholder="Cari jenis pohon..."
-                value="${J(q)}"
+                value="${Y(J)}"
               />
             </div>
           </div>
@@ -1970,8 +2043,8 @@ import{a as e}from"./rolldown-runtime-B0Z9INg1.js";import{a as t,c as n,d as r,f
                     <div class="species-bar-row">
                       <div class="species-meta-row">
                         <span class="species-title">
-                          <strong>${J(e.name)}</strong>
-                          <em class="species-latin">(${J(e.scientific_name)})</em>
+                          <strong>${Y(e.name)}</strong>
+                          <em class="species-latin">(${Y(e.scientific_name)})</em>
                         </span>
                         <div class="species-vals">
                           <span class="species-count">${e.planted_count} ditanam • ${e.estimated_alive} hidup</span>
@@ -1986,7 +2059,7 @@ import{a as e}from"./rolldown-runtime-B0Z9INg1.js";import{a as t,c as n,d as r,f
                         <span>Stok Karbon: ${e.carbon_stock_kg} kg C</span>
                       </div>
                     </div>
-                  `}).join(``):`<div class="empty-search-alert">Tidak ada jenis pohon yang cocok dengan kata kunci "${J(q)}".</div>`}
+                  `}).join(``):`<div class="empty-search-alert">Tidak ada jenis pohon yang cocok dengan kata kunci "${Y(J)}".</div>`}
             </div>
           </div>
         </div>
@@ -2167,19 +2240,19 @@ import{a as e}from"./rolldown-runtime-B0Z9INg1.js";import{a as t,c as n,d as r,f
                   <tr>
                     <td><strong>${t+1}</strong></td>
                     <td>
-                      <strong>${J(e.name)}</strong><br/>
-                      <span class="text-xs text-muted">Kode: ${J(e.zone_code)}</span>
+                      <strong>${Y(e.name)}</strong><br/>
+                      <span class="text-xs text-muted">Kode: ${Y(e.zone_code)}</span>
                     </td>
                     <td><strong>${e.area_ha}</strong> Ha</td>
                     <td><strong>${e.planted_trees?.toLocaleString()}</strong> bibit</td>
-                    <td>${J(e.latest_survey_date)}</td>
+                    <td>${Y(e.latest_survey_date)}</td>
                     <td><span class="pill-verified">${e.survival_rate}% Hidup</span></td>
-                    <td><span class="pill-completeness">${J(e.data_completeness)}</span></td>
+                    <td><span class="pill-completeness">${Y(e.data_completeness)}</span></td>
                     <td>
                       <strong>~${e.co2e_ton}</strong> Ton CO₂e<br/>
                       <span class="text-xs text-muted">(${e.carbon_stock_ton_c} Ton C)</span>
                     </td>
-                    <td><span class="pill-waiting">${J(e.delta_c)}</span></td>
+                    <td><span class="pill-waiting">${Y(e.delta_c)}</span></td>
                   </tr>
                 `).join(``):`<tr><td colspan="9" class="text-center py-4">Belum ada kawasan yang terdaftar.</td></tr>`}
             </tbody>
@@ -2197,8 +2270,8 @@ import{a as e}from"./rolldown-runtime-B0Z9INg1.js";import{a as t,c as n,d as r,f
           <div class="method-col">
             <h4>📌 Sumber Data & Pengukuran Lapangan</h4>
             <ul>
-              <li><strong>Tanggal Pembaruan:</strong> ${J(n.latest_survey_date||`01 Januari 2026`)}.</li>
-              <li><strong>Cakupan Kawasan:</strong> ${J(i[0]?.name||`Kawasan Lamteuba`)} (${n.total_area_ha} Ha).</li>
+              <li><strong>Tanggal Pembaruan:</strong> ${Y(n.latest_survey_date||`01 Januari 2026`)}.</li>
+              <li><strong>Cakupan Kawasan:</strong> ${Y(i[0]?.name||`Kawasan Lamteuba`)} (${n.total_area_ha} Ha).</li>
               <li><strong>Metode Lapangan:</strong> Sensus 100% pohon tegakan awal pada plot restorasi.</li>
               <li><strong>Rata-rata Tinggi Tanaman:</strong> ${n.average_height_cm} cm (~1,35 meter).</li>
               <li><strong>Rata-rata Diameter Batang (DBH):</strong> ${n.average_diameter_cm} cm.</li>
@@ -2226,7 +2299,7 @@ import{a as e}from"./rolldown-runtime-B0Z9INg1.js";import{a as t,c as n,d as r,f
         </div>
       </div>
     </div>
-  `;let s=document.getElementById(`carbon-zone-filter`);s&&s.addEventListener(`change`,async t=>{Zt=t.target.value;let n=Zt===`all`?`/api/carbon/public-summary`:`/api/carbon/public-summary?zone_id=${Zt}`;try{let t=await(await fetch(n)).json();t.success&&(Xt=t,$t(e,t))}catch(e){console.error(`Filter error:`,e)}});let c=document.getElementById(`carbon-species-search`);c&&c.addEventListener(`input`,t=>{q=t.target.value,$t(e,Xt);let n=document.getElementById(`carbon-species-search`);n&&(n.focus(),n.setSelectionRange(q.length,q.length))})}function J(e){return e?String(e).replace(/&/g,`&amp;`).replace(/</g,`&lt;`).replace(/>/g,`&gt;`).replace(/"/g,`&quot;`):``}var en=null,Y=null,X=null,tn=null,nn=new Map,rn=`beranda`,Z=[],an=`ecoland_last_tour_scene_id`,on=`ecoland_last_tour_view_`,sn=null;function cn(e,t){t&&e&&(sn&&clearTimeout(sn),sn=setTimeout(()=>{try{let n={yaw:t.yaw(),pitch:t.pitch(),fov:t.fov()};localStorage.setItem(on+e,JSON.stringify(n))}catch{}},250))}function ln(e){if(!e)return null;try{let t=localStorage.getItem(on+e);if(!t)return null;let n=JSON.parse(t);if(typeof n?.yaw==`number`&&typeof n?.pitch==`number`&&typeof n?.fov==`number`)return n}catch{}return null}function un(e){let[t,n]=(e||``).replace(/^[#/]+/,``).trim().split(`?`),r=(t||``).toLowerCase(),i=new URLSearchParams(n||``);if(!r&&typeof window<`u`&&window.location.pathname){let e=window.location.pathname.replace(/^\/+/,``).split(`/`)[0].toLowerCase();e&&[`tour`,`info`,`galeri`,`katalog`,`tree-qr`,`karbon`,`admin`].includes(e)&&(r=e)}let a=i.get(`scene`)||i.get(`titik`)||null,o=r||`beranda`;if(r===`tour`||r.startsWith(`tour/`)){if(o=`tour`,r.startsWith(`tour/`)){let e=t.slice(5).trim();e&&(a=e)}}else if(r===`katalog`||r.startsWith(`katalog/`)||r.startsWith(`katalog-pohon/`)){if(o=`katalog`,r.startsWith(`katalog/`)){let e=t.slice(8).trim();e&&!i.has(`species`)&&i.set(`species`,e)}else if(r.startsWith(`katalog-pohon/`)){let e=t.slice(14).trim();e&&!i.has(`species`)&&i.set(`species`,e)}}else if(r===`galeri`||r.startsWith(`galeri/`)||r.startsWith(`album/`)){if(o=`galeri`,r.startsWith(`galeri/`)){let e=t.slice(7).trim().replace(/^album\//,``).trim();e&&!i.has(`album`)&&i.set(`album`,e)}else if(r.startsWith(`album/`)){let e=t.slice(6).trim();e&&!i.has(`album`)&&i.set(`album`,e)}}else r===`monitoring-karbon`&&(o=`karbon`);return{tab:o,sceneParam:a,queryParams:i}}function dn(){if(typeof window<`u`&&window.location.search){let e=new URLSearchParams(window.location.search),t=e.get(`scene`)||e.get(`titik`);if(t){let e=i.find(e=>e.id===t||String(e.sequence)===t);if(e)return e.id}}if(typeof window<`u`&&window.location.hash){let{sceneParam:e}=un(window.location.hash);if(e){let t=i.find(t=>t.id===e||String(t.sequence)===e);if(t)return t.id}}try{let e=localStorage.getItem(an);if(e){let t=i.find(t=>t.id===e);if(t)return t.id}}catch(e){console.warn(`LocalStorage error:`,e)}return i.length>0?i[0].id:null}function fn(e){if(e&&rn===`tour`){let t=`#tour?scene=${encodeURIComponent(e)}`;window.location.hash!==t&&history.replaceState(null,``,t)}}document.addEventListener(`DOMContentLoaded`,async()=>{mn(),_n(),window.addEventListener(`hashchange`,_n),typeof document<`u`&&document.documentElement.removeAttribute(`data-initial-tab`),l.getHotspots().then(e=>{Z=e||[]}).catch(e=>{console.warn(`Failed loading hotspots:`,e)}),pn(),vn(),ut(`home-zones-grid`,e=>{window.location.hash=`tour?scene=${encodeURIComponent(e)}`,$(e)});try{en=ee()}catch(e){console.warn(`Marzipano viewer initialization:`,e.message)}de($),le(i,null),fe({onZoomIn:()=>re(X,-.15),onZoomOut:()=>re(X,.15),onResetView:()=>ie(X,tn||{}),onFullscreen:pe,onPrevScene:yn,onNextScene:bn});let e=document.getElementById(`tour-compass`);e&&e.addEventListener(`click`,()=>{ie(X,tn||{})}),_e(`tour-minimap`,e=>{$(e)});let t=document.getElementById(`btn-minimap-minimize`),r=document.getElementById(`tour-minimap-card`);t&&r&&t.addEventListener(`click`,()=>{let e=r.classList.toggle(`minimized`);t.textContent=e?`Buka Radar`:`Tutup`,e||setTimeout(()=>ye(),150)});let a=document.getElementById(`btn-exit-to-list`);a&&a.addEventListener(`click`,()=>{window.location.hash=`beranda`}),je(`streetview-guide-container`);try{await o({onPublicTourUpdate:e=>{if(Z=e,Y){let e=nn.get(Y),t=i.find(e=>e.id===Y);e&&t&&n(e.scene,t,i,$,Z)}},onExitAdminToTour:()=>{window.location.hash=`tour`}})}catch(e){console.warn(`Admin panel initialization error:`,e)}if(window.addEventListener(`preview-scene`,e=>{e.detail&&e.detail.sceneId&&(window.location.hash=`tour?scene=${encodeURIComponent(e.detail.sceneId)}`,$(e.detail.sceneId))}),i.length>0&&!Y){let e=dn();e&&await $(e,ln(e))}});async function pn(){let e=document.getElementById(`nav-brand-title`),t=document.getElementById(`hero-title`),n=document.getElementById(`hero-desc`),r=document.getElementById(`info-general-desc`);e&&(e.textContent=p.namaAplikasi||`Eco Land`);let i=e=>{document.querySelectorAll(`.brand-subtitle`).forEach(t=>{t.textContent=e})};i(p.organisasi||`IKHW - Inisiatif Konservasi Hutan Wakaf`),t&&(t.innerHTML=`Eco Land<br /><span style="display: block; font-size: 24px; font-weight: 600; opacity: 0.92; margin-top: 6px;">Kawasan Penanaman Pohon</span>`),n&&(n.textContent=p.deskripsi),r&&(r.textContent=p.deskripsi),lt();try{let e=await fetch(`/api/settings/public`);if(e.ok){let t=(await e.json()).flat||{};t.program_description&&(n&&(n.textContent=t.program_description),r&&(r.textContent=t.program_description)),t.org_name&&i(t.org_name),t.app_logo&&document.querySelectorAll(`.brand-logo-icon`).forEach(e=>{e.innerHTML=`<img src="${t.app_logo}" alt="Logo" style="width: 100%; height: 100%; object-fit: contain; padding: 4px;" />`})}}catch(e){console.debug(`Public settings fetch fallback to config defaults:`,e)}}function mn(){let e=document.querySelectorAll(`.nav-tab-btn`),t=document.getElementById(`brand-btn`),n=document.getElementById(`btn-mobile-menu`),r=document.getElementById(`nav-tabs`),i=document.getElementById(`mobile-nav-backdrop`),a=document.getElementById(`nav-btn-admin-desktop`),o=document.getElementById(`footer-btn-admin`),l=document.querySelectorAll(`.nav-dropdown`);function u(){l.forEach(e=>{e.classList.remove(`is-open`);let t=e.querySelector(`.nav-dropdown-trigger`);t&&t.setAttribute(`aria-expanded`,`false`)})}function d(){if(u(),r&&r.classList.remove(`mobile-open`),i&&i.classList.remove(`show`),n){n.setAttribute(`aria-expanded`,`false`);let e=n.querySelector(`.hamburger-icon-open`),t=n.querySelector(`.hamburger-icon-close`);e&&e.classList.remove(`hidden`),t&&t.classList.add(`hidden`)}}function f(){if(!r)return;let e=r.classList.toggle(`mobile-open`);if(i&&i.classList.toggle(`show`,e),e||u(),n){n.setAttribute(`aria-expanded`,e?`true`:`false`);let t=n.querySelector(`.hamburger-icon-open`),r=n.querySelector(`.hamburger-icon-close`);t&&t.classList.toggle(`hidden`,e),r&&r.classList.toggle(`hidden`,!e)}}l.forEach(e=>{let t=e.querySelector(`.nav-dropdown-trigger`),n=null;e.addEventListener(`mouseenter`,()=>{window.innerWidth>900&&(n&&=(clearTimeout(n),null),e.classList.add(`is-open`),t&&t.setAttribute(`aria-expanded`,`true`))}),e.addEventListener(`mouseleave`,()=>{window.innerWidth>900&&(n=setTimeout(()=>{e.classList.remove(`is-open`),t&&t.setAttribute(`aria-expanded`,`false`)},120))}),t&&t.addEventListener(`click`,n=>{n.preventDefault(),n.stopPropagation();let r=e.classList.contains(`is-open`);l.forEach(t=>{if(t!==e){t.classList.remove(`is-open`);let e=t.querySelector(`.nav-dropdown-trigger`);e&&e.setAttribute(`aria-expanded`,`false`)}}),r?(e.classList.remove(`is-open`),t.setAttribute(`aria-expanded`,`false`)):(e.classList.add(`is-open`),t.setAttribute(`aria-expanded`,`true`))}),e.querySelectorAll(`.nav-dropdown-item`).forEach(e=>{e.addEventListener(`click`,()=>{u(),d()})})}),e.forEach(e=>{e.classList.contains(`nav-dropdown-trigger`)||e.classList.contains(`btn-nav-login`)||e.addEventListener(`click`,t=>{let n=e.getAttribute(`data-tab`);if(n===`login`)window.location.href=`/login`;else{if(n===`admin`){if(!Q()){window.location.href=`/login`;return}t.preventDefault(),c()}else window.location.hash=n;u(),d()}})}),document.querySelectorAll(`.btn-nav-login`).forEach(e=>{e.addEventListener(`click`,t=>{let n=Q(),r=e.getAttribute(`href`)||``;!n||r.includes(`/login`)||e.getAttribute(`data-tab`)===`login`?(d(),window.location.href=`/login`):(t.preventDefault(),d(),c())})}),a&&a.addEventListener(`click`,e=>{let t=Q(),n=a.getAttribute(`href`)||``;!t||n.includes(`/login`)||a.getAttribute(`data-tab`)===`login`?window.location.href=`/login`:(e.preventDefault(),c())}),o&&o.addEventListener(`click`,e=>{Q()?(e.preventDefault(),c()):window.location.href=`/login`}),t&&t.addEventListener(`click`,()=>{window.location.hash=`beranda`,d()}),n&&n.addEventListener(`click`,e=>{e.stopPropagation(),f()}),i&&i.addEventListener(`click`,d),document.addEventListener(`keydown`,e=>{e.key===`Escape`&&(u(),d())}),document.addEventListener(`click`,e=>{e.target.closest(`.nav-dropdown`)||u(),r&&r.classList.contains(`mobile-open`)&&!r.contains(e.target)&&!n.contains(e.target)&&d()}),document.querySelectorAll(`.footer-nav-link`).forEach(e=>{e.addEventListener(`click`,t=>{let n=e.getAttribute(`data-tab`);n&&(t.preventDefault(),window.location.hash=n,window.scrollTo({top:0,behavior:`smooth`}))})});let p=document.getElementById(`btn-hero-start-tour`),m=document.getElementById(`btn-hero-view-points`);p&&p.addEventListener(`click`,()=>window.location.hash=`tour`),m&&m.addEventListener(`click`,()=>window.location.hash=`info`),hn(),s(()=>{hn()})}function Q(){if(l.isAuthenticated())return!0;if(typeof window<`u`&&typeof window.ECO_SERVER_AUTH==`boolean`)return window.ECO_SERVER_AUTH;if(typeof document<`u`){let e=document.querySelector(`meta[name="eco-server-auth"]`);if(e)return e.getAttribute(`content`)===`true`}return t()}function hn(){let e=Q(),t=document.getElementById(`nav-btn-admin-desktop`),n=document.querySelectorAll(`.btn-nav-login`),r=e?`/#admin/dashboard`:`/login`;t&&(t.setAttribute(`href`,r),t.setAttribute(`data-tab`,e?`admin`:`login`),e?(t.setAttribute(`title`,`Dashboard Eco Land`),t.classList.add(`is-authenticated`),t.innerHTML=`
+  `;let s=document.getElementById(`carbon-zone-filter`);s&&s.addEventListener(`change`,async t=>{Xt=t.target.value;let n=Xt===`all`?`/api/carbon/public-summary`:`/api/carbon/public-summary?zone_id=${Xt}`;try{let t=await(await fetch(n)).json();t.success&&(Yt=t,Qt(e,t))}catch(e){console.error(`Filter error:`,e)}});let c=document.getElementById(`carbon-species-search`);c&&c.addEventListener(`input`,t=>{J=t.target.value,Qt(e,Yt);let n=document.getElementById(`carbon-species-search`);n&&(n.focus(),n.setSelectionRange(J.length,J.length))})}function Y(e){return e?String(e).replace(/&/g,`&amp;`).replace(/</g,`&lt;`).replace(/>/g,`&gt;`).replace(/"/g,`&quot;`):``}var $t=null,X=null,Z=null,en=null,tn=new Map,nn=`beranda`,rn=[],an=`ecoland_last_tour_scene_id`,on=`ecoland_last_tour_view_`,sn=null;function cn(e,t){t&&e&&(sn&&clearTimeout(sn),sn=setTimeout(()=>{try{let n={yaw:t.yaw(),pitch:t.pitch(),fov:t.fov()};localStorage.setItem(on+e,JSON.stringify(n))}catch{}},250))}function ln(e){if(!e)return null;try{let t=localStorage.getItem(on+e);if(!t)return null;let n=JSON.parse(t);if(typeof n?.yaw==`number`&&typeof n?.pitch==`number`&&typeof n?.fov==`number`)return n}catch{}return null}function un(e){let[t,n]=(e||``).replace(/^[#/]+/,``).trim().split(`?`),r=(t||``).toLowerCase(),i=new URLSearchParams(n||``);if(!r&&typeof window<`u`&&window.location.pathname){let e=window.location.pathname.replace(/^\/+/,``).split(`/`)[0].toLowerCase();e&&[`tour`,`info`,`galeri`,`katalog`,`tree-qr`,`karbon`,`admin`].includes(e)&&(r=e)}let a=i.get(`scene`)||i.get(`titik`)||null,o=r||`beranda`;if(r===`tour`||r.startsWith(`tour/`)){if(o=`tour`,r.startsWith(`tour/`)){let e=t.slice(5).trim();e&&(a=e)}}else if(r===`katalog`||r.startsWith(`katalog/`)||r.startsWith(`katalog-pohon/`)){if(o=`katalog`,r.startsWith(`katalog/`)){let e=t.slice(8).trim();e&&!i.has(`species`)&&i.set(`species`,e)}else if(r.startsWith(`katalog-pohon/`)){let e=t.slice(14).trim();e&&!i.has(`species`)&&i.set(`species`,e)}}else if(r===`galeri`||r.startsWith(`galeri/`)||r.startsWith(`album/`)){if(o=`galeri`,r.startsWith(`galeri/`)){let e=t.slice(7).trim().replace(/^album\//,``).trim();e&&!i.has(`album`)&&i.set(`album`,e)}else if(r.startsWith(`album/`)){let e=t.slice(6).trim();e&&!i.has(`album`)&&i.set(`album`,e)}}else r===`monitoring-karbon`&&(o=`karbon`);return{tab:o,sceneParam:a,queryParams:i}}function dn(){if(typeof window<`u`&&window.location.search){let e=new URLSearchParams(window.location.search),t=e.get(`scene`)||e.get(`titik`);if(t){let e=i.find(e=>e.id===t||String(e.sequence)===t);if(e)return e.id}}if(typeof window<`u`&&window.location.hash){let{sceneParam:e}=un(window.location.hash);if(e){let t=i.find(t=>t.id===e||String(t.sequence)===e);if(t)return t.id}}try{let e=localStorage.getItem(an);if(e){let t=i.find(t=>t.id===e);if(t)return t.id}}catch(e){console.warn(`LocalStorage error:`,e)}return i.length>0?i[0].id:null}function fn(e){if(e&&nn===`tour`){let t=`#tour?scene=${encodeURIComponent(e)}`;window.location.hash!==t&&history.replaceState(null,``,t)}}document.addEventListener(`DOMContentLoaded`,async()=>{mn(),_n(),window.addEventListener(`hashchange`,_n),typeof document<`u`&&document.documentElement.removeAttribute(`data-initial-tab`),l.getHotspots().then(e=>{rn=e||[]}).catch(e=>{console.warn(`Failed loading hotspots:`,e)}),pn(),vn(),ut(`home-zones-grid`,e=>{window.location.hash=`tour?scene=${encodeURIComponent(e)}`,$(e)});try{$t=ee()}catch(e){console.warn(`Marzipano viewer initialization:`,e.message)}de($),le(i,null),fe({onZoomIn:()=>re(Z,-.15),onZoomOut:()=>re(Z,.15),onResetView:()=>ie(Z,en||{}),onFullscreen:pe,onPrevScene:yn,onNextScene:bn});let e=document.getElementById(`tour-compass`);e&&e.addEventListener(`click`,()=>{ie(Z,en||{})}),_e(`tour-minimap`,e=>{$(e)});let t=document.getElementById(`btn-minimap-minimize`),r=document.getElementById(`tour-minimap-card`);t&&r&&t.addEventListener(`click`,()=>{let e=r.classList.toggle(`minimized`);t.textContent=e?`Buka Radar`:`Tutup`,e||setTimeout(()=>ye(),150)});let a=document.getElementById(`btn-exit-to-list`);a&&a.addEventListener(`click`,()=>{window.location.hash=`beranda`}),je(`streetview-guide-container`);try{await o({onPublicTourUpdate:e=>{if(rn=e,X){let e=tn.get(X),t=i.find(e=>e.id===X);e&&t&&n(e.scene,t,i,$,rn)}},onExitAdminToTour:()=>{window.location.hash=`tour`}})}catch(e){console.warn(`Admin panel initialization error:`,e)}if(window.addEventListener(`preview-scene`,e=>{e.detail&&e.detail.sceneId&&(window.location.hash=`tour?scene=${encodeURIComponent(e.detail.sceneId)}`,$(e.detail.sceneId))}),i.length>0&&!X){let e=dn();e&&await $(e,ln(e))}});async function pn(){let e=document.getElementById(`nav-brand-title`),t=document.getElementById(`hero-title`),n=document.getElementById(`hero-desc`),r=document.getElementById(`info-general-desc`);e&&(e.textContent=p.namaAplikasi||`Eco Land`);let i=e=>{document.querySelectorAll(`.brand-subtitle`).forEach(t=>{t.textContent=e})};i(p.organisasi||`IKHW - Inisiatif Konservasi Hutan Wakaf`),t&&(t.innerHTML=`Eco Land<br /><span style="display: block; font-size: 24px; font-weight: 600; opacity: 0.92; margin-top: 6px;">Kawasan Penanaman Pohon</span>`),n&&(n.textContent=p.deskripsi),r&&(r.textContent=p.deskripsi),lt();try{let e=await fetch(`/api/settings/public`);if(e.ok){let t=(await e.json()).flat||{};t.program_description&&(n&&(n.textContent=t.program_description),r&&(r.textContent=t.program_description)),t.org_name&&i(t.org_name),t.app_logo&&document.querySelectorAll(`.brand-logo-icon`).forEach(e=>{e.innerHTML=`<img src="${t.app_logo}" alt="Logo" style="width: 100%; height: 100%; object-fit: contain; padding: 4px;" />`})}}catch(e){console.debug(`Public settings fetch fallback to config defaults:`,e)}}function mn(){let e=document.querySelectorAll(`.nav-tab-btn`),t=document.getElementById(`brand-btn`),n=document.getElementById(`btn-mobile-menu`),r=document.getElementById(`nav-tabs`),i=document.getElementById(`mobile-nav-backdrop`),a=document.getElementById(`nav-btn-admin-desktop`),o=document.getElementById(`footer-btn-admin`),l=document.querySelectorAll(`.nav-dropdown`);function u(){l.forEach(e=>{e.classList.remove(`is-open`);let t=e.querySelector(`.nav-dropdown-trigger`);t&&t.setAttribute(`aria-expanded`,`false`)})}function d(){if(u(),r&&r.classList.remove(`mobile-open`),i&&i.classList.remove(`show`),n){n.setAttribute(`aria-expanded`,`false`);let e=n.querySelector(`.hamburger-icon-open`),t=n.querySelector(`.hamburger-icon-close`);e&&e.classList.remove(`hidden`),t&&t.classList.add(`hidden`)}}function f(){if(!r)return;let e=r.classList.toggle(`mobile-open`);if(i&&i.classList.toggle(`show`,e),e||u(),n){n.setAttribute(`aria-expanded`,e?`true`:`false`);let t=n.querySelector(`.hamburger-icon-open`),r=n.querySelector(`.hamburger-icon-close`);t&&t.classList.toggle(`hidden`,e),r&&r.classList.toggle(`hidden`,!e)}}l.forEach(e=>{let t=e.querySelector(`.nav-dropdown-trigger`),n=null;e.addEventListener(`mouseenter`,()=>{window.innerWidth>900&&(n&&=(clearTimeout(n),null),e.classList.add(`is-open`),t&&t.setAttribute(`aria-expanded`,`true`))}),e.addEventListener(`mouseleave`,()=>{window.innerWidth>900&&(n=setTimeout(()=>{e.classList.remove(`is-open`),t&&t.setAttribute(`aria-expanded`,`false`)},120))}),t&&t.addEventListener(`click`,n=>{n.preventDefault(),n.stopPropagation();let r=e.classList.contains(`is-open`);l.forEach(t=>{if(t!==e){t.classList.remove(`is-open`);let e=t.querySelector(`.nav-dropdown-trigger`);e&&e.setAttribute(`aria-expanded`,`false`)}}),r?(e.classList.remove(`is-open`),t.setAttribute(`aria-expanded`,`false`)):(e.classList.add(`is-open`),t.setAttribute(`aria-expanded`,`true`))}),e.querySelectorAll(`.nav-dropdown-item`).forEach(e=>{e.addEventListener(`click`,()=>{u(),d()})})}),e.forEach(e=>{e.classList.contains(`nav-dropdown-trigger`)||e.classList.contains(`btn-nav-login`)||e.addEventListener(`click`,t=>{let n=e.getAttribute(`data-tab`);if(n===`login`)window.location.href=`/login`;else{if(n===`admin`){if(!Q()){window.location.href=`/login`;return}t.preventDefault(),c()}else window.location.hash=n;u(),d()}})}),document.querySelectorAll(`.btn-nav-login`).forEach(e=>{e.addEventListener(`click`,t=>{let n=Q(),r=e.getAttribute(`href`)||``;!n||r.includes(`/login`)||e.getAttribute(`data-tab`)===`login`?(d(),window.location.href=`/login`):(t.preventDefault(),d(),c())})}),a&&a.addEventListener(`click`,e=>{let t=Q(),n=a.getAttribute(`href`)||``;!t||n.includes(`/login`)||a.getAttribute(`data-tab`)===`login`?window.location.href=`/login`:(e.preventDefault(),c())}),o&&o.addEventListener(`click`,e=>{Q()?(e.preventDefault(),c()):window.location.href=`/login`}),t&&t.addEventListener(`click`,()=>{window.location.hash=`beranda`,d()}),n&&n.addEventListener(`click`,e=>{e.stopPropagation(),f()}),i&&i.addEventListener(`click`,d),document.addEventListener(`keydown`,e=>{e.key===`Escape`&&(u(),d())}),document.addEventListener(`click`,e=>{e.target.closest(`.nav-dropdown`)||u(),r&&r.classList.contains(`mobile-open`)&&!r.contains(e.target)&&!n.contains(e.target)&&d()}),document.querySelectorAll(`.footer-nav-link`).forEach(e=>{e.addEventListener(`click`,t=>{let n=e.getAttribute(`data-tab`);n&&(t.preventDefault(),window.location.hash=n,window.scrollTo({top:0,behavior:`smooth`}))})});let p=document.getElementById(`btn-hero-start-tour`),m=document.getElementById(`btn-hero-view-points`);p&&p.addEventListener(`click`,()=>window.location.hash=`tour`),m&&m.addEventListener(`click`,()=>window.location.hash=`info`),hn(),s(()=>{hn()})}function Q(){if(l.isAuthenticated())return!0;if(typeof window<`u`&&typeof window.ECO_SERVER_AUTH==`boolean`)return window.ECO_SERVER_AUTH;if(typeof document<`u`){let e=document.querySelector(`meta[name="eco-server-auth"]`);if(e)return e.getAttribute(`content`)===`true`}return t()}function hn(){let e=Q(),t=document.getElementById(`nav-btn-admin-desktop`),n=document.querySelectorAll(`.btn-nav-login`),r=e?`/#admin/dashboard`:`/login`;t&&(t.setAttribute(`href`,r),t.setAttribute(`data-tab`,e?`admin`:`login`),e?(t.setAttribute(`title`,`Dashboard Eco Land`),t.classList.add(`is-authenticated`),t.innerHTML=`
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <rect x="3" y="3" width="7" height="7"></rect>
           <rect x="14" y="3" width="7" height="7"></rect>
@@ -2240,7 +2313,7 @@ import{a as e}from"./rolldown-runtime-B0Z9INg1.js";import{a as t,c as n,d as r,f
           <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
         </svg>
         <span class="header-login-text">Login</span>
-      `)),n.forEach(t=>{t.setAttribute(`href`,r),t.setAttribute(`data-tab`,e?`admin`:`login`);let n=t.querySelector(`.nav-icon`),i=t.querySelector(`.nav-text`)||t.querySelector(`span:last-child`);e?(t.setAttribute(`title`,`Dashboard Eco Land`),n&&(n.textContent=`📊`),i&&(i.textContent=`Dashboard`)):(t.setAttribute(`title`,`Login Eco Land`),n&&(n.textContent=`🔐`),i&&(i.textContent=`Login`))})}function gn(e){rn=e,hn();let t=document.getElementById(`main-navbar`);t&&(t.style.display=e===`admin`?`none`:``);let n=document.getElementById(`views-container`);n&&(n.style.display=e===`admin`?`none`:``);let r=document.getElementById(`public-global-footer`);r&&(r.style.display=[`beranda`,`info`,`galeri`,`katalog`,`tree-qr`,`karbon`].includes(e)?`block`:`none`);let i=[`galeri`,`katalog`,`tree-qr`];document.querySelectorAll(`.nav-tab-btn`).forEach(t=>{let n=t.getAttribute(`data-tab`);n===`informasi`?t.classList.toggle(`active`,i.includes(e)):t.classList.toggle(`active`,n===e)}),document.querySelectorAll(`.nav-dropdown-item`).forEach(t=>{t.classList.toggle(`active`,t.getAttribute(`data-tab`)===e)}),document.querySelectorAll(`.view-pane`).forEach(t=>{t.classList.toggle(`active`,t.id===`view-${e}`)}),e!==`tour`&&window.scrollTo(0,0);let a={beranda:`Eco Land — Virtual Tour & Sistem Informasi Restorasi Kawasan | IKHW Aceh`,tour:`Virtual Tour 360° — Eco Land`,info:`Informasi Kawasan — Eco Land`,galeri:`Galeri Foto Kawasan — Eco Land`,katalog:`Data & Katalog Pohon — Eco Land`,"tree-qr":`Tree QR Code Kawasan — Eco Land`,karbon:`Monitoring Karbon — Eco Land`,admin:`Dashboard Administrator — Eco Land`};if(a[e]&&(document.title=a[e]),e===`beranda`)lt(),xe(`home-ref-map`,e=>{window.location.hash=`tour?scene=${encodeURIComponent(e)}`,$(e)}),we();else if(e===`info`)xe(`gis-map`,e=>{window.location.hash=`tour?scene=${encodeURIComponent(e)}`,$(e)}),we();else if(e===`galeri`){let{queryParams:e}=un(window.location.hash);yt(`public-gallery-container`,e?e.get(`album`)||e.get(`id`):null)}else if(e===`katalog`){let{queryParams:e}=un(window.location.hash);ze(`public-tree-catalog-container`,e=>{window.location.hash=`tour?scene=${encodeURIComponent(e)}`,$(e)},e?e.get(`species`):null)}else e===`tree-qr`?Ut(`public-tree-qr-container`):e===`karbon`?Qt(`public-carbon-container`):e===`tour`?(window.dispatchEvent(new Event(`resize`)),setTimeout(()=>{ye(),Y&&ve(Y)},200)):e===`admin`&&window.dispatchEvent(new Event(`resize`))}function _n(){let e=window.location.hash||`#beranda`,{tab:t,sceneParam:n}=un(e),r=[`beranda`,`tour`,`info`,`galeri`,`katalog`,`tree-qr`,`karbon`,`admin`];if(t===`titik`)window.location.replace(`#beranda`);else if(t===`admin`||t.startsWith(`admin/`))Q()?(gn(`admin`),u(e)):(sessionStorage.setItem(`admin_redirect_hash`,e),c());else if(t===`tour`){if(gn(`tour`),n){let e=i.find(e=>e.id===n||String(e.sequence)===n);if(e){e.id!==Y&&$(e.id,ln(e.id));return}}if(Y)fn(Y);else{let e=dn();e&&$(e,ln(e))}}else r.includes(t)?gn(t):gn(`beranda`)}function vn(){let e=document.getElementById(`home-points-grid`);e&&(e.innerHTML=i.map(e=>{let t=e.status===`tersedia`;return`
+      `)),n.forEach(t=>{t.setAttribute(`href`,r),t.setAttribute(`data-tab`,e?`admin`:`login`);let n=t.querySelector(`.nav-icon`),i=t.querySelector(`.nav-text`)||t.querySelector(`span:last-child`);e?(t.setAttribute(`title`,`Dashboard Eco Land`),n&&(n.textContent=`📊`),i&&(i.textContent=`Dashboard`)):(t.setAttribute(`title`,`Login Eco Land`),n&&(n.textContent=`🔐`),i&&(i.textContent=`Login`))})}function gn(e){nn=e,hn();let t=document.getElementById(`main-navbar`);t&&(t.style.display=e===`admin`?`none`:``);let n=document.getElementById(`views-container`);n&&(n.style.display=e===`admin`?`none`:``);let r=document.getElementById(`public-global-footer`);r&&(r.style.display=[`beranda`,`info`,`galeri`,`katalog`,`tree-qr`,`karbon`].includes(e)?`block`:`none`);let i=[`galeri`,`katalog`,`tree-qr`];document.querySelectorAll(`.nav-tab-btn`).forEach(t=>{let n=t.getAttribute(`data-tab`);n===`informasi`?t.classList.toggle(`active`,i.includes(e)):t.classList.toggle(`active`,n===e)}),document.querySelectorAll(`.nav-dropdown-item`).forEach(t=>{t.classList.toggle(`active`,t.getAttribute(`data-tab`)===e)}),document.querySelectorAll(`.view-pane`).forEach(t=>{t.classList.toggle(`active`,t.id===`view-${e}`)}),e!==`tour`&&window.scrollTo(0,0);let a={beranda:`Eco Land — Virtual Tour & Sistem Informasi Restorasi Kawasan | IKHW Aceh`,tour:`Virtual Tour 360° — Eco Land`,info:`Informasi Kawasan — Eco Land`,galeri:`Galeri Foto Kawasan — Eco Land`,katalog:`Data & Katalog Pohon — Eco Land`,"tree-qr":`Tree QR Code Kawasan — Eco Land`,karbon:`Monitoring Karbon — Eco Land`,admin:`Dashboard Administrator — Eco Land`};if(a[e]&&(document.title=a[e]),e===`beranda`)lt(),xe(`home-ref-map`,e=>{window.location.hash=`tour?scene=${encodeURIComponent(e)}`,$(e)}),we();else if(e===`info`)xe(`gis-map`,e=>{window.location.hash=`tour?scene=${encodeURIComponent(e)}`,$(e)}),we();else if(e===`galeri`){let{queryParams:e}=un(window.location.hash);yt(`public-gallery-container`,e?e.get(`album`)||e.get(`id`):null)}else if(e===`katalog`){let{queryParams:e}=un(window.location.hash);ze(`public-tree-catalog-container`,e=>{window.location.hash=`tour?scene=${encodeURIComponent(e)}`,$(e)},e?e.get(`species`):null)}else e===`tree-qr`?Ut(`public-tree-qr-container`):e===`karbon`?Zt(`public-carbon-container`):e===`tour`?(window.dispatchEvent(new Event(`resize`)),setTimeout(()=>{ye(),X&&ve(X)},200)):e===`admin`&&window.dispatchEvent(new Event(`resize`))}function _n(){let e=window.location.hash||`#beranda`,{tab:t,sceneParam:n}=un(e),r=[`beranda`,`tour`,`info`,`galeri`,`katalog`,`tree-qr`,`karbon`,`admin`];if(t===`titik`)window.location.replace(`#beranda`);else if(t===`admin`||t.startsWith(`admin/`))Q()?(gn(`admin`),u(e)):(sessionStorage.setItem(`admin_redirect_hash`,e),c());else if(t===`tour`){if(gn(`tour`),n){let e=i.find(e=>e.id===n||String(e.sequence)===n);if(e){e.id!==X&&$(e.id,ln(e.id));return}}if(X)fn(X);else{let e=dn();e&&$(e,ln(e))}}else r.includes(t)?gn(t):gn(`beranda`)}function vn(){let e=document.getElementById(`home-points-grid`);e&&(e.innerHTML=i.map(e=>{let t=e.status===`tersedia`;return`
         <div class="point-card">
           <div>
             <div class="point-card-top">
@@ -2263,4 +2336,4 @@ import{a as e}from"./rolldown-runtime-B0Z9INg1.js";import{a as t,c as n,d as r,f
             Buka Panorama 360°
           </button>
         </div>
-      `}).join(``),e.querySelectorAll(`.btn-card-explore`).forEach(e=>{e.addEventListener(`click`,()=>{let t=e.getAttribute(`data-scene-id`);window.location.hash=`tour?scene=${encodeURIComponent(t)}`,$(t)})}))}function yn(){if(!Y)return;let e=(i.findIndex(e=>e.id===Y)-1+i.length)%i.length;$(i[e].id)}function bn(){if(!Y)return;let e=(i.findIndex(e=>e.id===Y)+1)%i.length;$(i[e].id)}async function $(e,t=null){if(!e||e===Y&&!t)return;let r=i.find(t=>t.id===e);if(!r)return;try{localStorage.setItem(an,e)}catch{}fn(e),Oe(r),ue(e),le(i,e),ve(e);let a=document.getElementById(`tour-loading`);if(a&&a.classList.remove(`hidden`),!await Te(r.panorama))a&&a.classList.add(`hidden`),De(),Ee(r),Y=e,X=null,tn=r.initialView;else{De();try{let o=nn.get(e);if(!o&&en?(o=te(r,t),n(o.scene,r,i,$,Z),nn.set(e,o)):o&&(t&&ne(o.view,t),n(o.scene,r,i,$,Z)),o){o.scene.switchTo({transitionDuration:500}),Y=e,X=o.view,tn=r.initialView;let t=document.getElementById(`compass-needle`);if(t){let e=-(o.view.yaw()*180/Math.PI);t.style.transform=`rotate(${e}deg)`}o.view._hasPersistenceListener||(o.view._hasPersistenceListener=!0,o.view.addEventListener(`change`,()=>{if(t){let e=-(o.view.yaw()*180/Math.PI);t.style.transform=`rotate(${e}deg)`}Y&&cn(Y,o.view)}))}a&&a.classList.add(`hidden`)}catch(e){console.error(`Error switching scene:`,e),a&&a.classList.add(`hidden`),Ee(r)}}}window.addEventListener(`zones-updated`,()=>{lt()});
+      `}).join(``),e.querySelectorAll(`.btn-card-explore`).forEach(e=>{e.addEventListener(`click`,()=>{let t=e.getAttribute(`data-scene-id`);window.location.hash=`tour?scene=${encodeURIComponent(t)}`,$(t)})}))}function yn(){if(!X)return;let e=(i.findIndex(e=>e.id===X)-1+i.length)%i.length;$(i[e].id)}function bn(){if(!X)return;let e=(i.findIndex(e=>e.id===X)+1)%i.length;$(i[e].id)}async function $(e,t=null){if(!e||e===X&&!t)return;let r=i.find(t=>t.id===e);if(!r)return;try{localStorage.setItem(an,e)}catch{}fn(e),Oe(r),ue(e),le(i,e),ve(e);let a=document.getElementById(`tour-loading`);if(a&&a.classList.remove(`hidden`),!await Te(r.panorama))a&&a.classList.add(`hidden`),De(),Ee(r),X=e,Z=null,en=r.initialView;else{De();try{let o=tn.get(e);if(!o&&$t?(o=te(r,t),n(o.scene,r,i,$,rn),tn.set(e,o)):o&&(t&&ne(o.view,t),n(o.scene,r,i,$,rn)),o){o.scene.switchTo({transitionDuration:500}),X=e,Z=o.view,en=r.initialView;let t=document.getElementById(`compass-needle`);if(t){let e=-(o.view.yaw()*180/Math.PI);t.style.transform=`rotate(${e}deg)`}o.view._hasPersistenceListener||(o.view._hasPersistenceListener=!0,o.view.addEventListener(`change`,()=>{if(t){let e=-(o.view.yaw()*180/Math.PI);t.style.transform=`rotate(${e}deg)`}X&&cn(X,o.view)}))}a&&a.classList.add(`hidden`)}catch(e){console.error(`Error switching scene:`,e),a&&a.classList.add(`hidden`),Ee(r)}}}window.addEventListener(`zones-updated`,()=>{lt()});
