@@ -427,8 +427,8 @@ import{a as e}from"./rolldown-runtime-B0Z9INg1.js";import{a as t,c as n,d as r,f
   `}function Ye(e){b(),y=e,window.location.hash=`#katalog?species=${encodeURIComponent(e)}`,window.scrollTo({top:0,behavior:`smooth`}),He()}function Xe(){b(),y=null,window.location.hash=`#katalog`,window.scrollTo({top:0,behavior:`smooth`}),He()}function Ze(e,t){let n=t.origin_status_label||(t.origin_status===`lokal_asli`?`Jenis Asli / Lokal`:`Jenis Introduksi`);t.origin_status;let r=t.photo_path&&t.photo_path.trim()?Ke(t.photo_path):``,i=(Array.isArray(t.gallery_photos)&&t.gallery_photos.length>0?t.gallery_photos:r?[r]:[]).map(e=>Ke(e)).filter(Boolean),o=i.length>0,s=t.plantings||[],c=t.has_planted_data&&t.total_planted!==null&&t.total_planted>0,l=c?`${D(t.total_planted)} bibit (batang)`:`Data belum tersedia`,u=t.latest_survey;if(e.innerHTML=`
     <div class="catalog-wrapper catalog-detail-page">
       <!-- Breadcrumb & Tombol Kembali -->
-      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 24px; padding-bottom: 14px; border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
-        <nav aria-label="Breadcrumb" style="font-size: 13px; color: var(--clr-text-muted); display: flex; align-items: center; gap: 8px;">
+      <div class="catalog-detail-top-nav" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 24px; padding-bottom: 14px; border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
+        <nav aria-label="Breadcrumb" class="catalog-detail-breadcrumb" style="font-size: 13px; color: var(--clr-text-muted); display: flex; align-items: center; gap: 8px;">
           <button id="btn-breadcrumb-back" class="btn-text-btn" style="color: var(--clr-primary-light); text-decoration: none; background: none; border: none; cursor: pointer; padding: 0; font-size: 13px; font-weight: 500;">
             ← Katalog Jenis Pohon
           </button>

@@ -46,6 +46,15 @@
   .tree-qr-grid-inner .treeqr-card > div:last-child {
     padding: 8px 10px 10px !important;
   }
+
+  /* Khusus Tampilan Mobile: Sembunyikan navigasi breadcrumb detail spesies */
+  .catalog-detail-breadcrumb {
+    display: none !important;
+  }
+
+  .catalog-detail-top-nav {
+    justify-content: flex-start !important;
+  }
 }
 
 .catalog-card {

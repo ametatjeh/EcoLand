@@ -589,8 +589,8 @@ function renderSpeciesDetailView(container, sp) {
   container.innerHTML = `
     <div class="catalog-wrapper catalog-detail-page">
       <!-- Breadcrumb & Tombol Kembali -->
-      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 24px; padding-bottom: 14px; border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
-        <nav aria-label="Breadcrumb" style="font-size: 13px; color: var(--clr-text-muted); display: flex; align-items: center; gap: 8px;">
+      <div class="catalog-detail-top-nav" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 24px; padding-bottom: 14px; border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
+        <nav aria-label="Breadcrumb" class="catalog-detail-breadcrumb" style="font-size: 13px; color: var(--clr-text-muted); display: flex; align-items: center; gap: 8px;">
           <button id="btn-breadcrumb-back" class="btn-text-btn" style="color: var(--clr-primary-light); text-decoration: none; background: none; border: none; cursor: pointer; padding: 0; font-size: 13px; font-weight: 500;">
             ← Katalog Jenis Pohon
           </button>
